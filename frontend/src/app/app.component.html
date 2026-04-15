@@ -1,0 +1,347 @@
+<main class="storybook-shell" [class.invitation-open]="isOpen">
+  <section class="cover" aria-labelledby="cover-title">
+    <div class="sky-detail cloud-one"></div>
+    <div class="sky-detail cloud-two"></div>
+
+    <div class="envelope-stage">
+      <div class="envelope" aria-hidden="true">
+        <div class="envelope-back"></div>
+        <div class="letter-preview">
+          <span>Para</span>
+          <strong>{{ invitation.displayName }}</strong>
+          <small>Gabriela & Juan</small>
+          <em>28 de noviembre de 2026</em>
+          <div class="parents-blessing">
+            <span>Con la bendición de Dios y de nuestros padres</span>
+            <div>
+              <p>Ayesa Palacios<br />Jesús Landa</p>
+              <p>Virginia Cordido<br />Dionisio Zozaya</p>
+            </div>
+          </div>
+        </div>
+        <div class="envelope-front"></div>
+        <div class="envelope-flap"></div>
+        <div class="wax-seal">G&J</div>
+      </div>
+      <p class="scroll-hint">Desliza para recorrer esta historia interactiva.</p>
+    </div>
+
+    <div class="cover-copy">
+      <p class="eyebrow">Una invitación real</p>
+      <h1 id="cover-title">Gabriela & Juan</h1>
+      <p>
+        Una pequeña historia de amor, una ceremonia en el reino y una fiesta al
+        final del camino.
+      </p>
+      <button class="primary-button" type="button" (click)="openInvitation()">
+        Abrir invitación
+      </button>
+    </div>
+  </section>
+
+  @if (isOpen) {
+    <section class="parchment-section">
+      <article class="parchment">
+        <div class="scroll-cap top"></div>
+        <div class="parchment-content">
+          <p class="eyebrow">Querida {{ invitation.displayName }}</p>
+          <h2>Están invitados a nuestra boda</h2>
+          <p>
+            Nos encantaría que nos acompañen en el inicio de esta nueva aventura.
+            Hemos reservado {{ invitation.guests.length }} cupos para ustedes.
+          </p>
+          <dl class="date-grid">
+            <div>
+              <dt>Fecha</dt>
+              <dd>28 de noviembre de 2026</dd>
+            </div>
+            <div>
+              <dt>Ceremonia</dt>
+              <dd>{{ ceremony.time }}</dd>
+            </div>
+            <div>
+              <dt>Recepción</dt>
+              <dd>{{ party.time }}</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="scroll-cap bottom"></div>
+      </article>
+    </section>
+
+    <section class="couple-intro">
+      <div class="chapter-copy">
+        <p class="eyebrow">Capítulo I</p>
+        <h2>La princesa y el caballero</h2>
+        <p>
+          Ella llega con vestido de novia y brillo de cuento. Él la espera como
+          caballero elegante, listo para seguir el camino juntos.
+        </p>
+      </div>
+
+      <div class="portrait-scene" aria-label="Ilustración de los novios">
+        <img
+          class="portrait-character portrait-gaby"
+          src="assets/characters/gaby-standing.png"
+          alt="Ilustración de Gabriela"
+        />
+        <div class="heart-spark">&hearts;</div>
+        <img
+          class="portrait-character portrait-juan"
+          src="assets/characters/juan-standing.png"
+          alt="Ilustración de Juan"
+        />
+      </div>
+    </section>
+
+    <section class="journey-section" #journeySection>
+      <div class="journey-viewport">
+        <div class="journey-track" #journeyTrack>
+          <div class="layer sky"></div>
+          <div class="layer hills far"></div>
+          <div class="layer hills near"></div>
+          <div class="layer trees"></div>
+          <div class="road"></div>
+
+          <div class="landmark church">
+            <div class="tower"></div>
+            <div class="roof"></div>
+            <div class="walls"></div>
+            <div class="door"></div>
+            <span>Ceremonia</span>
+          </div>
+
+          <div class="landmark ballroom">
+            <div class="roof"></div>
+            <div class="walls"></div>
+            <div class="door"></div>
+            <span>Recepción</span>
+          </div>
+
+        </div>
+
+        <article class="scene-card ceremony-card">
+          <p class="eyebrow">Capítulo II</p>
+          <h2>La ceremonia</h2>
+          <p>{{ ceremony.name }}</p>
+          <dl>
+            <div>
+              <dt>Dirección</dt>
+              <dd>{{ ceremony.address }}</dd>
+            </div>
+            <div>
+              <dt>Hora</dt>
+              <dd>{{ ceremony.time }}</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="scene-card party-card">
+          <p class="eyebrow">Capítulo III</p>
+          <h2>La recepción</h2>
+          <p>{{ party.name }}</p>
+          <dl>
+            <div>
+              <dt>Dirección</dt>
+              <dd>{{ party.address }}</dd>
+            </div>
+            <div>
+              <dt>Hora</dt>
+              <dd>{{ party.time }}</dd>
+            </div>
+          </dl>
+        </article>
+
+        <img
+          class="journey-bride"
+          src="assets/characters/gaby-walking.gif"
+          alt="Gabriela caminando hacia la iglesia"
+        />
+
+        <img
+          class="vintage-car"
+          src="assets/characters/car.gif"
+          alt="Gabriela y Juan camino a la recepcion"
+        />
+      </div>
+    </section>
+
+    <section class="schedule-summary-section">
+      <div class="chapter-copy">
+        <p class="eyebrow">Resumen del camino</p>
+        <h2>Dónde nos encontraremos</h2>
+        <p>
+          Estos son los lugares donde viviremos cada momento de la boda, para
+          que puedan llegar tranquilos y acompañarnos en cada capítulo.
+        </p>
+      </div>
+
+      <div class="schedule-summary-grid">
+        <article>
+          <p class="eyebrow">Ceremonia</p>
+          <h3>{{ ceremony.name }}</h3>
+          <dl>
+            <div>
+              <dt>Hora</dt>
+              <dd>{{ ceremony.time }}</dd>
+            </div>
+            <div>
+              <dt>Dirección</dt>
+              <dd>{{ ceremony.address }}</dd>
+            </div>
+          </dl>
+          <iframe
+            class="map-embed"
+            [src]="ceremony.embedUrl"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Mapa de la ceremonia"
+          ></iframe>
+        </article>
+
+        <article>
+          <p class="eyebrow">Recepción</p>
+          <h3>{{ party.name }}</h3>
+          <dl>
+            <div>
+              <dt>Hora</dt>
+              <dd>{{ party.time }}</dd>
+            </div>
+            <div>
+              <dt>Dirección</dt>
+              <dd>{{ party.address }}</dd>
+            </div>
+          </dl>
+          <iframe
+            class="map-embed"
+            [src]="party.embedUrl"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Mapa de la recepción"
+          ></iframe>
+        </article>
+      </div>
+    </section>
+
+    <section class="details-section">
+      <div class="chapter-copy">
+        <p class="eyebrow">Detalles del reino</p>
+        <h2>Para disfrutar la noche</h2>
+      </div>
+      <div class="detail-grid">
+        <article>
+          <span>*</span>
+          <h3>Vestimenta</h3>
+          <p>Formal elegante. El lila queda reservado para pequeños acentos.</p>
+        </article>
+        <article>
+          <span>*</span>
+          <h3>Llegada</h3>
+          <p>Recomendamos llegar 20 minutos antes de la ceremonia.</p>
+        </article>
+        <article>
+          <span>*</span>
+          <h3>Regalos</h3>
+          <p>Su compañía es el mejor regalo. Luego agregaremos opciones.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="wish-section">
+      <form class="wish-card" (ngSubmit)="submitWish()">
+        <p class="eyebrow">Opcional</p>
+        <h2>Déjennos un recuerdo</h2>
+        <p>
+          Si quieren, pueden enviarnos un mensaje o recomendar una canción para
+          celebrar juntos.
+        </p>
+
+        <label>
+          Mensaje para Gabriela y Juan
+          <textarea
+            name="guestMessage"
+            rows="4"
+            [(ngModel)]="guestWish.message"
+            placeholder="Escriban algo bonito, un consejo o un deseo"
+          ></textarea>
+        </label>
+
+        <label>
+          Canción recomendada
+          <input
+            name="song"
+            type="text"
+            [(ngModel)]="guestWish.song"
+            placeholder="Canción y artista"
+          />
+        </label>
+
+        <button class="secondary-button" type="submit">Enviar detalle</button>
+
+        @if (wishSubmitted) {
+          <p class="saved-message">Detalle guardado en el prototipo.</p>
+        }
+      </form>
+    </section>
+
+    <section class="rsvp-section">
+      <form class="rsvp-card" (ngSubmit)="submitRsvp()">
+        <p class="eyebrow">RSVP</p>
+        <h2>Confirmen su asistencia</h2>
+        <p>
+          Pueden modificar esta respuesta luego usando el mismo enlace privado.
+        </p>
+
+        <div class="guest-summary">
+          <strong>{{ confirmedGuests.length }}</strong>
+          <span>de {{ invitation.guests.length }} asistentes confirmados</span>
+        </div>
+
+        <div class="attendee-list" role="group" aria-label="Asistentes invitados">
+          @for (guest of rsvp.guests; track guest.id) {
+            <label class="guest-check">
+              <input
+                [name]="'guest-' + guest.id"
+                type="checkbox"
+                [(ngModel)]="guest.attending"
+              />
+              <span>
+                <strong>{{ guest.name }}</strong>
+                <small>{{ guest.attending ? 'Sí asistirá' : 'No asistirá' }}</small>
+              </span>
+            </label>
+          }
+        </div>
+
+        <label>
+          Restricciones o notas
+          <textarea
+            name="notes"
+            rows="3"
+            [(ngModel)]="rsvp.notes"
+            placeholder="Alergias, restricciones alimentarias o mensaje"
+          ></textarea>
+        </label>
+
+        <button class="primary-button" type="submit">Guardar respuesta</button>
+
+        @if (submitted) {
+          <p class="saved-message">Respuesta guardada en el prototipo.</p>
+        }
+      </form>
+    </section>
+
+    <section class="final-section">
+      <div class="final-sky">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <p class="eyebrow">Fin del capítulo</p>
+      <h2>Gracias por ser parte de nuestra historia</h2>
+      <p>
+        Con mucha ilusión, esperamos compartir este día con ustedes.
+      </p>
+    </section>
+  }
+</main>
