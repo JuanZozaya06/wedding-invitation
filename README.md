@@ -60,6 +60,16 @@ La salida se genera en:
 frontend/dist/frontend
 ```
 
+## GitHub Pages
+
+El proyecto se despliega automáticamente con GitHub Actions cuando hay cambios en `main`.
+
+URL esperada:
+
+```text
+https://juanzozaya06.github.io/wedding-invitation/
+```
+
 ## Notas de Producto
 
 - La URL final esperada será `/:token`.
