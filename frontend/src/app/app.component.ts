@@ -64,6 +64,7 @@ type AdminTextEntry = {
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly githubPagesBaseSegment = 'wedding-invitation';
   @ViewChild('journeySection') private journeySection?: ElementRef<HTMLElement>;
   @ViewChild('journeyTrack') private journeyTrack?: ElementRef<HTMLElement>;
 
@@ -632,7 +633,16 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private readRouteSegment(): string {
-    return window.location.pathname.replace(/^\/+/, '').split('/')[0] ?? '';
+    const segments = window.location.pathname
+      .split('/')
+      .map((segment) => segment.trim())
+      .filter((segment) => segment.length > 0);
+
+    if (segments[0] === this.githubPagesBaseSegment) {
+      return segments[1] ?? '';
+    }
+
+    return segments[0] ?? '';
   }
 
   setAdminTab(tab: AdminTab): void {

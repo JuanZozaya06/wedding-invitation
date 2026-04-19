@@ -6,27 +6,38 @@ Call the user Zozi.
 
 Build a private, animated wedding invitation for Gabriela and Juan as an Angular web app. The experience should feel like a cute, elegant storybook invitation: playful but not childish, with lila as the main accent color and a soft fantasy/wedding aesthetic.
 
-The invitation is private and should eventually be loaded from a URL token directly at `/:token`. For now this is a visual prototype with fake data.
+The invitation is private and is loaded directly from a tokenized URL at `/:token` in local dev and `/wedding-invitation/:token` on GitHub Pages.
 
 ## Current Workspace
 
-- Frontend app: `C:\Users\Juan\Documents\Projects\Wedding\frontend`
+- Workspace root: `C:\Users\Zozi\Documents\Projects\wedding-invitation`
+- Frontend app: `C:\Users\Zozi\Documents\Projects\wedding-invitation\frontend`
 - Framework: Angular 18 standalone app
 - Styling: SCSS
-- Animation: GSAP + ScrollTrigger
+- Data layer: Firebase + Cloud Firestore (frontend-driven for now)
 - Current dev URL: `http://127.0.0.1:4200/demo-cuento`
+- Admin URL: `http://127.0.0.1:4200/admin`
 - Main files:
   - `frontend/src/app/app.component.ts`
   - `frontend/src/app/app.component.html`
   - `frontend/src/app/app.component.scss`
+  - `frontend/src/app/services/invitation.service.ts`
+  - `frontend/src/app/models/invitation.model.ts`
+  - `frontend/src/app/data/demo-invitation.ts`
+  - `frontend/src/app/firebase/firebase.config.ts`
   - `frontend/src/styles.scss`
 
 ## Commands
 
-Run commands from `C:\Users\Juan\Documents\Projects\Wedding\frontend`.
+Run commands from `C:\Users\Zozi\Documents\Projects\wedding-invitation\frontend`.
 
 - Start dev server: `npm start -- --host 127.0.0.1 --port 4200`
 - Build: `npm run build`
+- Generate admin key hash: `npm run admin:hash -- mi-clave`
+- Generate token (utility only): `npm run token`
+- Report stats: `npm run report -- stats`
+- Report confirmed guests: `npm run report -- attending`
+- Reset demo invitations: `npm run reset:demo`
 
 Node currently reports an Angular support warning because the local Node version is `21.5.0`. The app still builds, but for production use Node 20 LTS or 22+.
 
@@ -52,7 +63,7 @@ Node currently reports an Angular support warning because the local Node version
 
 ## Animation Architecture
 
-The horizontal scene is scroll-driven with GSAP ScrollTrigger.
+The horizontal scene is scroll-driven with a lightweight custom scroll/timeline system. GSAP is installed, but the current implementation is not relying on ScrollTrigger.
 
 Important current behavior in `app.component.ts`:
 
@@ -61,13 +72,13 @@ Important current behavior in `app.component.ts`:
 - The remaining 16% of the pinned timeline is a hold on the celebration scene before releasing sticky scroll.
 - Do not make the track movement duration `1` unless intentionally removing the final hold.
 - The bride and vintage car are viewport overlays, not children of the horizontal track. This keeps the focal character centered while the world moves behind it.
-- Ceremony and celebration cards are also viewport overlays, not track children. This keeps information centered and prevents it from being clipped at the viewport edge.
+- Ceremony and celebration cards are also viewport overlays, not track children. This keeps information centered and prevents them from being clipped at the viewport edge.
 - Event timings should be derived from landmark positions, not guessed by fixed percentages when possible.
 
 Current timing model:
 
 - `churchProgress = progressFor('.church')`
-- `ballroomProgress = progressFor('.ballroom', 7)`
+- `ballroomProgress = progressFor('.ballroom')`
 - `churchTime = churchProgress * travelEnd`
 - `ballroomTime = ballroomProgress * travelEnd`
 - Ceremony appears before the church.
@@ -92,41 +103,152 @@ Current timing model:
 - Groom: elegant wedding suit or subtle knight/caballero styling.
 - Avoid heavy effects for mobile performance.
 
+## Invitation Data Model
+
+The app is now data-driven from Firestore.
+
+- One Firestore document represents one invitation group.
+- The Firestore document ID is the invitation token.
+- Tokens should be random alphanumeric strings of 8 characters minimum.
+- Each invitation contains a `guests` array.
+- Exactly one guest per invitation must use `role = primary`.
+
+Current invitation shape:
+
+- `token`
+- `displayName`
+- `guestCount`
+- `openedInvitation`
+- `openedAt`
+- `lastOpenedAt`
+- `openCount`
+- `hasChildren`
+- `hasAbroadGuests`
+- `notes`
+- `message`
+- `song`
+- `rsvpStatus`
+- `respondedAt`
+- `responseEditCount`
+- `updatedAt`
+- `guests`
+
+Each guest currently contains:
+
+- `id`
+- `name`
+- `gender`
+- `role`
+- `attending`
+- `isChild`
+- `isAbroad`
+
+## Frontend Personalization
+
+The public invitation already personalizes parts of the copy from invitation data.
+
+Current derived behaviors:
+
+- singular vs plural based on guest count
+- greeting based on the primary guest gender
+- extra copy when the invitation includes children
+- extra copy when guests are traveling from abroad
+
+The frontend should keep deriving copy from structured data instead of storing final copy strings in Firestore.
+
 ## RSVP Model
 
-The RSVP should be based on guests preloaded from the database. Guests should not be able to add arbitrary people.
+The RSVP is based on guests preloaded from the database. Guests must not be able to add arbitrary people.
 
-Current fake model:
+Current behavior:
 
-- `Invitation` has `token`, `displayName`, and `guests`.
-- Each `Guest` has `id`, `name`, and `attending`.
 - The RSVP form shows a checkbox per guest.
 - It calculates confirmed count from checked guests.
-- Notes field remains available for restrictions or comments.
-- There is a separate optional section after RSVP where guests can leave a message for Juan and Gabriela and recommend a song. Keep this separate from RSVP so attendance confirmation stays quick.
+- Notes remain available for restrictions or comments.
+- The optional message and song section remains separate from RSVP so attendance confirmation stays quick.
+- The same document stores RSVP state, message, song, note fields, and invitation activity telemetry.
 
-Eventually, backend should return invitation data by token:
+Current activity telemetry:
 
-- display family/group name
-- guest list
-- current attending state
-- notes/restrictions
-- RSVP status
-- optional message
-- optional song recommendation
+- `openedInvitation`
+- `openedAt`
+- `lastOpenedAt`
+- `openCount`
+- `respondedAt`
+- `responseEditCount`
+- `updatedAt`
 
-## Future Backend Direction
+## Admin Dashboard
 
-Preferred backend direction: Supabase or Firebase for a lightweight wedding invitation backend. Supabase is a good fit if relational guest data and SQL querying matter.
+There is now a lightweight admin dashboard at `/admin`.
 
-URL target: direct `/:token`, not `/inv/:token`.
+Current behavior:
 
-Security expectations:
+- It unlocks using a master key checked against `admin/config.masterKeyHash` in Firestore.
+- It is intentionally lightweight and frontend-driven, not security-hard.
+- It shows:
+  - top-line stats
+  - recent openings
+  - recent RSVP responses
+  - invitation-level detail per group
+  - confirmed guests
+  - messages, songs, and notes
+- It supports search by group, token, or guest.
+- Invitation-level filters live only in the `Invitaciones` tab so the UX stays focused.
 
-- Tokens should be long and unguessable.
-- Frontend must only read/update the invitation tied to that token.
-- Do not expose all invitations to the client.
-- If using Supabase directly, configure RLS carefully; otherwise use serverless/edge functions like `getInvitation(token)` and `submitRsvp(token, payload)`.
+## Excel / Import Direction
+
+The preferred operational flow is:
+
+- maintain a source Excel or Google Sheet
+- one row per guest
+- same `token` repeated for everyone in the same invitation
+- import grouped data into Firestore
+
+Reference templates live in:
+
+- `templates/invitados_base.xlsx`
+- `templates/invitados_base_v2.xlsx`
+
+Recommended row-level columns include:
+
+- `token`
+- `display_name`
+- `guest_id`
+- `guest_name`
+- `gender`
+- `role`
+- `is_child`
+- `is_abroad`
+- RSVP and optional note/message/song fields as needed
+
+## Firebase Direction
+
+Firebase is the active backend direction for this project.
+
+Current setup expectations:
+
+- Firestore stores `invitations/{token}` documents.
+- Firestore stores `admin/config` with `masterKeyHash`.
+- The frontend can fall back to demo data if Firebase is not configured or the document is missing.
+- `window.seedDemoInvitation()` is available in dev to create/update a demo invitation.
+
+Security expectations for this stage:
+
+- Tokens must be long and unguessable enough for a private event.
+- Frontend should only read/update the invitation tied to that token.
+- The admin is acceptable as a convenience layer for now, but it is not strong security.
+- If stronger protection is needed later, move admin/reporting logic to Cloud Functions or proper auth.
+
+## GitHub Pages
+
+The project is deployed to GitHub Pages through `.github/workflows/pages.yml`.
+
+Important behavior:
+
+- Build command uses `--base-href=/wedding-invitation/`.
+- A `404.html` fallback is copied so token/admin deep links work on reload.
+- Route parsing in the app must ignore the `/wedding-invitation` base segment on Pages.
 
 ## Performance And Accessibility
 
