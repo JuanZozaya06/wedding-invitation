@@ -132,12 +132,14 @@ Esto hace posible el panel admin, pero sigue siendo una solucion ligera, no segu
 
 - Si Firebase no esta configurado, la app usa datos demo.
 - Si existe `invitations/{token}`, la invitacion se carga desde Firestore.
+- Si Firebase esta configurado y el token no existe, la app muestra 404.
 - El RSVP actualiza el mismo documento.
 - El mensaje y la cancion tambien actualizan ese documento.
 - Al pulsar `Abrir invitacion`, se guardan `openedInvitation` y `openedAt`.
 - Tambien se guardan `lastOpenedAt` y `openCount`.
 - Cada cambio de RSVP o de mensaje/cancion incrementa `responseEditCount`.
 - Cuando envian RSVP se actualiza `respondedAt`.
+- Si existe `frontend/public/assets/audio/invitacion.mp3`, la invitacion muestra un control flotante de play/pause despues de abrirla.
 
 ## 5.1. Crear el documento demo sin usar la consola
 
