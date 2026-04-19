@@ -1,4 +1,12 @@
-@if (isAdminRoute) {
+@if (showNotFoundState) {
+  <main class="not-found-shell">
+    <section class="not-found-card">
+      <p class="eyebrow">Error 404</p>
+      <h1>{{ notFoundTitle }}</h1>
+      <p>{{ notFoundMessage }}</p>
+    </section>
+  </main>
+} @else if (isAdminRoute) {
   <main class="admin-shell">
     <section class="admin-hero">
       <div class="admin-hero-copy">
@@ -380,6 +388,31 @@
   </main>
 } @else {
   <main class="storybook-shell" [class.invitation-open]="isOpen">
+    <audio
+      #backgroundAudio
+      [src]="backgroundMusicSrc"
+      loop
+      preload="auto"
+      (canplay)="onMusicCanPlay()"
+      (play)="onMusicPlay()"
+      (pause)="onMusicPause()"
+      (error)="onMusicError()"
+    ></audio>
+
+    @if (isOpen && musicAvailable) {
+      <div class="floating-audio-controls" aria-label="Controles de musica">
+        <button
+          class="audio-control-button"
+          type="button"
+          [attr.aria-label]="musicToggleLabel"
+          [attr.title]="musicToggleLabel"
+          (click)="toggleMusicPlayback()"
+        >
+          <span aria-hidden="true">{{ musicPlaying ? '❚❚' : '♪' }}</span>
+        </button>
+      </div>
+    }
+
     <section class="cover" aria-labelledby="cover-title">
       <div class="sky-detail cloud-one"></div>
       <div class="sky-detail cloud-two"></div>
@@ -479,6 +512,21 @@
             <div class="road"></div>
 
             <div class="landmark church">
+              <article class="scene-card ceremony-card">
+                <p class="eyebrow">Capitulo II</p>
+                <h2>La ceremonia</h2>
+                <p>{{ ceremony.name }}</p>
+                <dl>
+                  <div>
+                    <dt>Direccion</dt>
+                    <dd>{{ ceremony.address }}</dd>
+                  </div>
+                  <div>
+                    <dt>Hora</dt>
+                    <dd>{{ ceremony.time }}</dd>
+                  </div>
+                </dl>
+              </article>
               <div class="tower"></div>
               <div class="roof"></div>
               <div class="walls"></div>
@@ -487,44 +535,27 @@
             </div>
 
             <div class="landmark ballroom">
+              <article class="scene-card party-card">
+                <p class="eyebrow">Capitulo III</p>
+                <h2>La recepcion</h2>
+                <p>{{ party.name }}</p>
+                <dl>
+                  <div>
+                    <dt>Direccion</dt>
+                    <dd>{{ party.address }}</dd>
+                  </div>
+                  <div>
+                    <dt>Hora</dt>
+                    <dd>{{ party.time }}</dd>
+                  </div>
+                </dl>
+              </article>
               <div class="roof"></div>
               <div class="walls"></div>
               <div class="door"></div>
               <span>Recepcion</span>
             </div>
           </div>
-
-          <article class="scene-card ceremony-card">
-            <p class="eyebrow">Capitulo II</p>
-            <h2>La ceremonia</h2>
-            <p>{{ ceremony.name }}</p>
-            <dl>
-              <div>
-                <dt>Direccion</dt>
-                <dd>{{ ceremony.address }}</dd>
-              </div>
-              <div>
-                <dt>Hora</dt>
-                <dd>{{ ceremony.time }}</dd>
-              </div>
-            </dl>
-          </article>
-
-          <article class="scene-card party-card">
-            <p class="eyebrow">Capitulo III</p>
-            <h2>La recepcion</h2>
-            <p>{{ party.name }}</p>
-            <dl>
-              <div>
-                <dt>Direccion</dt>
-                <dd>{{ party.address }}</dd>
-              </div>
-              <div>
-                <dt>Hora</dt>
-                <dd>{{ party.time }}</dd>
-              </div>
-            </dl>
-          </article>
 
           <img
             class="journey-bride"

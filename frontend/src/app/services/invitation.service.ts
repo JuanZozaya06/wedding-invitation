@@ -8,6 +8,13 @@ type FirestoreInvitation = Partial<Invitation> & {
   guests?: Array<Partial<Invitation['guests'][number]>>;
 };
 
+export class InvitationNotFoundError extends Error {
+  constructor(token: string) {
+    super(`Invitation "${token}" was not found.`);
+    this.name = 'InvitationNotFoundError';
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -39,7 +46,7 @@ export class InvitationService {
     const invitationSnapshot = await getDoc(invitationRef);
 
     if (!invitationSnapshot.exists()) {
-      return createDemoInvitation(token);
+      throw new InvitationNotFoundError(token);
     }
 
     return this.normalizeInvitation(token, invitationSnapshot.data() as FirestoreInvitation);

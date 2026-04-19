@@ -13,7 +13,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { buildRsvpDraft, createDemoInvitation } from './data/demo-invitation';
 import { isFirebaseConfigured } from './firebase/firebase.config';
 import { Guest, GuestWish, Invitation, RsvpDraft } from './models/invitation.model';
-import { InvitationService } from './services/invitation.service';
+import { InvitationNotFoundError, InvitationService } from './services/invitation.service';
 
 type SeedWindow = Window & {
   seedDemoInvitation?: () => Promise<void>;
@@ -56,6 +56,11 @@ type AdminTextEntry = {
   updatedAt: string | null;
 };
 
+type RouteResolution =
+  | { kind: 'admin'; segment: 'admin' }
+  | { kind: 'invitation'; segment: string }
+  | { kind: 'not-found'; segment: ''; reason: 'missing-token' | 'invalid-route' };
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -65,8 +70,10 @@ type AdminTextEntry = {
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly githubPagesBaseSegment = 'wedding-invitation';
+  private readonly backgroundAudioSrc = 'assets/audio/invitacion.mp3';
   @ViewChild('journeySection') private journeySection?: ElementRef<HTMLElement>;
   @ViewChild('journeyTrack') private journeyTrack?: ElementRef<HTMLElement>;
+  @ViewChild('backgroundAudio') private backgroundAudio?: ElementRef<HTMLAudioElement>;
 
   private readonly document = inject(DOCUMENT);
   private readonly sanitizer = inject(DomSanitizer);
@@ -82,8 +89,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.requestJourneyUpdate();
   };
 
-  readonly routeSegment = this.readRouteSegment();
-  readonly isAdminRoute = this.routeSegment === 'admin';
+  readonly route = this.resolveRoute();
+  readonly routeSegment = this.route.segment;
+  readonly isAdminRoute = this.route.kind === 'admin';
+  readonly isNotFoundRoute = this.route.kind === 'not-found';
+  missingInvitation = false;
+  notFoundTitle = 'Invitacion no encontrada';
+  notFoundMessage =
+    'Este enlace no existe o ya no esta disponible. Si crees que es un error, pide nuevamente tu enlace privado.';
 
   invitation: Invitation = createDemoInvitation(this.readToken());
 
@@ -102,6 +115,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   };
 
   isOpen = false;
+  musicPlaying = false;
+  musicAvailable = true;
   submitted = false;
   wishSubmitted = false;
   isLoadingInvitation = true;
@@ -136,11 +151,29 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     confirmed: 0,
   };
 
+  get showNotFoundState(): boolean {
+    return this.isNotFoundRoute || this.missingInvitation;
+  }
+
+  get backgroundMusicSrc(): string {
+    return this.backgroundAudioSrc;
+  }
+
+  get musicToggleLabel(): string {
+    return this.musicPlaying ? 'Pausar musica' : 'Reproducir musica';
+  }
+
   async ngOnInit(): Promise<void> {
     this.registerDevSeed();
 
     if (this.isAdminRoute) {
       this.isLoadingInvitation = false;
+      return;
+    }
+
+    if (this.isNotFoundRoute) {
+      this.isLoadingInvitation = false;
+      this.applyRouteNotFoundState();
       return;
     }
 
@@ -165,6 +198,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     window.scrollTo({ top: openingScrollY, behavior: 'auto' });
 
     void this.invitationService.markInvitationOpened(this.invitation.token);
+    void this.tryStartBackgroundMusic();
 
     this.afterLayoutSettles(() => {
       window.scrollTo({ top: openingScrollY, behavior: 'auto' });
@@ -488,19 +522,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     const progressFor = (selector: string) =>
       this.clampProgress(this.getSceneDistance(track, selector) / Math.max(distance, 1));
     const churchTime = progressFor('.church') * this.journeyTravelEnd;
-    const ballroomTime = progressFor('.ballroom') * this.journeyTravelEnd;
-    const ceremonyIn = Math.max(0.08, churchTime - 0.14);
-    const ceremonyOut = Math.min(this.journeyTravelEnd - 0.16, churchTime + 0.06);
     const carIn = Math.min(this.journeyTravelEnd - 0.14, churchTime + 0.02);
-    const partyIn = Math.max(this.journeyTravelEnd - 0.12, ballroomTime - 0.1);
-
-    this.setCardState(
-      section,
-      '.ceremony-card',
-      progress >= ceremonyIn && progress < ceremonyOut,
-      progress < ceremonyIn ? 28 : -20,
-    );
-    this.setCardState(section, '.party-card', progress >= partyIn, 28);
     this.setAlpha(section, '.journey-bride', progress < carIn ? 1 : 0);
     this.setAlpha(section, '.vintage-car', progress >= carIn + 0.01 ? 1 : 0);
   }
@@ -518,24 +540,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (element) {
       element.style.transform = `translate3d(${x}px, 0, 0)`;
     }
-  }
-
-  private setCardState(
-    section: HTMLElement,
-    selector: string,
-    visible: boolean,
-    hiddenY: number,
-  ): void {
-    const element = section.querySelector<HTMLElement>(selector);
-    if (!element) {
-      return;
-    }
-
-    element.style.opacity = visible ? '1' : '0';
-    element.style.visibility = visible ? 'visible' : 'hidden';
-    element.style.transform = visible
-      ? 'translateX(-50%) translateY(0)'
-      : `translateX(-50%) translateY(${hiddenY}px)`;
   }
 
   private setAlpha(section: HTMLElement, selector: string, opacity: number): void {
@@ -606,6 +610,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           'Firebase todavia no esta configurado. Se esta mostrando la invitacion demo.';
       }
     } catch (error) {
+      if (error instanceof InvitationNotFoundError) {
+        this.applyInvitationNotFoundState(token);
+        return;
+      }
+
       this.invitation = createDemoInvitation(token);
       this.rsvp = buildRsvpDraft(this.invitation);
       this.guestWish = {
@@ -632,17 +641,83 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.isAdminRoute ? 'demo-cuento' : this.routeSegment || 'demo-cuento';
   }
 
-  private readRouteSegment(): string {
+  private resolveRoute(): RouteResolution {
     const segments = window.location.pathname
       .split('/')
       .map((segment) => segment.trim())
       .filter((segment) => segment.length > 0);
 
-    if (segments[0] === this.githubPagesBaseSegment) {
-      return segments[1] ?? '';
+    const normalizedSegments =
+      segments[0] === this.githubPagesBaseSegment ? segments.slice(1) : segments;
+
+    if (normalizedSegments.length === 0) {
+      return {
+        kind: 'not-found',
+        segment: '',
+        reason: 'missing-token',
+      };
     }
 
-    return segments[0] ?? '';
+    if (normalizedSegments.length > 1) {
+      return {
+        kind: 'not-found',
+        segment: '',
+        reason: 'invalid-route',
+      };
+    }
+
+    if (normalizedSegments[0] === 'admin') {
+      return {
+        kind: 'admin',
+        segment: 'admin',
+      };
+    }
+
+    return {
+      kind: 'invitation',
+      segment: normalizedSegments[0] ?? '',
+    };
+  }
+
+  private applyRouteNotFoundState(): void {
+    this.missingInvitation = true;
+    const missingToken = this.route.kind === 'not-found' && this.route.reason === 'missing-token';
+    this.notFoundTitle = 'Enlace no valido';
+    this.notFoundMessage =
+      missingToken
+        ? 'Aqui no hay una invitacion para mostrar. Entra usando tu enlace privado completo.'
+        : 'La direccion que abriste no corresponde a una invitacion valida.';
+  }
+
+  private applyInvitationNotFoundState(token: string): void {
+    this.missingInvitation = true;
+    this.notFoundTitle = 'Invitacion no encontrada';
+    this.notFoundMessage = `No encontramos una invitacion activa para el codigo "${token}". Revisa el enlace o pide uno nuevo a los novios.`;
+  }
+
+  private async tryStartBackgroundMusic(): Promise<void> {
+    if (!this.musicAvailable) {
+      return;
+    }
+
+    const audio = this.backgroundAudio?.nativeElement;
+
+    if (!audio) {
+      return;
+    }
+
+    audio.volume = 0.35;
+    await this.playAudio(audio);
+  }
+
+  private async playAudio(audio: HTMLAudioElement): Promise<void> {
+    try {
+      await audio.play();
+      this.musicPlaying = true;
+    } catch (error) {
+      this.musicPlaying = false;
+      console.warn('No se pudo iniciar la musica de fondo.', error);
+    }
   }
 
   setAdminTab(tab: AdminTab): void {
@@ -668,6 +743,50 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(date);
+  }
+
+  async toggleMusicPlayback(): Promise<void> {
+    if (!this.musicAvailable) {
+      return;
+    }
+
+    const audio = this.backgroundAudio?.nativeElement;
+
+    if (!audio) {
+      return;
+    }
+
+    if (audio.paused) {
+      await this.playAudio(audio);
+      return;
+    }
+
+    audio.pause();
+    this.musicPlaying = false;
+  }
+
+  onMusicCanPlay(): void {
+    const audio = this.backgroundAudio?.nativeElement;
+
+    if (!audio) {
+      return;
+    }
+
+    this.musicAvailable = true;
+    audio.volume = 0.35;
+  }
+
+  onMusicPlay(): void {
+    this.musicPlaying = true;
+  }
+
+  onMusicPause(): void {
+    this.musicPlaying = false;
+  }
+
+  onMusicError(): void {
+    this.musicAvailable = false;
+    this.musicPlaying = false;
   }
 
   private matchesInvitationSearch(invitation: Invitation): boolean {

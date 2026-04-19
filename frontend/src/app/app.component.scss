@@ -4,6 +4,39 @@
   font-family: "Nunito", "Segoe UI", sans-serif;
 }
 
+.not-found-shell {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background:
+    radial-gradient(circle at top, rgba(255, 248, 232, 0.94), transparent 20rem),
+    linear-gradient(180deg, #edf4ff 0%, #efe2f6 100%);
+}
+
+.not-found-card {
+  width: min(34rem, 100%);
+  padding: clamp(1.75rem, 5vw, 3rem);
+  border: 1px solid rgba(92, 57, 103, 0.16);
+  border-radius: 1.4rem;
+  background: rgba(255, 251, 244, 0.9);
+  box-shadow: 0 1.5rem 3rem rgba(74, 48, 83, 0.14);
+  text-align: center;
+}
+
+.not-found-card h1 {
+  margin-bottom: 0.75rem;
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  line-height: 0.98;
+}
+
+.not-found-card p:last-of-type {
+  max-width: 30rem;
+  margin: 0 auto;
+  font-size: 1.05rem;
+}
+
 .admin-shell {
   min-height: 100vh;
   padding: clamp(1.25rem, 4vw, 3rem);
@@ -338,6 +371,36 @@
     linear-gradient(180deg, #dfeeff 0%, #f9eef8 42%, #fff8e8 100%);
 }
 
+.floating-audio-controls {
+  position: fixed;
+  right: clamp(0.9rem, 3vw, 1.6rem);
+  bottom: clamp(0.9rem, 3vw, 1.6rem);
+  z-index: 40;
+}
+
+.audio-control-button {
+  display: grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  place-items: center;
+  border: 1px solid rgba(92, 57, 103, 0.14);
+  border-radius: 50%;
+  background: rgba(255, 251, 244, 0.92);
+  box-shadow: 0 1rem 2rem rgba(74, 48, 83, 0.16);
+  color: #51315e;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0;
+  backdrop-filter: blur(10px);
+}
+
+.audio-control-button:hover {
+  transform: translateY(-1px);
+}
+
 .storybook-shell:not(.invitation-open) {
   height: 100vh;
   height: 100svh;
@@ -419,6 +482,9 @@ p {
 }
 
 .primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 3.25rem;
   margin-top: 1.25rem;
   border: 0;
@@ -430,6 +496,7 @@ p {
   font-weight: 800;
   padding: 0 1.35rem;
   box-shadow: 0 1rem 2rem rgba(103, 71, 130, 0.22);
+  text-decoration: none;
 }
 
 .primary-button:hover {
@@ -437,6 +504,9 @@ p {
 }
 
 .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 3rem;
   margin-top: 1.25rem;
   border: 1px solid rgba(140, 95, 183, 0.34);
@@ -447,6 +517,7 @@ p {
   font: inherit;
   font-weight: 900;
   padding: 0 1.2rem;
+  text-decoration: none;
 }
 
 .secondary-button:hover {
@@ -1042,6 +1113,13 @@ dd {
   width: 14rem;
 }
 
+.church .scene-card,
+.ballroom .scene-card {
+  left: 50%;
+  bottom: calc(100% + 1.2rem);
+  transform: translateX(-50%);
+}
+
 .landmark .walls {
   position: absolute;
   bottom: 0;
@@ -1124,29 +1202,41 @@ dd {
 }
 
 .scene-card {
-  left: 50%;
-  top: max(1rem, 7dvh);
-  width: min(24rem, 78vw);
-  max-height: 46dvh;
-  overflow: auto;
+  width: min(16rem, 30vw);
   border: 1px solid rgba(132, 88, 55, 0.22);
   border-radius: 0.65rem;
   background: rgba(255, 248, 232, 0.92);
-  padding: 1.25rem;
+  padding: 0.9rem 1rem;
   box-shadow: 0 1rem 2rem rgba(61, 43, 71, 0.16);
-  transform: translateX(-50%);
-  transition: opacity 120ms linear, transform 120ms linear, visibility 120ms linear;
   z-index: 8;
 }
 
 .scene-card h2 {
-  font-size: clamp(2rem, 4vw, 3.3rem);
+  margin-bottom: 0.55rem;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  line-height: 1.05;
+}
+
+.scene-card p {
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .scene-card dl {
   display: grid;
-  gap: 0.65rem;
-  margin: 1rem 0;
+  gap: 0.45rem;
+  margin: 0.7rem 0 0;
+}
+
+.scene-card .eyebrow {
+  margin-bottom: 0.35rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+}
+
+.scene-card dt,
+.scene-card dd {
+  font-size: 0.78rem;
 }
 
 .scene-card dt {
@@ -1164,16 +1254,6 @@ dd {
   border: 0;
   border-radius: 0.5rem;
   filter: saturate(0.9);
-}
-
-.ceremony-card {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.party-card {
-  opacity: 0;
-  visibility: hidden;
 }
 
 .details-section {
@@ -1412,6 +1492,17 @@ textarea {
 }
 
 @media (max-width: 860px) {
+  .floating-audio-controls {
+    right: 0.85rem;
+    bottom: 0.85rem;
+  }
+
+  .audio-control-button {
+    width: 3.1rem;
+    height: 3.1rem;
+    font-size: 1.15rem;
+  }
+
   .admin-stats-grid,
   .admin-panels {
     grid-template-columns: 1fr;
@@ -1549,6 +1640,16 @@ textarea {
 
   .journey-track {
     width: 260rem;
+  }
+
+  .scene-card {
+    width: min(13rem, 46vw);
+    padding: 0.75rem 0.8rem;
+  }
+
+  .church .scene-card,
+  .ballroom .scene-card {
+    bottom: calc(100% + 0.75rem);
   }
 
   .church {
