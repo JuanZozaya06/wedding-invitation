@@ -1,6 +1,6 @@
 # Wedding Invitation
 
-Invitacion web privada para la boda de Gabriela & Juan. El proyecto esta hecho en Angular y hoy ya incluye experiencia narrativa, carga por token, Firebase, RSVP, panel admin ligero y despliegue en GitHub Pages.
+Invitacion web privada para la boda de Gabriela & Juan. El proyecto esta hecho en Angular y hoy ya incluye experiencia narrativa, carga por token, Firebase, RSVP, panel admin ligero y despliegue en GitHub Pages con dominio propio.
 
 ## Estado actual
 
@@ -14,6 +14,7 @@ Invitacion web privada para la boda de Gabriela & Juan. El proyecto esta hecho e
 - Seccion opcional de mensaje y cancion.
 - Musica de fondo opcional con boton flotante de play/pause.
 - GitHub Pages configurado con fallback SPA.
+- Dominio de produccion: `https://labodadelsiglo.app/`
 
 ## Estructura
 
@@ -130,7 +131,8 @@ Regla importante:
 ## Tokens y URLs
 
 - En local la app usa `/:token`
-- En GitHub Pages funciona como `/wedding-invitation/:token`
+- En produccion con dominio propio funciona como `https://labodadelsiglo.app/:token`
+- La URL legacy de GitHub Pages puede seguir resolviendo como `/wedding-invitation/:token` mientras exista ese mapeo
 - `/admin` se reserva para el panel privado
 - si el token no existe, la app muestra 404
 - si la URL es invalida, la app muestra 404
@@ -191,17 +193,19 @@ Plantillas base:
 
 El proyecto se despliega con GitHub Actions cuando hay cambios en `main`.
 
-URL base:
+URL principal:
 
 ```text
-https://juanzozaya06.github.io/wedding-invitation/
+https://labodadelsiglo.app/
 ```
 
 Notas:
 
-- el build usa `--base-href=/wedding-invitation/`
+- el build usa `--base-href=/` para que el dominio propio viva en la raiz
+- el custom domain debe configurarse en `GitHub -> Settings -> Pages -> Custom domain`
+- `frontend/public/CNAME` deja esa decision visible dentro del repo, aunque con GitHub Actions la configuracion efectiva sigue viviendo en Pages
 - se genera `404.html` como fallback SPA
-- la app ya ignora el prefijo `/wedding-invitation` al resolver token o `admin`
+- la app ya soporta tanto rutas directas del dominio propio como el prefijo legacy `/wedding-invitation`
 
 ## Scripts utiles
 

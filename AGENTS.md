@@ -6,7 +6,7 @@ Call the user Zozi.
 
 Build a private, animated wedding invitation for Gabriela and Juan as an Angular web app. The experience should feel like a cute, elegant storybook invitation: playful but not childish, with lila as the main accent color and a soft fantasy/wedding aesthetic.
 
-The invitation is private and is loaded directly from a tokenized URL at `/:token` in local dev and `/wedding-invitation/:token` on GitHub Pages.
+The invitation is private and is loaded directly from a tokenized URL at `/:token` in local dev and production custom domain. The legacy GitHub Pages project URL remains `/wedding-invitation/:token` only as a fallback while the route parser still supports it.
 
 ## Current Workspace
 
@@ -246,9 +246,11 @@ The project is deployed to GitHub Pages through `.github/workflows/pages.yml`.
 
 Important behavior:
 
-- Build command uses `--base-href=/wedding-invitation/`.
+- Primary production domain: `https://labodadelsiglo.app/`
+- Build command uses `--base-href=/` for the custom domain.
+- Configure `labodadelsiglo.app` in GitHub `Settings -> Pages -> Custom domain`. `frontend/public/CNAME` can mirror that decision inside the repo, but the GitHub Pages setting is the source of truth when deploying via Actions.
 - A `404.html` fallback is copied so token/admin deep links work on reload.
-- Route parsing in the app must ignore the `/wedding-invitation` base segment on Pages.
+- Route parsing in the app must support both direct custom-domain paths and the legacy `/wedding-invitation` base segment.
 
 ## Performance And Accessibility
 

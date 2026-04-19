@@ -39,7 +39,7 @@ jobs:
 
       - name: Build Angular app
         working-directory: frontend
-        run: npm run build -- --base-href=/wedding-invitation/
+        run: npm run build -- --base-href=/
 
       - name: Add SPA fallback
         run: cp frontend/dist/frontend/browser/index.html frontend/dist/frontend/browser/404.html
