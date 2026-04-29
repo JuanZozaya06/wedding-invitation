@@ -78,6 +78,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly invitationService = inject(InvitationService);
+  private readonly characterTransitionWindow = 0.02;
   private reduceMotion = false;
   private journeyReady = false;
   private journeyScrollLength = 0;
@@ -94,9 +95,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly isAdminRoute = this.route.kind === 'admin';
   readonly isNotFoundRoute = this.route.kind === 'not-found';
   missingInvitation = false;
-  notFoundTitle = 'Invitacion no encontrada';
+  notFoundTitle = 'Invitaci\u00f3n no encontrada';
   notFoundMessage =
-    'Este enlace no existe o ya no esta disponible. Si crees que es un error, pide nuevamente tu enlace privado.';
+    'Este enlace no existe o ya no est\u00e1 disponible. Si crees que es un error, pide nuevamente tu enlace privado.';
 
   invitation: Invitation = createDemoInvitation(this.readToken());
 
@@ -160,7 +161,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get musicToggleLabel(): string {
-    return this.musicPlaying ? 'Pausar musica' : 'Reproducir musica';
+    return this.musicPlaying ? 'Pausar m\u00fasica' : 'Reproducir m\u00fasica';
   }
 
   async ngOnInit(): Promise<void> {
@@ -214,33 +215,74 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.invitation.guests.find((guest) => guest.role === 'primary') ?? this.invitation.guests[0];
   }
 
+  get invitationGuestCount(): number {
+    if (this.invitation.guests.length > 0) {
+      return this.invitation.guests.length;
+    }
+
+    const declaredCount = Number(this.invitation.guestCount);
+    if (Number.isFinite(declaredCount) && declaredCount > 0) {
+      return Math.floor(declaredCount);
+    }
+
+    return 0;
+  }
+
   get isSingleInvitation(): boolean {
-    return this.invitation.guests.length === 1;
+    return this.invitationGuestCount <= 1;
+  }
+
+  get childGuestCount(): number {
+    const childCount = this.invitation.guests.filter((guest) => guest.isChild).length;
+
+    if (childCount > 0) {
+      return childCount;
+    }
+
+    return this.invitation.hasChildren ? 1 : 0;
+  }
+
+  get abroadGuestCount(): number {
+    const abroadCount = this.invitation.guests.filter((guest) => guest.isAbroad).length;
+
+    if (abroadCount > 0) {
+      return abroadCount;
+    }
+
+    return this.invitation.hasAbroadGuests ? 1 : 0;
   }
 
   get invitationHasChildren(): boolean {
-    return this.invitation.guests.some((guest) => guest.isChild);
+    return this.childGuestCount > 0;
   }
 
   get invitationHasAbroadGuests(): boolean {
-    return this.invitation.guests.some((guest) => guest.isAbroad);
+    return this.abroadGuestCount > 0;
   }
 
   get coverEyebrow(): string {
     if (this.isSingleInvitation) {
-      return this.primaryGuest?.gender === 'female' ? 'Una invitada especial' : 'Un invitado especial';
+      if (this.primaryGuest?.gender === 'female') {
+        return 'Una invitada especial';
+      }
+
+      if (this.primaryGuest?.gender === 'male') {
+        return 'Un invitado especial';
+      }
+
+      return 'Una persona muy especial';
     }
 
-    return 'Una invitacion especial';
+    return 'Una invitaci\u00f3n especial';
   }
 
   get parchmentGreeting(): string {
-    if (!this.primaryGuest) {
+    if (!this.isSingleInvitation) {
       return `Queridos ${this.invitation.displayName}`;
     }
 
-    if (!this.isSingleInvitation) {
-      return `Queridos ${this.invitation.displayName}`;
+    if (!this.primaryGuest) {
+      return `Hola ${this.invitation.displayName}`;
     }
 
     if (this.primaryGuest.gender === 'female') {
@@ -257,32 +299,127 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   get invitationHeadline(): string {
     if (this.isSingleInvitation) {
       if (this.primaryGuest?.gender === 'female') {
-        return 'Estas invitada a nuestra boda';
+        return 'Est\u00e1s invitada a nuestra boda';
       }
 
       if (this.primaryGuest?.gender === 'male') {
-        return 'Estas invitado a nuestra boda';
+        return 'Est\u00e1s invitado a nuestra boda';
       }
 
-      return 'Tienes una invitacion para nuestra boda';
+      return 'Tienes una invitaci\u00f3n para nuestra boda';
     }
 
-    return 'Estan invitados a nuestra boda';
+    return 'Est\u00e1n invitados a nuestra boda';
+  }
+
+  get invitationSeatsCopy(): string {
+    if (this.invitationGuestCount <= 0) {
+      return 'Hemos reservado un lugar especial para ti.';
+    }
+
+    if (this.isSingleInvitation) {
+      return 'Hemos reservado 1 cupo para ti.';
+    }
+
+    return `Hemos reservado ${this.invitationGuestCount} cupos para ustedes.`;
+  }
+
+  get invitationChildrenCopy(): string {
+    if (this.childGuestCount === 0) {
+      return '';
+    }
+
+    if (this.childGuestCount === 1) {
+      return ' Nos hace mucha ilusi\u00f3n compartir este d\u00eda tambi\u00e9n con uno de los peque\u00f1os de la familia.';
+    }
+
+    return ' Nos hace mucha ilusi\u00f3n compartir este d\u00eda tambi\u00e9n con los peque\u00f1os de la familia.';
+  }
+
+  get invitationAbroadCopy(): string {
+    if (this.abroadGuestCount === 0) {
+      return '';
+    }
+
+    if (this.isSingleInvitation) {
+      return ' Sabemos que vienes desde fuera del pa\u00eds, as\u00ed que iremos compartiendo detalles \u00fatiles para tu viaje.';
+    }
+
+    if (this.abroadGuestCount === 1) {
+      return ' Sabemos que una de las personas invitadas viene desde fuera del pa\u00eds, as\u00ed que iremos compartiendo detalles \u00fatiles para facilitar el viaje.';
+    }
+
+    return ' Sabemos que algunas de las personas invitadas vienen desde fuera del pa\u00eds, as\u00ed que iremos compartiendo detalles \u00fatiles para facilitar el viaje.';
   }
 
   get invitationBodyCopy(): string {
     const base = this.isSingleInvitation
-      ? 'Nos encantaria que nos acompanes en el inicio de esta nueva aventura.'
-      : 'Nos encantaria que nos acompanen en el inicio de esta nueva aventura.';
-    const reservedSeats = `Hemos reservado ${this.invitation.guests.length} cupos para ustedes.`;
-    const childrenCopy = this.invitationHasChildren
-      ? ' Nos hace mucha ilusion compartir este dia tambien con los pequenos de la familia.'
-      : '';
-    const abroadCopy = this.invitationHasAbroadGuests
-      ? ' Sabemos que algunos vienen desde fuera del pais, asi que iremos compartiendo detalles utiles.'
-      : '';
+      ? 'Nos encantar\u00eda que nos acompa\u00f1es en el inicio de esta nueva aventura.'
+      : 'Nos encantar\u00eda que nos acompa\u00f1en en el inicio de esta nueva aventura.';
 
-    return `${base} ${reservedSeats}${childrenCopy}${abroadCopy}`;
+    return `${base} ${this.invitationSeatsCopy}${this.invitationChildrenCopy}${this.invitationAbroadCopy}`;
+  }
+
+  get wishTitle(): string {
+    return this.isSingleInvitation ? 'D\u00e9janos un recuerdo' : 'D\u00e9jennos un recuerdo';
+  }
+
+  get wishBodyCopy(): string {
+    return this.isSingleInvitation
+      ? 'Si quieres, puedes enviarnos un mensaje o recomendar una canci\u00f3n para celebrar juntos.'
+      : 'Si quieren, pueden enviarnos un mensaje o recomendar una canci\u00f3n para celebrar juntos.';
+  }
+
+  get rsvpTitle(): string {
+    return this.isSingleInvitation ? 'Confirma tu asistencia' : 'Confirmen su asistencia';
+  }
+
+  get rsvpBodyCopy(): string {
+    return this.isSingleInvitation
+      ? 'Puedes modificar esta respuesta luego usando el mismo enlace privado.'
+      : 'Pueden modificar esta respuesta luego usando el mismo enlace privado.';
+  }
+
+  get guestSummaryCopy(): string {
+    if (this.invitationGuestCount <= 0) {
+      return 'sin invitados cargados';
+    }
+
+    if (this.isSingleInvitation) {
+      return 'de 1 persona invitada';
+    }
+
+    return `de ${this.invitationGuestCount} personas invitadas`;
+  }
+
+  get finalClosingCopy(): string {
+    return this.isSingleInvitation
+      ? 'Con mucha ilusi\u00f3n, esperamos compartir este d\u00eda contigo.'
+      : 'Con mucha ilusi\u00f3n, esperamos compartir este d\u00eda con ustedes.';
+  }
+
+  get dressCodeCopy(): string {
+    return this.isSingleInvitation
+      ? 'Nos encantar\u00e1 que vengas en formal elegante. Si el calzado incluye tacones, te recomendamos elegir unos c\u00f3modos porque parte del evento ser\u00e1 sobre grama y queremos que disfrutes la noche sin preocuparte por nada.'
+      : 'Nos encantar\u00e1 que vengan en formal elegante. Si el calzado incluye tacones, les recomendamos elegir unos c\u00f3modos porque parte del evento ser\u00e1 sobre grama y queremos que disfruten la noche sin preocuparse por nada.';
+  }
+
+  get arrivalCopy(): string {
+    return this.isSingleInvitation
+      ? 'Te recomendamos llegar con tiempo y ser muy puntual para no perderte ni un momento de la ceremonia. En la recepci\u00f3n contaremos con valet parking para que tu llegada sea mucho m\u00e1s c\u00f3moda.'
+      : 'Les recomendamos llegar con tiempo y ser muy puntuales para no perderse ni un momento de la ceremonia. En la recepci\u00f3n contaremos con valet parking para que su llegada sea mucho m\u00e1s c\u00f3moda.';
+  }
+
+  get giftsCopy(): string {
+    return this.isSingleInvitation
+      ? 'Tu compa\u00f1\u00eda es lo m\u00e1s importante para nosotros, pero si deseas regalarnos algo, con mucho cari\u00f1o recibiremos aportes por Zelle a banking.vanguard@gmail.com (principal) o ayesapalaciosr@hotmail.com. Tambi\u00e9n recibiremos efectivo con mucho agradecimiento.'
+      : 'Su compa\u00f1\u00eda es lo m\u00e1s importante para nosotros, pero si desean regalarnos algo, con mucho cari\u00f1o recibiremos aportes por Zelle a banking.vanguard@gmail.com (principal) o ayesapalaciosr@hotmail.com. Tambi\u00e9n recibiremos efectivo con mucho agradecimiento.';
+  }
+
+  get scheduleSummaryCopy(): string {
+    return this.isSingleInvitation
+      ? 'Estos son los lugares donde viviremos cada momento de la boda, para que puedas organizarte con calma y acompa\u00f1arnos en cada cap\u00edtulo.'
+      : 'Estos son los lugares donde viviremos cada momento de la boda, para que puedan organizarse con calma y acompa\u00f1arnos en cada cap\u00edtulo.';
   }
 
   get filteredAdminInvitations(): Invitation[] {
@@ -445,7 +582,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       };
     } catch (error) {
       this.adminKeyError =
-        'No pudimos leer la coleccion de invitaciones. Si usas frontend web, Firestore debe permitir list.';
+        'No pudimos leer la colecci\u00f3n de invitaciones. Si usas frontend web, Firestore debe permitir list.';
       console.error(error);
     } finally {
       this.adminLoading = false;
@@ -523,8 +660,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.clampProgress(this.getSceneDistance(track, selector) / Math.max(distance, 1));
     const churchTime = progressFor('.church') * this.journeyTravelEnd;
     const carIn = Math.min(this.journeyTravelEnd - 0.14, churchTime + 0.02);
-    this.setAlpha(section, '.journey-bride', progress < carIn ? 1 : 0);
-    this.setAlpha(section, '.vintage-car', progress >= carIn + 0.01 ? 1 : 0);
+    const transitionStart = Math.max(0, carIn - this.characterTransitionWindow);
+    const transitionEnd = Math.min(this.journeyTravelEnd, carIn + this.characterTransitionWindow);
+    const carVisibility = this.getTransitionProgress(progress, transitionStart, transitionEnd);
+    this.setAlpha(section, '.journey-bride', 1 - carVisibility);
+    this.setAlpha(section, '.vintage-car', carVisibility);
   }
 
   private getJourneyDistance(): number {
@@ -573,6 +713,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return Math.min(1, Math.max(0, value));
   }
 
+  private getTransitionProgress(value: number, start: number, end: number): number {
+    if (end <= start) {
+      return value >= end ? 1 : 0;
+    }
+
+    return this.clampProgress((value - start) / (end - start));
+  }
+
   private trustedMap(query: string) {
     return this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`,
@@ -584,7 +732,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     seedWindow.seedDemoInvitation = async () => {
       if (!this.invitationService.isRemoteEnabled()) {
-        console.warn('Firebase no esta configurado todavia.');
+      console.warn('Firebase no est\u00e1 configurado todav\u00eda.');
         return;
       }
 
@@ -607,7 +755,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (!this.invitationService.isRemoteEnabled()) {
         this.invitationError =
-          'Firebase todavia no esta configurado. Se esta mostrando la invitacion demo.';
+          'Firebase todav\u00eda no est\u00e1 configurado. Se est\u00e1 mostrando la invitaci\u00f3n demo.';
       }
     } catch (error) {
       if (error instanceof InvitationNotFoundError) {
@@ -622,7 +770,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         song: this.invitation.song,
       };
       this.invitationError =
-        'No pudimos cargar la invitacion desde Firebase. Se dejo activo el modo demo.';
+        'No pudimos cargar la invitaci\u00f3n desde Firebase. Se dej\u00f3 activo el modo demo.';
       console.error(error);
     } finally {
       this.isLoadingInvitation = false;
@@ -682,17 +830,17 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private applyRouteNotFoundState(): void {
     this.missingInvitation = true;
     const missingToken = this.route.kind === 'not-found' && this.route.reason === 'missing-token';
-    this.notFoundTitle = 'Enlace no valido';
+    this.notFoundTitle = 'Enlace no v\u00e1lido';
     this.notFoundMessage =
       missingToken
-        ? 'Aqui no hay una invitacion para mostrar. Entra usando tu enlace privado completo.'
-        : 'La direccion que abriste no corresponde a una invitacion valida.';
+        ? 'Aqu\u00ed no hay una invitaci\u00f3n para mostrar. Entra usando tu enlace privado completo.'
+        : 'La direcci\u00f3n que abriste no corresponde a una invitaci\u00f3n v\u00e1lida.';
   }
 
   private applyInvitationNotFoundState(token: string): void {
     this.missingInvitation = true;
-    this.notFoundTitle = 'Invitacion no encontrada';
-    this.notFoundMessage = `No encontramos una invitacion activa para el codigo "${token}". Revisa el enlace o pide uno nuevo a los novios.`;
+    this.notFoundTitle = 'Invitaci\u00f3n no encontrada';
+    this.notFoundMessage = `No encontramos una invitaci\u00f3n activa para el c\u00f3digo "${token}". Revisa el enlace o pide uno nuevo a los novios.`;
   }
 
   private async tryStartBackgroundMusic(): Promise<void> {
@@ -716,7 +864,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.musicPlaying = true;
     } catch (error) {
       this.musicPlaying = false;
-      console.warn('No se pudo iniciar la musica de fondo.', error);
+      console.warn('No se pudo iniciar la m\u00fasica de fondo.', error);
     }
   }
 

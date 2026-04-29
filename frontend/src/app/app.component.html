@@ -1,4 +1,4 @@
-@if (showNotFoundState) {
+﻿@if (showNotFoundState) {
   <main class="not-found-shell">
     <section class="not-found-card">
       <p class="eyebrow">Error 404</p>
@@ -13,8 +13,8 @@
         <p class="eyebrow">Panel privado</p>
         <h1>Admin de la boda</h1>
         <p>
-          Aqui pueden ver aperturas, respuestas y el estado general de los invitados
-          en una vista mas clara para operar el evento.
+          Aqu&iacute; pueden ver aperturas, respuestas y el estado general de los invitados
+          en una vista m&aacute;s clara para operar el evento.
         </p>
       </div>
 
@@ -171,7 +171,7 @@
                 <button type="button" [class.is-active]="activeInvitationFilter === 'unopened'" (click)="setInvitationFilter('unopened')">No abiertas</button>
                 <button type="button" [class.is-active]="activeInvitationFilter === 'responded'" (click)="setInvitationFilter('responded')">Respondidas</button>
                 <button type="button" [class.is-active]="activeInvitationFilter === 'pending'" (click)="setInvitationFilter('pending')">Pendientes</button>
-                <button type="button" [class.is-active]="activeInvitationFilter === 'with-children'" (click)="setInvitationFilter('with-children')">Con ninos</button>
+                <button type="button" [class.is-active]="activeInvitationFilter === 'with-children'" (click)="setInvitationFilter('with-children')">Con ni&ntilde;os</button>
                 <button type="button" [class.is-active]="activeInvitationFilter === 'abroad'" (click)="setInvitationFilter('abroad')">Exterior</button>
               </div>
             </section>
@@ -203,7 +203,7 @@
                               <span>Abierta</span>
                             }
                             @if (invitation.hasChildren) {
-                              <span>Con ninos</span>
+                              <span>Con ni&ntilde;os</span>
                             }
                             @if (invitation.hasAbroadGuests) {
                               <span>Exterior</span>
@@ -281,7 +281,7 @@
                         <div class="admin-badges">
                           <span>{{ guest.role }}</span>
                           @if (guest.isChild) {
-                            <span>Nino</span>
+                            <span>Ni&ntilde;o</span>
                           }
                           @if (guest.isAbroad) {
                             <span>Exterior</span>
@@ -400,7 +400,7 @@
     ></audio>
 
     @if (isOpen && musicAvailable) {
-      <div class="floating-audio-controls" aria-label="Controles de musica">
+      <div class="floating-audio-controls" aria-label="Controles de m&uacute;sica">
         <button
           class="audio-control-button"
           type="button"
@@ -426,9 +426,9 @@
             <small>Gabriela & Juan</small>
             <em>28 de noviembre de 2026</em>
             <div class="parents-blessing">
-              <span>Con la bendicion de Dios y de nuestros padres</span>
+              <span>Con la bendici&oacute;n de Dios y de nuestros padres</span>
               <div>
-                <p>Ayesa Palacios<br />Jesus Landa</p>
+                <p>Ayesa Palacios<br />Jes&uacute;s Landa</p>
                 <p>Virginia Cordido<br />Dionisio Zozaya</p>
               </div>
             </div>
@@ -445,7 +445,7 @@
         <h1 id="cover-title">Gabriela & Juan</h1>
         <p>{{ invitationBodyCopy }}</p>
         <button class="primary-button" type="button" (click)="openInvitation()">
-          Abrir invitacion
+          Abrir invitaci&oacute;n
         </button>
       </div>
     </section>
@@ -468,7 +468,7 @@
                 <dd>{{ ceremony.time }}</dd>
               </div>
               <div>
-                <dt>Recepcion</dt>
+                <dt>Recepci&oacute;n</dt>
                 <dd>{{ party.time }}</dd>
               </div>
             </dl>
@@ -479,10 +479,10 @@
 
       <section class="couple-intro">
         <div class="chapter-copy">
-          <p class="eyebrow">Capitulo I</p>
+          <p class="eyebrow">Cap&iacute;tulo I</p>
           <h2>La princesa y el caballero</h2>
           <p>
-            Ella llega con vestido de novia y brillo de cuento. El la espera como
+            Ella llega con vestido de novia y brillo de cuento. &Eacute;l la espera como
             caballero elegante, listo para seguir el camino juntos.
           </p>
         </div>
@@ -513,12 +513,12 @@
 
             <div class="landmark church">
               <article class="scene-card ceremony-card">
-                <p class="eyebrow">Capitulo II</p>
+                <p class="eyebrow">Cap&iacute;tulo II</p>
                 <h2>La ceremonia</h2>
                 <p>{{ ceremony.name }}</p>
                 <dl>
                   <div>
-                    <dt>Direccion</dt>
+                    <dt>Direcci&oacute;n</dt>
                     <dd>{{ ceremony.address }}</dd>
                   </div>
                   <div>
@@ -536,12 +536,12 @@
 
             <div class="landmark ballroom">
               <article class="scene-card party-card">
-                <p class="eyebrow">Capitulo III</p>
-                <h2>La recepcion</h2>
+                <p class="eyebrow">Cap&iacute;tulo III</p>
+                <h2>La recepci&oacute;n</h2>
                 <p>{{ party.name }}</p>
                 <dl>
                   <div>
-                    <dt>Direccion</dt>
+                    <dt>Direcci&oacute;n</dt>
                     <dd>{{ party.address }}</dd>
                   </div>
                   <div>
@@ -553,7 +553,7 @@
               <div class="roof"></div>
               <div class="walls"></div>
               <div class="door"></div>
-              <span>Recepcion</span>
+              <span>Recepci&oacute;n</span>
             </div>
           </div>
 
@@ -566,7 +566,7 @@
           <img
             class="vintage-car"
             src="assets/characters/car.gif"
-            alt="Gabriela y Juan camino a la recepcion"
+            alt="Gabriela y Juan camino a la recepci&oacute;n"
           />
         </div>
       </section>
@@ -574,11 +574,8 @@
       <section class="schedule-summary-section">
         <div class="chapter-copy">
           <p class="eyebrow">Resumen del camino</p>
-          <h2>Donde nos encontraremos</h2>
-          <p>
-            Estos son los lugares donde viviremos cada momento de la boda, para
-            que puedan llegar tranquilos y acompanarnos en cada capitulo.
-          </p>
+          <h2>D&oacute;nde nos encontraremos</h2>
+          <p>{{ scheduleSummaryCopy }}</p>
         </div>
 
         <div class="schedule-summary-grid">
@@ -591,7 +588,7 @@
                 <dd>{{ ceremony.time }}</dd>
               </div>
               <div>
-                <dt>Direccion</dt>
+                <dt>Direcci&oacute;n</dt>
                 <dd>{{ ceremony.address }}</dd>
               </div>
             </dl>
@@ -605,7 +602,7 @@
           </article>
 
           <article>
-            <p class="eyebrow">Recepcion</p>
+            <p class="eyebrow">Recepci&oacute;n</p>
             <h3>{{ party.name }}</h3>
             <dl>
               <div>
@@ -613,7 +610,7 @@
                 <dd>{{ party.time }}</dd>
               </div>
               <div>
-                <dt>Direccion</dt>
+                <dt>Direcci&oacute;n</dt>
                 <dd>{{ party.address }}</dd>
               </div>
             </dl>
@@ -622,7 +619,7 @@
               [src]="party.embedUrl"
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
-              title="Mapa de la recepcion"
+              title="Mapa de la recepci&oacute;n"
             ></iframe>
           </article>
         </div>
@@ -634,20 +631,30 @@
           <h2>Para disfrutar la noche</h2>
         </div>
         <div class="detail-grid">
-          <article>
+          <article class="detail-card detail-card-dress-code">
             <span>*</span>
             <h3>Vestimenta</h3>
-            <p>Formal elegante. El lila queda reservado para pequenos acentos.</p>
+            <p>{{ dressCodeCopy }}</p>
+            <div class="reserved-colors" aria-label="Colores reservados del evento">
+              <p>Colores reservados del evento</p>
+              <div class="reserved-colors-swatches" aria-hidden="true">
+                <span class="color-swatch color-swatch-lilac"></span>
+                <span class="color-swatch color-swatch-blush"></span>
+                <span class="color-swatch color-swatch-cream"></span>
+                <span class="color-swatch color-swatch-sage"></span>
+                <span class="color-swatch color-swatch-gold"></span>
+              </div>
+            </div>
           </article>
           <article>
             <span>*</span>
             <h3>Llegada</h3>
-            <p>Recomendamos llegar 20 minutos antes de la ceremonia.</p>
+            <p>{{ arrivalCopy }}</p>
           </article>
           <article>
             <span>*</span>
             <h3>Regalos</h3>
-            <p>Su compania es el mejor regalo. Luego agregaremos opciones.</p>
+            <p>{{ giftsCopy }}</p>
           </article>
         </div>
       </section>
@@ -655,11 +662,8 @@
       <section class="wish-section">
         <form class="wish-card" (ngSubmit)="submitWish()">
           <p class="eyebrow">Opcional</p>
-          <h2>Dejennos un recuerdo</h2>
-          <p>
-            Si quieren, pueden enviarnos un mensaje o recomendar una cancion para
-            celebrar juntos.
-          </p>
+          <h2>{{ wishTitle }}</h2>
+          <p>{{ wishBodyCopy }}</p>
 
           <label>
             Mensaje para Gabriela y Juan
@@ -672,12 +676,12 @@
           </label>
 
           <label>
-            Cancion recomendada
+            Canci&oacute;n recomendada
             <input
               name="song"
               type="text"
               [(ngModel)]="guestWish.song"
-              placeholder="Cancion y artista"
+              placeholder="Canci&oacute;n y artista"
             />
           </label>
 
@@ -692,14 +696,12 @@
       <section class="rsvp-section">
         <form class="rsvp-card" (ngSubmit)="submitRsvp()">
           <p class="eyebrow">RSVP</p>
-          <h2>Confirmen su asistencia</h2>
-          <p>
-            Pueden modificar esta respuesta luego usando el mismo enlace privado.
-          </p>
+          <h2>{{ rsvpTitle }}</h2>
+          <p>{{ rsvpBodyCopy }}</p>
 
           <div class="guest-summary">
             <strong>{{ confirmedGuests.length }}</strong>
-            <span>de {{ invitation.guests.length }} asistentes confirmados</span>
+            <span>{{ guestSummaryCopy }}</span>
           </div>
 
           <div class="attendee-list" role="group" aria-label="Asistentes invitados">
@@ -712,7 +714,7 @@
                 />
                 <span>
                   <strong>{{ guest.name }}</strong>
-                  <small>{{ guest.attending ? 'Si asistira' : 'No asistira' }}</small>
+                  <small>{{ guest.attending ? 'S&iacute; asistir&aacute;' : 'No asistir&aacute;' }}</small>
                 </span>
               </label>
             }
@@ -742,11 +744,9 @@
           <span></span>
           <span></span>
         </div>
-        <p class="eyebrow">Fin del capitulo</p>
+        <p class="eyebrow">Fin del cap&iacute;tulo</p>
         <h2>Gracias por ser parte de nuestra historia</h2>
-        <p>
-          Con mucha ilusion, esperamos compartir este dia con ustedes.
-        </p>
+        <p>{{ finalClosingCopy }}</p>
       </section>
     }
   </main>

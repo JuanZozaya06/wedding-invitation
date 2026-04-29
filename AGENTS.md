@@ -268,3 +268,4 @@ Important behavior:
 - Be direct and pragmatic.
 - The user is comfortable coding and wants guidance, but implementation should be done when requested.
 - They prefer iterative visual tuning based on screenshots.
+- Before finishing UI copy changes, review Spanish accents, punctuation, and any strange encoding artifacts like `Â`, malformed bullets, or broken symbols.

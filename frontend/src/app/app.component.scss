@@ -1311,6 +1311,57 @@ dd {
   margin-bottom: 0.4rem;
 }
 
+.detail-card-dress-code {
+  position: relative;
+  padding-bottom: 4.9rem !important;
+}
+
+.reserved-colors {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: grid;
+  gap: 0.35rem;
+  text-align: right;
+}
+
+.reserved-colors p {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.reserved-colors-swatches {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.color-swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+}
+
+.color-swatch-lilac {
+  background: #b895d6;
+}
+
+.color-swatch-blush {
+  background: #dca5bd;
+}
+
+.color-swatch-cream {
+  background: #f5e6c8;
+}
+
+.color-swatch-sage {
+  background: #a9c39b;
+}
+
+.color-swatch-gold {
+  background: #d5b169;
+}
+
 .rsvp-section {
   display: grid;
   place-items: center;
@@ -1637,6 +1688,11 @@ textarea {
   .schedule-summary-grid {
     grid-template-columns: 1fr;
   }
+
+  .detail-card-dress-code {
+    padding-bottom: 6.2rem !important;
+  }
+
 
   .journey-track {
     width: 260rem;
