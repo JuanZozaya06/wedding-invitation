@@ -862,11 +862,22 @@ dd {
   justify-content: center;
   gap: clamp(1.5rem, 5vw, 4rem);
   min-height: 24rem;
+  padding: clamp(1rem, 3vw, 1.75rem);
   border-radius: 0.75rem;
   background:
     linear-gradient(180deg, transparent 66%, rgba(117, 157, 106, 0.24) 66%),
     linear-gradient(180deg, #d9f0ff, #fff0f8);
   overflow: hidden;
+}
+
+.portrait-scene-gif {
+  display: block;
+  width: min(31rem, 100%);
+  max-width: 92%;
+  max-height: 22rem;
+  object-fit: contain;
+  object-position: center center;
+  filter: drop-shadow(0 1rem 1.3rem rgba(81, 49, 94, 0.18));
 }
 
 .heart-spark {
@@ -1619,6 +1630,17 @@ textarea {
     height: 17.6rem !important;
   }
 
+  .portrait-scene {
+    min-height: 21rem;
+    padding: 1rem;
+  }
+
+  .portrait-scene-gif {
+    width: min(24rem, 100%);
+    max-width: 94%;
+    max-height: 18.5rem;
+  }
+
   .envelope {
     width: min(30rem, 78vw);
   }
@@ -1644,7 +1666,7 @@ textarea {
     .letter-preview {
       inset: 12% 13% auto;
       row-gap: 0.35rem;
-      padding: 1.55rem 0 1.25rem;
+      padding: 1.55rem;
     }
 
     .letter-preview strong {
