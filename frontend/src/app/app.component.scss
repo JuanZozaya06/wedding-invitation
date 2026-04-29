@@ -462,7 +462,7 @@ h3 {
 
 h1 {
   margin-bottom: 1rem;
-  font-size: clamp(3.4rem, 8vw, 8rem);
+  font-size: clamp(3rem, 7.2vw, 7.2rem);
 }
 
 h2 {
@@ -1329,21 +1329,24 @@ dd {
 
 .reserved-colors {
   position: absolute;
-  right: 1rem;
+  left: 50%;
   bottom: 1rem;
   display: grid;
+  justify-items: center;
   gap: 0.35rem;
-  text-align: right;
+  text-align: center;
+  transform: translateX(-50%);
 }
 
 .reserved-colors p {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 900;
 }
 
 .reserved-colors-swatches {
   display: inline-flex;
+  justify-content: center;
   gap: 0.4rem;
 }
 
