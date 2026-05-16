@@ -762,7 +762,7 @@ p {
   .letter-preview {
     inset: 12% 8% auto;
     opacity: 1;
-    transform: translateY(-62%);
+    transform: translateY(-30%);
     transition-delay: 620ms;
     z-index: 10;
   }
@@ -1020,12 +1020,24 @@ dd {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: #d8efff;
+  background: linear-gradient(180deg, #bfe3ff 0%, #eaf7ff 62%, #cbe1b9 62%);
   touch-action: pan-y;
+}
+
+.journey-sun {
+  position: absolute;
+  top: clamp(1rem, 3vw, 2rem);
+  left: clamp(1rem, 4vw, 3rem);
+  z-index: 0;
+  width: clamp(4.75rem, 10vw, 7.5rem);
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 0.55rem 1rem rgba(214, 175, 88, 0.24));
 }
 
 .journey-track {
   position: relative;
+  z-index: 1;
   width: min(320rem, 520vw);
   height: 100%;
   transform: translate3d(0, 0, 0);
@@ -1054,9 +1066,29 @@ dd {
 
 .layer.sky {
   inset: 0;
-  background:
-    radial-gradient(circle at 16rem 6rem, #fff9d6 0 3.5rem, transparent 3.7rem),
-    linear-gradient(180deg, #bfe3ff 0%, #eaf7ff 62%, #cbe1b9 62%);
+  background: none;
+}
+
+.avila-backdrop {
+  left: -10vw;
+  bottom: 26%;
+  width: 120vw;
+  height: clamp(12rem, 24vw, 18rem);
+  opacity: 0.78;
+  pointer-events: none;
+  will-change: transform;
+  z-index: 2;
+}
+
+.avila-image {
+  display: block;
+  width: 100%;
+  height: 190%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 36%;
+  filter: saturate(0.88) contrast(0.96);
+  transform: translateY(-28%);
 }
 
 .hills {
@@ -1069,11 +1101,14 @@ dd {
 .hills.far {
   background: linear-gradient(135deg, transparent 0 18%, #9bc3a7 18% 38%, transparent 38% 52%, #a9c7b2 52% 72%, transparent 72%);
   opacity: 0.68;
+  z-index: 3;
 }
 
 .hills.near {
   bottom: 12%;
   background: linear-gradient(135deg, transparent 0 12%, #81af80 12% 30%, transparent 30% 46%, #78a873 46% 68%, transparent 68%);
+  opacity: 0.5;
+  z-index: 4;
 }
 
 .trees {
@@ -1087,6 +1122,7 @@ dd {
     radial-gradient(circle at 105rem 6rem, #78ad6a 0 3.4rem, transparent 3.5rem),
     radial-gradient(circle at 170rem 7rem, #6da15d 0 3.2rem, transparent 3.3rem),
     radial-gradient(circle at 226rem 6rem, #78ad6a 0 3.2rem, transparent 3.3rem);
+  z-index: 6;
 }
 
 .road {
@@ -1098,12 +1134,14 @@ dd {
     linear-gradient(8deg, transparent 0 25%, rgba(255, 255, 255, 0.22) 25% 29%, transparent 29%),
     #dec28c;
   clip-path: polygon(0 48%, 100% 20%, 100% 100%, 0 100%);
+  z-index: 5;
 }
 
 .landmark {
   bottom: 28%;
   width: 10rem;
   height: 13rem;
+  z-index: 7;
 }
 
 .landmark span {
@@ -1112,6 +1150,8 @@ dd {
   bottom: -2.1rem;
   color: #51315e;
   font-weight: 900;
+  -webkit-text-stroke: 0.18rem rgba(255, 255, 255, 0.98);
+  paint-order: stroke fill;
   transform: translateX(-50%);
 }
 
@@ -1121,7 +1161,8 @@ dd {
 
 .ballroom {
   left: calc(50vw + 154rem);
-  width: 14rem;
+  width: 16rem;
+  height: 15rem;
 }
 
 .church .scene-card,
@@ -1129,6 +1170,39 @@ dd {
   left: 50%;
   bottom: calc(100% + 1.2rem);
   transform: translateX(-50%);
+}
+
+.church .ceremony-card {
+  bottom: calc(100% - 1.6rem);
+}
+
+.church {
+  width: 16rem;
+  height: 18rem;
+}
+
+.church-illustration {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 16rem;
+  max-width: none;
+  height: auto;
+  object-fit: contain;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0.6rem 0.8rem rgba(61, 43, 71, 0.12));
+}
+
+.party-illustration {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 16rem;
+  max-width: none;
+  height: auto;
+  object-fit: contain;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0.7rem 0.9rem rgba(61, 43, 71, 0.14));
 }
 
 .landmark .walls {
@@ -1176,7 +1250,7 @@ dd {
   position: absolute;
   left: 50%;
   bottom: 19%;
-  z-index: 5;
+  z-index: 8;
   width: auto;
   height: min(10.5rem, 34dvh);
   object-fit: contain;
@@ -1185,18 +1259,28 @@ dd {
   transform: translateX(-50%);
 }
 
+.journey-dancing,
 .vintage-car {
   position: absolute;
   left: 50%;
   bottom: 19%;
-  width: min(18.5rem, 58vw);
-  height: auto;
   opacity: 0;
-  z-index: 6;
+  z-index: 9;
   object-fit: contain;
   object-position: bottom center;
-  filter: drop-shadow(0 0.8rem 1rem rgba(61, 43, 71, 0.18));
   transform: translateX(-50%);
+}
+
+.vintage-car {
+  width: min(18.5rem, 58vw);
+  height: auto;
+  filter: drop-shadow(0 0.8rem 1rem rgba(61, 43, 71, 0.18));
+}
+
+.journey-dancing {
+  width: min(14rem, 44vw);
+  height: auto;
+  filter: drop-shadow(0 0.8rem 1rem rgba(61, 43, 71, 0.16));
 }
 
 .tiny {
@@ -1219,7 +1303,7 @@ dd {
   background: rgba(255, 248, 232, 0.92);
   padding: 0.9rem 1rem;
   box-shadow: 0 1rem 2rem rgba(61, 43, 71, 0.16);
-  z-index: 8;
+  z-index: 10;
 }
 
 .scene-card h2 {
@@ -1723,6 +1807,26 @@ textarea {
     width: 260rem;
   }
 
+  .journey-sun {
+    top: 0.9rem;
+    left: 0.9rem;
+    width: clamp(4.25rem, 16vw, 6rem);
+  }
+
+  .avila-backdrop {
+    left: -16vw;
+    bottom: 17%;
+    width: 132vw;
+    height: 25rem;
+    opacity: 0.74;
+  }
+
+  .avila-image {
+    height: 205%;
+    object-position: center 34%;
+    transform: translateY(-31%);
+  }
+
   .scene-card {
     width: min(13rem, 46vw);
     padding: 0.75rem 0.8rem;
@@ -1733,12 +1837,28 @@ textarea {
     bottom: calc(100% + 0.75rem);
   }
 
+  .church .ceremony-card {
+    bottom: calc(100% - 1rem);
+  }
+
   .church {
     left: calc(50vw + 42rem);
+    width: 13rem;
+    height: 15rem;
+  }
+
+  .church-illustration {
+    width: 13rem;
   }
 
   .ballroom {
     left: calc(50vw + 128rem);
+    width: 13rem;
+    height: 12rem;
+  }
+
+  .party-illustration {
+    width: 13rem;
   }
 }
 

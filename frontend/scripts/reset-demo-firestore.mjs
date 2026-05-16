@@ -5,10 +5,14 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   setDoc,
 } from 'firebase/firestore/lite';
+
+const adminCollectionName = 'admin-demo';
+const invitationsCollectionName = 'invitations-demo';
 
 const invitations = [
   createInvitation({
@@ -126,18 +130,37 @@ async function main() {
   const firebaseConfig = await loadFirebaseConfig();
   const app = initializeApp(firebaseConfig);
   const firestore = getFirestore(app);
-  const invitationsCollection = collection(firestore, 'invitations');
+  const invitationsCollection = collection(firestore, invitationsCollectionName);
   const snapshot = await getDocs(invitationsCollection);
 
   for (const invitationDoc of snapshot.docs) {
-    await deleteDoc(doc(firestore, 'invitations', invitationDoc.id));
+    await deleteDoc(doc(firestore, invitationsCollectionName, invitationDoc.id));
   }
 
   for (const invitation of invitations) {
-    await setDoc(doc(firestore, 'invitations', invitation.token), invitation);
+    await setDoc(doc(firestore, invitationsCollectionName, invitation.token), invitation);
   }
 
-  console.log(`Coleccion invitations reiniciada con ${invitations.length} invitaciones demo.`);
+  await syncDemoAdminConfig(firestore);
+
+  console.log(
+    `Coleccion ${invitationsCollectionName} reiniciada con ${invitations.length} invitaciones demo.`,
+  );
+}
+
+async function syncDemoAdminConfig(firestore) {
+  const sourceConfigRef = doc(firestore, 'admin', 'config');
+  const demoConfigRef = doc(firestore, adminCollectionName, 'config');
+  const sourceConfigSnapshot = await getDoc(sourceConfigRef);
+
+  if (!sourceConfigSnapshot.exists()) {
+    console.warn(
+      `No encontramos admin/config. Crea ${adminCollectionName}/config manualmente con masterKeyHash para usar el admin demo.`,
+    );
+    return;
+  }
+
+  await setDoc(demoConfigRef, sourceConfigSnapshot.data(), { merge: true });
 }
 
 function guest(id, name, gender, role, isChild, isAbroad, attending) {

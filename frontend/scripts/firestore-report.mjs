@@ -4,14 +4,18 @@ import { initializeApp } from 'firebase/app';
 import { collection, getDocs, getFirestore } from 'firebase/firestore/lite';
 
 const command = process.argv[2] ?? 'stats';
+const instanceIndex = process.argv.indexOf('--instance');
+const instanceKey = (instanceIndex >= 0 ? process.argv[instanceIndex + 1] : 'default') || 'default';
 const outIndex = process.argv.indexOf('--out');
 const outPath = outIndex >= 0 ? process.argv[outIndex + 1] : '';
+const invitationsCollectionName =
+  instanceKey === 'demo' ? 'invitations-demo' : 'invitations';
 
 async function main() {
   const firebaseConfig = await loadFirebaseConfig();
   const app = initializeApp(firebaseConfig);
   const firestore = getFirestore(app);
-  const invitationsSnapshot = await getDocs(collection(firestore, 'invitations'));
+  const invitationsSnapshot = await getDocs(collection(firestore, invitationsCollectionName));
   const invitations = invitationsSnapshot.docs.map((documentSnapshot) => ({
     token: documentSnapshot.id,
     ...documentSnapshot.data(),
@@ -102,6 +106,7 @@ function printStats(invitations) {
 
   console.log('Resumen Firestore');
   console.log('-----------------');
+  console.log(`Coleccion: ${invitationsCollectionName}`);
   console.log(`Invitaciones: ${invitationCount}`);
   console.log(`Invitaciones abiertas: ${openedCount}`);
   console.log(`Invitaciones respondidas: ${respondedCount}`);

@@ -79,6 +79,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly invitationService = inject(InvitationService);
   private readonly characterTransitionWindow = 0.02;
+  private readonly celebrationTransitionWindow = 0.03;
   private reduceMotion = false;
   private journeyReady = false;
   private journeyScrollLength = 0;
@@ -652,19 +653,28 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     const trackX = -distance * travelProgress;
 
     track.style.transform = `translate3d(${trackX}px, 0, 0)`;
-    this.setLayerTransform(section, '.trees', -180 * travelProgress);
-    this.setLayerTransform(section, '.hills.near', -90 * travelProgress);
-    this.setLayerTransform(section, '.hills.far', -40 * travelProgress);
+    this.setLayerParallax(section, '.avila-backdrop', trackX, 0.012);
+    this.setLayerParallax(section, '.hills.far', trackX, 0.28);
+    this.setLayerParallax(section, '.hills.near', trackX, 0.46);
+    this.setLayerParallax(section, '.trees', trackX, 0.7);
+    this.setLayerParallax(section, '.road', trackX, 0.9);
 
     const progressFor = (selector: string) =>
       this.clampProgress(this.getSceneDistance(track, selector) / Math.max(distance, 1));
     const churchTime = progressFor('.church') * this.journeyTravelEnd;
+    const ballroomTime = progressFor('.ballroom') * this.journeyTravelEnd;
     const carIn = Math.min(this.journeyTravelEnd - 0.14, churchTime + 0.02);
     const transitionStart = Math.max(0, carIn - this.characterTransitionWindow);
     const transitionEnd = Math.min(this.journeyTravelEnd, carIn + this.characterTransitionWindow);
     const carVisibility = this.getTransitionProgress(progress, transitionStart, transitionEnd);
+    const danceIn = Math.max(ballroomTime, this.journeyTravelEnd);
+    const danceStart = Math.max(carIn, danceIn - this.celebrationTransitionWindow);
+    const danceEnd = Math.min(1, danceIn + this.celebrationTransitionWindow);
+    const danceVisibility = this.getTransitionProgress(progress, danceStart, danceEnd);
+
     this.setAlpha(section, '.journey-bride', 1 - carVisibility);
-    this.setAlpha(section, '.vintage-car', carVisibility);
+    this.setAlpha(section, '.vintage-car', carVisibility * (1 - danceVisibility));
+    this.setAlpha(section, '.journey-dancing', danceVisibility);
   }
 
   private getJourneyDistance(): number {
@@ -675,11 +685,20 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.getSceneDistance(this.journeyTrack.nativeElement, '.ballroom');
   }
 
-  private setLayerTransform(section: HTMLElement, selector: string, x: number): void {
+  private setLayerParallax(
+    section: HTMLElement,
+    selector: string,
+    trackX: number,
+    ratio: number,
+  ): void {
     const element = section.querySelector<HTMLElement>(selector);
-    if (element) {
-      element.style.transform = `translate3d(${x}px, 0, 0)`;
+    if (!element) {
+      return;
     }
+
+    const normalizedRatio = Math.min(1, Math.max(0, ratio));
+    const offsetX = trackX * (normalizedRatio - 1);
+    element.style.transform = `translate3d(${offsetX}px, 0, 0)`;
   }
 
   private setAlpha(section: HTMLElement, selector: string, opacity: number): void {

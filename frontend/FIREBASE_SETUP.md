@@ -11,9 +11,14 @@
 
 Edita [firebase.config.ts](/C:/Users/Zozi/Documents/Projects/wedding-invitation/frontend/src/app/firebase/firebase.config.ts:1) y reemplaza los valores con tu configuracion real.
 
-## 3. Crear la coleccion
+## 3. Crear las colecciones
 
-Crea una coleccion llamada `invitations`.
+Crea estas colecciones:
+
+- `invitations` para `labodadelsiglo.app`
+- `invitations-demo` para `labodadelsiglo.app/?instance=demo`
+- `admin` para el admin real
+- `admin-demo` para el admin demo
 
 Usa el `token` como ID del documento.
 
@@ -90,6 +95,10 @@ service cloud.firestore {
     match /invitations/{token} {
       allow read, write: if true;
     }
+
+    match /invitations-demo/{token} {
+      allow read, write: if true;
+    }
   }
 }
 ```
@@ -100,8 +109,8 @@ No dejes esas reglas asi en produccion.
 
 Si el panel `/admin` va a leer estadisticas directamente desde el navegador, Firestore debe permitir:
 
-- `get` sobre `admin/config`
-- `list` sobre `invitations`
+- `get` sobre `admin/config` y `admin-demo/config`
+- `list` sobre `invitations` y `invitations-demo`
 
 Version simple para esta etapa:
 
@@ -115,7 +124,21 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /admin-demo/{docId} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update, delete: if false;
+    }
+
     match /invitations/{token} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    match /invitations-demo/{token} {
       allow get: if true;
       allow list: if true;
       allow create: if false;
@@ -154,7 +177,10 @@ Si no quieres llenar Firestore campo por campo:
 window.seedDemoInvitation()
 ```
 
-Eso crea o actualiza automaticamente `invitations/demo-cuento` con una invitacion demo completa.
+Eso crea o actualiza automaticamente `demo-cuento` en la coleccion activa de la instancia:
+
+- `invitations` si abres la URL normal
+- `invitations-demo` si abres la URL con `?instance=demo`
 
 ## 5.2. Configurar la clave maestra del admin
 
@@ -180,6 +206,15 @@ Contenido:
 Despues entra a:
 
 - `http://127.0.0.1:4200/admin`
+- `https://labodadelsiglo.app/admin`
+- `https://labodadelsiglo.app/admin?instance=demo`
+
+Para la demo crea tambien:
+
+- coleccion: `admin-demo`
+- documento: `config`
+
+Puedes usar el mismo `masterKeyHash` si quieres reutilizar la misma clave maestra.
 
 El panel pedira la clave, comparara el hash y cargara estadisticas y confirmados.
 
@@ -212,6 +247,12 @@ Resumen general:
 
 ```bash
 npm run report -- stats
+```
+
+Resumen de la demo:
+
+```bash
+npm run report -- stats --instance demo
 ```
 
 Listado de invitados confirmados:

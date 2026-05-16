@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore/lite';
 import { createDemoInvitation } from '../data/demo-invitation';
+import { getCurrentAppInstance } from '../firebase/app-instance';
 import { getInvitationFirestore } from '../firebase/firebase';
 import { GuestWish, Invitation, RsvpDraft, RsvpStatus } from '../models/invitation.model';
 
@@ -19,6 +20,8 @@ export class InvitationNotFoundError extends Error {
   providedIn: 'root',
 })
 export class InvitationService {
+  private readonly appInstance = getCurrentAppInstance();
+
   isRemoteEnabled(): boolean {
     return getInvitationFirestore() !== null;
   }
@@ -30,7 +33,7 @@ export class InvitationService {
       return;
     }
 
-    const invitationRef = doc(firestore, 'invitations', invitation.token);
+    const invitationRef = doc(firestore, this.appInstance.invitationsCollection, invitation.token);
 
     await setDoc(invitationRef, invitation, { merge: true });
   }
@@ -42,7 +45,7 @@ export class InvitationService {
       return createDemoInvitation(token);
     }
 
-    const invitationRef = doc(firestore, 'invitations', token);
+    const invitationRef = doc(firestore, this.appInstance.invitationsCollection, token);
     const invitationSnapshot = await getDoc(invitationRef);
 
     if (!invitationSnapshot.exists()) {
@@ -59,7 +62,9 @@ export class InvitationService {
       return [];
     }
 
-    const invitationsSnapshot = await getDocs(collection(firestore, 'invitations'));
+    const invitationsSnapshot = await getDocs(
+      collection(firestore, this.appInstance.invitationsCollection),
+    );
 
     return invitationsSnapshot.docs.map((documentSnapshot) =>
       this.normalizeInvitation(documentSnapshot.id, documentSnapshot.data() as FirestoreInvitation),
@@ -73,7 +78,7 @@ export class InvitationService {
       return '';
     }
 
-    const adminConfigRef = doc(firestore, 'admin', 'config');
+    const adminConfigRef = doc(firestore, this.appInstance.adminCollection, 'config');
     const adminConfigSnapshot = await getDoc(adminConfigRef);
 
     if (!adminConfigSnapshot.exists()) {
@@ -91,7 +96,7 @@ export class InvitationService {
       return;
     }
 
-    const invitationRef = doc(firestore, 'invitations', token);
+    const invitationRef = doc(firestore, this.appInstance.invitationsCollection, token);
     const currentInvitation = await this.getInvitationByToken(token);
     const confirmedCount = rsvp.guests.filter((guest) => guest.attending).length;
     const declinedCount = rsvp.guests.length - confirmedCount;
@@ -123,7 +128,7 @@ export class InvitationService {
       return;
     }
 
-    const invitationRef = doc(firestore, 'invitations', token);
+    const invitationRef = doc(firestore, this.appInstance.invitationsCollection, token);
     const currentInvitation = await this.getInvitationByToken(token);
     const timestamp = new Date().toISOString();
 
@@ -146,7 +151,7 @@ export class InvitationService {
       return;
     }
 
-    const invitationRef = doc(firestore, 'invitations', token);
+    const invitationRef = doc(firestore, this.appInstance.invitationsCollection, token);
     const currentInvitation = await this.getInvitationByToken(token);
     const timestamp = new Date().toISOString();
     const firstOpenedAt = currentInvitation.openedAt ?? timestamp;

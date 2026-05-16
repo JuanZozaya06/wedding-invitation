@@ -498,8 +498,22 @@
 
       <section class="journey-section" #journeySection>
         <div class="journey-viewport">
+          <img
+            class="journey-sun"
+            src="assets/characters/sun.png"
+            alt=""
+            aria-hidden="true"
+          />
+
           <div class="journey-track" #journeyTrack>
             <div class="layer sky"></div>
+            <div class="layer avila-backdrop" aria-hidden="true">
+              <img
+                class="avila-image"
+                src="assets/characters/avila.png"
+                alt=""
+              />
+            </div>
             <div class="layer hills far"></div>
             <div class="layer hills near"></div>
             <div class="layer trees"></div>
@@ -521,11 +535,11 @@
                   </div>
                 </dl>
               </article>
-              <div class="tower"></div>
-              <div class="roof"></div>
-              <div class="walls"></div>
-              <div class="door"></div>
-              <span>Ceremonia</span>
+              <img
+                class="church-illustration"
+                src="assets/characters/iglesia.png"
+                alt="Iglesia de la ceremonia"
+              />
             </div>
 
             <div class="landmark ballroom">
@@ -544,10 +558,11 @@
                   </div>
                 </dl>
               </article>
-              <div class="roof"></div>
-              <div class="walls"></div>
-              <div class="door"></div>
-              <span>Recepci&oacute;n</span>
+              <img
+                class="party-illustration"
+                src="assets/characters/party.png"
+                alt="Celebraci&oacute;n de la recepci&oacute;n"
+              />
             </div>
           </div>
 
@@ -561,6 +576,12 @@
             class="vintage-car"
             src="assets/characters/car.gif"
             alt="Gabriela y Juan camino a la recepci&oacute;n"
+          />
+
+          <img
+            class="journey-dancing"
+            src="assets/characters/dancing.gif"
+            alt="Gabriela y Juan bailando en la recepci&oacute;n"
           />
         </div>
       </section>
