@@ -488,11 +488,17 @@
         </div>
 
         <div class="portrait-scene" aria-label="Ilustraci&oacute;n animada de los novios">
-          <img
+          <video
             class="portrait-scene-gif"
-            src="assets/characters/waving.gif"
-            alt="Gabriela y Juan saludando"
-          />
+            autoplay
+            loop
+            muted
+            playsinline
+            preload="metadata"
+            aria-label="Gabriela y Juan saludando"
+          >
+            <source [src]="introSceneVideoSrc" type="video/webm" />
+          </video>
         </div>
       </section>
 
@@ -566,23 +572,45 @@
             </div>
           </div>
 
-          <img
+          <video
             class="journey-bride"
-            src="assets/characters/gaby-walking.gif"
-            alt="Gabriela caminando hacia la iglesia"
-          />
+            autoplay
+            loop
+            muted
+            playsinline
+            preload="metadata"
+            aria-label="Gabriela caminando hacia la iglesia"
+          >
+            <source [src]="journeyBrideVideoSrc" type="video/webm" />
+          </video>
 
-          <img
-            class="vintage-car"
-            src="assets/characters/car.gif"
-            alt="Gabriela y Juan camino a la recepci&oacute;n"
-          />
+          @if (showJourneyCar) {
+            <video
+              class="vintage-car"
+              autoplay
+              loop
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="Gabriela y Juan camino a la recepci&oacute;n"
+            >
+              <source [src]="journeyCarVideoSrc" type="video/webm" />
+            </video>
+          }
 
-          <img
-            class="journey-dancing"
-            src="assets/characters/dancing.gif"
-            alt="Gabriela y Juan bailando en la recepci&oacute;n"
-          />
+          @if (showJourneyDancing) {
+            <video
+              class="journey-dancing"
+              autoplay
+              loop
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="Gabriela y Juan bailando en la recepci&oacute;n"
+            >
+              <source [src]="journeyDancingVideoSrc" type="video/webm" />
+            </video>
+          }
         </div>
       </section>
 

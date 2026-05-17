@@ -395,6 +395,7 @@
   line-height: 1;
   padding: 0;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .audio-control-button:hover {
@@ -793,6 +794,8 @@ p {
 .wish-section,
 .final-section {
   padding: clamp(4rem, 9vw, 8rem) clamp(1.25rem, 5vw, 5rem);
+  content-visibility: auto;
+  contain-intrinsic-size: 40rem;
 }
 
 .parchment {
@@ -1009,6 +1012,7 @@ dd {
   min-height: 520vh;
   overflow: visible;
   overscroll-behavior: contain;
+  contain: layout paint;
 }
 
 .journey-viewport {
@@ -1022,6 +1026,7 @@ dd {
   overflow: hidden;
   background: linear-gradient(180deg, #bfe3ff 0%, #eaf7ff 62%, #cbe1b9 62%);
   touch-action: pan-y;
+  contain: layout paint;
 }
 
 .journey-sun {
@@ -1042,6 +1047,7 @@ dd {
   height: 100%;
   transform: translate3d(0, 0, 0);
   will-change: transform;
+  backface-visibility: hidden;
 }
 
 .journey-viewport::after {
@@ -1078,6 +1084,7 @@ dd {
   pointer-events: none;
   will-change: transform;
   z-index: 2;
+  backface-visibility: hidden;
 }
 
 .avila-image {
@@ -1257,6 +1264,8 @@ dd {
   object-position: bottom center;
   filter: drop-shadow(0 0.8rem 1rem rgba(61, 43, 71, 0.18));
   transform: translateX(-50%);
+  will-change: opacity;
+  backface-visibility: hidden;
 }
 
 .journey-dancing,
@@ -1269,6 +1278,8 @@ dd {
   object-fit: contain;
   object-position: bottom center;
   transform: translateX(-50%);
+  will-change: opacity;
+  backface-visibility: hidden;
 }
 
 .vintage-car {
@@ -1650,6 +1661,8 @@ textarea {
     width: 3.1rem;
     height: 3.1rem;
     font-size: 1.15rem;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .admin-stats-grid,
@@ -1726,6 +1739,7 @@ textarea {
     width: min(24rem, 100%);
     max-width: 94%;
     max-height: 18.5rem;
+    filter: none;
   }
 
   .envelope {
@@ -1825,6 +1839,15 @@ textarea {
     height: 205%;
     object-position: center 34%;
     transform: translateY(-31%);
+    filter: none;
+  }
+
+  .trees {
+    opacity: 0.62;
+  }
+
+  .journey-viewport::after {
+    opacity: 0.45;
   }
 
   .scene-card {
@@ -1849,6 +1872,7 @@ textarea {
 
   .church-illustration {
     width: 13rem;
+    filter: none;
   }
 
   .ballroom {
@@ -1859,6 +1883,14 @@ textarea {
 
   .party-illustration {
     width: 13rem;
+    filter: none;
+  }
+
+  .journey-bride,
+  .vintage-car,
+  .journey-dancing,
+  .journey-sun {
+    filter: none;
   }
 }
 

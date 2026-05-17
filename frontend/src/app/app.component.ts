@@ -61,6 +61,19 @@ type RouteResolution =
   | { kind: 'invitation'; segment: string }
   | { kind: 'not-found'; segment: ''; reason: 'missing-token' | 'invalid-route' };
 
+type JourneySceneElements = {
+  section: HTMLElement;
+  track: HTMLElement;
+  backdrop: HTMLElement | null;
+  hillsFar: HTMLElement | null;
+  hillsNear: HTMLElement | null;
+  trees: HTMLElement | null;
+  road: HTMLElement | null;
+  bride: HTMLElement | null;
+  car: HTMLElement | null;
+  dancing: HTMLElement | null;
+};
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -81,12 +94,28 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly characterTransitionWindow = 0.02;
   private readonly celebrationTransitionWindow = 0.03;
   private reduceMotion = false;
+  private mobilePerformanceMode = false;
   private journeyReady = false;
   private journeyScrollLength = 0;
   private journeyAnimationFrame = 0;
+  private journeySectionTop = 0;
+  private journeyDistance = 0;
+  private churchTime = 0;
+  private ballroomTime = 0;
+  private journeyElements?: JourneySceneElements;
+  private lastTrackX = Number.NaN;
+  private lastBackdropX = Number.NaN;
+  private lastHillsFarX = Number.NaN;
+  private lastHillsNearX = Number.NaN;
+  private lastTreesX = Number.NaN;
+  private lastRoadX = Number.NaN;
+  private lastBrideOpacity = Number.NaN;
+  private lastCarOpacity = Number.NaN;
+  private lastDancingOpacity = Number.NaN;
   private readonly journeyTravelEnd = 0.84;
   private readonly updateJourneyFromScroll = () => this.requestJourneyUpdate();
   private readonly resizeJourney = () => {
+    this.syncViewportPreferences();
     this.layoutJourney();
     this.requestJourneyUpdate();
   };
@@ -165,6 +194,30 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.musicPlaying ? 'Pausar m\u00fasica' : 'Reproducir m\u00fasica';
   }
 
+  get introSceneVideoSrc(): string {
+    return 'assets/characters/waving.webm';
+  }
+
+  get journeyBrideVideoSrc(): string {
+    return 'assets/characters/gaby-walking.webm';
+  }
+
+  get journeyCarVideoSrc(): string {
+    return 'assets/characters/car.webm';
+  }
+
+  get journeyDancingVideoSrc(): string {
+    return 'assets/characters/dancing.webm';
+  }
+
+  get showJourneyCar(): boolean {
+    return !this.mobilePerformanceMode;
+  }
+
+  get showJourneyDancing(): boolean {
+    return !this.mobilePerformanceMode;
+  }
+
   async ngOnInit(): Promise<void> {
     this.registerDevSeed();
 
@@ -183,7 +236,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.syncViewportPreferences();
   }
 
   ngOnDestroy(): void {
@@ -595,6 +648,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    this.journeyElements = this.collectJourneyElements();
     this.journeyReady = true;
     this.layoutJourney();
     this.requestJourneyUpdate();
@@ -618,13 +672,20 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private layoutJourney(): void {
-    if (!this.journeySection || !this.journeyTrack) {
+    if (!this.journeyElements) {
       return;
     }
 
-    const distance = this.getJourneyDistance();
-    this.journeyScrollLength = Math.max(distance * 2.55, 4200);
-    this.journeySection.nativeElement.style.height = `${this.journeyScrollLength + window.innerHeight}px`;
+    this.journeySectionTop = this.journeyElements.section.offsetTop;
+    this.journeyDistance = this.getJourneyDistance();
+    this.churchTime = this.progressForLandmark('.church') * this.journeyTravelEnd;
+    this.ballroomTime = this.progressForLandmark('.ballroom') * this.journeyTravelEnd;
+
+    const scrollMultiplier = this.mobilePerformanceMode ? 1.95 : 2.55;
+    const minimumScrollLength = this.mobilePerformanceMode ? 2600 : 4200;
+
+    this.journeyScrollLength = Math.max(this.journeyDistance * scrollMultiplier, minimumScrollLength);
+    this.journeyElements.section.style.height = `${this.journeyScrollLength + window.innerHeight}px`;
   }
 
   private requestJourneyUpdate(): void {
@@ -639,76 +700,143 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private updateJourney(): void {
-    if (!this.journeySection || !this.journeyTrack || !this.journeyReady) {
+    if (!this.journeyElements || !this.journeyReady) {
       return;
     }
 
-    const section = this.journeySection.nativeElement;
-    const track = this.journeyTrack.nativeElement;
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-    const rawProgress = (window.scrollY - sectionTop) / this.journeyScrollLength;
+    const { track } = this.journeyElements;
+    const rawProgress = (window.scrollY - this.journeySectionTop) / this.journeyScrollLength;
     const progress = this.clampProgress(rawProgress);
-    const distance = this.getJourneyDistance();
     const travelProgress = this.clampProgress(progress / this.journeyTravelEnd);
-    const trackX = -distance * travelProgress;
+    const trackX = -this.journeyDistance * travelProgress;
 
-    track.style.transform = `translate3d(${trackX}px, 0, 0)`;
-    this.setLayerParallax(section, '.avila-backdrop', trackX, 0.012);
-    this.setLayerParallax(section, '.hills.far', trackX, 0.28);
-    this.setLayerParallax(section, '.hills.near', trackX, 0.46);
-    this.setLayerParallax(section, '.trees', trackX, 0.7);
-    this.setLayerParallax(section, '.road', trackX, 0.9);
+    this.setTransformX(track, trackX, 'lastTrackX');
+    this.setParallaxTransform(this.journeyElements.backdrop, trackX, 0.012, 'lastBackdropX');
+    this.setParallaxTransform(this.journeyElements.hillsFar, trackX, 0.28, 'lastHillsFarX');
+    this.setParallaxTransform(this.journeyElements.hillsNear, trackX, 0.46, 'lastHillsNearX');
 
-    const progressFor = (selector: string) =>
-      this.clampProgress(this.getSceneDistance(track, selector) / Math.max(distance, 1));
-    const churchTime = progressFor('.church') * this.journeyTravelEnd;
-    const ballroomTime = progressFor('.ballroom') * this.journeyTravelEnd;
-    const carIn = Math.min(this.journeyTravelEnd - 0.14, churchTime + 0.02);
+    if (!this.mobilePerformanceMode) {
+      this.setParallaxTransform(this.journeyElements.trees, trackX, 0.7, 'lastTreesX');
+      this.setParallaxTransform(this.journeyElements.road, trackX, 0.9, 'lastRoadX');
+    }
+
+    const carIn = Math.min(this.journeyTravelEnd - 0.14, this.churchTime + 0.02);
     const transitionStart = Math.max(0, carIn - this.characterTransitionWindow);
     const transitionEnd = Math.min(this.journeyTravelEnd, carIn + this.characterTransitionWindow);
     const carVisibility = this.getTransitionProgress(progress, transitionStart, transitionEnd);
-    const danceIn = Math.max(ballroomTime, this.journeyTravelEnd);
+    const danceIn = Math.max(this.ballroomTime, this.journeyTravelEnd);
     const danceStart = Math.max(carIn, danceIn - this.celebrationTransitionWindow);
     const danceEnd = Math.min(1, danceIn + this.celebrationTransitionWindow);
     const danceVisibility = this.getTransitionProgress(progress, danceStart, danceEnd);
 
-    this.setAlpha(section, '.journey-bride', 1 - carVisibility);
-    this.setAlpha(section, '.vintage-car', carVisibility * (1 - danceVisibility));
-    this.setAlpha(section, '.journey-dancing', danceVisibility);
+    this.setAlpha(this.journeyElements.bride, 1 - carVisibility, 'lastBrideOpacity');
+
+    if (!this.mobilePerformanceMode) {
+      this.setAlpha(this.journeyElements.car, carVisibility * (1 - danceVisibility), 'lastCarOpacity');
+      this.setAlpha(this.journeyElements.dancing, danceVisibility, 'lastDancingOpacity');
+    }
   }
 
   private getJourneyDistance(): number {
-    if (!this.journeyTrack) {
+    if (!this.journeyElements) {
       return 0;
     }
 
-    return this.getSceneDistance(this.journeyTrack.nativeElement, '.ballroom');
+    return this.getSceneDistance(this.journeyElements.track, '.ballroom');
   }
 
-  private setLayerParallax(
-    section: HTMLElement,
-    selector: string,
+  private setParallaxTransform(
+    element: HTMLElement | null,
     trackX: number,
     ratio: number,
+    cacheKey:
+      | 'lastBackdropX'
+      | 'lastHillsFarX'
+      | 'lastHillsNearX'
+      | 'lastTreesX'
+      | 'lastRoadX',
   ): void {
-    const element = section.querySelector<HTMLElement>(selector);
     if (!element) {
       return;
     }
 
     const normalizedRatio = Math.min(1, Math.max(0, ratio));
     const offsetX = trackX * (normalizedRatio - 1);
-    element.style.transform = `translate3d(${offsetX}px, 0, 0)`;
+    this.setTransformX(element, offsetX, cacheKey);
   }
 
-  private setAlpha(section: HTMLElement, selector: string, opacity: number): void {
-    const element = section.querySelector<HTMLElement>(selector);
+  private setAlpha(
+    element: HTMLElement | null,
+    opacity: number,
+    cacheKey: 'lastBrideOpacity' | 'lastCarOpacity' | 'lastDancingOpacity',
+  ): void {
     if (!element) {
       return;
     }
 
-    element.style.opacity = `${opacity}`;
-    element.style.visibility = opacity > 0 ? 'visible' : 'hidden';
+    const normalizedOpacity = Math.round(this.clampProgress(opacity) * 1000) / 1000;
+
+    if (this[cacheKey] === normalizedOpacity) {
+      return;
+    }
+
+    this[cacheKey] = normalizedOpacity;
+    element.style.opacity = `${normalizedOpacity}`;
+    element.style.visibility = normalizedOpacity > 0.001 ? 'visible' : 'hidden';
+  }
+
+  private setTransformX(
+    element: HTMLElement,
+    offsetX: number,
+    cacheKey:
+      | 'lastTrackX'
+      | 'lastBackdropX'
+      | 'lastHillsFarX'
+      | 'lastHillsNearX'
+      | 'lastTreesX'
+      | 'lastRoadX',
+  ): void {
+    const roundedOffset = Math.round(offsetX * 10) / 10;
+
+    if (this[cacheKey] === roundedOffset) {
+      return;
+    }
+
+    this[cacheKey] = roundedOffset;
+    element.style.transform = `translate3d(${roundedOffset}px, 0, 0)`;
+  }
+
+  private progressForLandmark(selector: string): number {
+    if (!this.journeyElements) {
+      return 0;
+    }
+
+    return this.clampProgress(
+      this.getSceneDistance(this.journeyElements.track, selector) / Math.max(this.journeyDistance, 1),
+    );
+  }
+
+  private collectJourneyElements(): JourneySceneElements {
+    const section = this.journeySection!.nativeElement;
+    const track = this.journeyTrack!.nativeElement;
+
+    return {
+      section,
+      track,
+      backdrop: section.querySelector<HTMLElement>('.avila-backdrop'),
+      hillsFar: section.querySelector<HTMLElement>('.hills.far'),
+      hillsNear: section.querySelector<HTMLElement>('.hills.near'),
+      trees: section.querySelector<HTMLElement>('.trees'),
+      road: section.querySelector<HTMLElement>('.road'),
+      bride: section.querySelector<HTMLElement>('.journey-bride'),
+      car: section.querySelector<HTMLElement>('.vintage-car'),
+      dancing: section.querySelector<HTMLElement>('.journey-dancing'),
+    };
+  }
+
+  private syncViewportPreferences(): void {
+    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.mobilePerformanceMode = window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;
   }
 
   private getSceneDistance(track: HTMLElement, selector: string, focusOffsetRem = 0): number {
