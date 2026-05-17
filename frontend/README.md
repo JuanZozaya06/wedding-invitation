@@ -1,27 +1,53 @@
-# Frontend
+# Wedding Invitation Frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.2.
+Angular 18 frontend for the private wedding invitation of Gabriela and Juan.
 
-## Development server
+## Local dev
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Run everything from `C:\Users\Zozi\Documents\Projects\wedding-invitation\frontend`.
 
-## Code scaffolding
+- Start dev server: `npm start -- --host 127.0.0.1 --port 4200`
+- Open demo invite: `http://127.0.0.1:4200/demo-cuento`
+- Open admin: `http://127.0.0.1:4200/admin`
+- Build: `npm run build`
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Node `21.5.0` currently shows an Angular support warning locally. The app still builds, but production should use Node 20 LTS or 22+.
 
-## Build
+## App shape
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- Public route: `/:token`
+- Legacy fallback route: `/wedding-invitation/:token`
+- Admin route: `/admin`
+- Standalone Angular app with SCSS
+- Firestore-backed invitation data with demo fallback
 
-## Running unit tests
+## Animation notes
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- The main journey is a custom scroll-driven horizontal timeline, not ScrollTrigger.
+- Horizontal travel ends at the `.ballroom` landmark and completes at `travelEnd = 0.84`.
+- The remaining timeline hold keeps the reception scene pinned briefly before sticky release.
+- Ceremony and celebration cards stay as viewport overlays, not track children.
 
-## Running end-to-end tests
+## Mobile performance notes
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+- The journey caches DOM references and precalculates key landmark timing instead of measuring every frame.
+- Repeated transform and opacity writes are skipped when values do not materially change.
+- Touch/smaller viewports use a lighter `mobilePerformanceMode`.
+- Animated character media now uses lightweight `.webm` loops where available.
 
-## Further help
+Current animation media in `frontend/public/assets/characters`:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- `waving.webm`
+- `gaby-walking.webm`
+- `car.webm`
+- `dancing.webm`
+
+## Firebase helpers
+
+- Generate admin key hash: `npm run admin:hash -- mi-clave`
+- Generate token: `npm run token`
+- Reset demo invitations: `npm run reset:demo`
+- Report stats: `npm run report -- stats`
+- Report confirmed guests: `npm run report -- attending`
+
+If Firebase is missing or a token is not found, the frontend can fall back to demo invitation data.

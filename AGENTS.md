@@ -85,6 +85,13 @@ Current timing model:
 - Car appears right after crossing the church.
 - Celebration appears shortly before the ballroom/celebration landmark enters focus.
 
+Current mobile-performance approach:
+
+- The timeline now caches scene elements and precalculates landmark timing/distances instead of querying/measuring the DOM on every frame.
+- Transform and opacity writes are skipped when the rounded value did not change, to reduce paint churn during scroll.
+- A `mobilePerformanceMode` is active on touch/smaller viewports to shorten the pinned scroll workload and simplify some parallax layers.
+- Animated character media in the invitation now prefers `.webm` video with `autoplay`, `loop`, `muted`, and `playsinline` instead of large GIFs where replacements exist.
+
 ## Visual Direction
 
 - Overall style: cute storybook wedding, simple layered CSS assets for now.
@@ -97,6 +104,11 @@ Current timing model:
   - `assets/gaby walking.gif`
   - `assets/Juan standing.png`
   - `assets/car.gif`
+- The frontend currently uses these lighter animation assets from `frontend/public/assets/characters`:
+  - `waving.webm`
+  - `gaby-walking.webm`
+  - `car.webm`
+  - `dancing.webm`
 - Keep visual assets/styles modular enough to replace colors, sprites, and CSS-built placeholders later without changing RSVP or animation logic.
 - Characters should eventually resemble Juan and Gabriela in a simple storybook/chibi way, not realistic portraits.
 - Bride: wedding dress with storybook/princess feel.
@@ -257,6 +269,7 @@ Important behavior:
 - Animate `transform` and `opacity`; avoid animating layout properties.
 - Keep the horizontal scene lightweight on mobile.
 - Use `prefers-reduced-motion` support.
+- Prefer lightweight `webm` loops over multi-megabyte GIFs for character animation.
 - Avoid large videos or heavy filters.
 - Use WebP/AVIF or optimized SVG/PNG when real assets are added.
 - Keep text readable and centered on mobile.
