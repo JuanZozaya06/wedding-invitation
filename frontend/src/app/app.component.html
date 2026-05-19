@@ -488,17 +488,25 @@
         </div>
 
         <div class="portrait-scene" aria-label="Ilustraci&oacute;n animada de los novios">
-          <video
-            class="portrait-scene-gif"
-            autoplay
-            loop
-            muted
-            playsinline
-            preload="metadata"
-            aria-label="Gabriela y Juan saludando"
-          >
-            <source [src]="introSceneVideoSrc" type="video/webm" />
-          </video>
+          @if (useVideoAnimations) {
+            <video
+              class="portrait-scene-gif"
+              autoplay
+              loop
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="Gabriela y Juan saludando"
+            >
+              <source [src]="introSceneVideoSrc" type="video/webm" />
+            </video>
+          } @else {
+            <img
+              class="portrait-scene-gif"
+              [src]="introSceneFallbackSrc"
+              alt="Gabriela y Juan saludando"
+            />
+          }
         </div>
       </section>
 
@@ -572,17 +580,25 @@
             </div>
           </div>
 
-          <video
-            class="journey-bride"
-            autoplay
-            loop
-            muted
-            playsinline
-            preload="metadata"
-            aria-label="Gabriela caminando hacia la iglesia"
-          >
-            <source [src]="journeyBrideVideoSrc" type="video/webm" />
-          </video>
+          @if (useVideoAnimations) {
+            <video
+              class="journey-bride"
+              autoplay
+              loop
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="Gabriela caminando hacia la iglesia"
+            >
+              <source [src]="journeyBrideVideoSrc" type="video/webm" />
+            </video>
+          } @else {
+            <img
+              class="journey-bride"
+              [src]="journeyBrideFallbackSrc"
+              alt="Gabriela caminando hacia la iglesia"
+            />
+          }
 
           @if (showJourneyCar) {
             <video

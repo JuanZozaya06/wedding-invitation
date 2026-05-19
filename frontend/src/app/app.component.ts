@@ -95,6 +95,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly celebrationTransitionWindow = 0.03;
   private reduceMotion = false;
   private mobilePerformanceMode = false;
+  private videoAnimationsEnabled = true;
   private journeyReady = false;
   private journeyScrollLength = 0;
   private journeyAnimationFrame = 0;
@@ -198,8 +199,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return 'assets/characters/waving.webm';
   }
 
+  get introSceneFallbackSrc(): string {
+    return this.mobilePerformanceMode
+      ? 'assets/characters/gaby-standing.png'
+      : 'assets/characters/waving.gif';
+  }
+
   get journeyBrideVideoSrc(): string {
     return 'assets/characters/gaby-walking.webm';
+  }
+
+  get journeyBrideFallbackSrc(): string {
+    return 'assets/characters/gaby-walking.png';
   }
 
   get journeyCarVideoSrc(): string {
@@ -216,6 +227,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get showJourneyDancing(): boolean {
     return !this.mobilePerformanceMode;
+  }
+
+  get useVideoAnimations(): boolean {
+    return this.videoAnimationsEnabled;
   }
 
   async ngOnInit(): Promise<void> {
@@ -837,6 +852,19 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private syncViewportPreferences(): void {
     this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.mobilePerformanceMode = window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;
+    this.videoAnimationsEnabled = this.detectVideoAnimationSupport();
+  }
+
+  private detectVideoAnimationSupport(): boolean {
+    const video = this.document.createElement('video');
+    const canPlayWebm = video.canPlayType('video/webm; codecs="vp8, vorbis"') !== ''
+      || video.canPlayType('video/webm; codecs="vp9"') !== '';
+    const userAgent = window.navigator.userAgent;
+    const isAppleDevice =
+      /iPhone|iPad|iPod|Macintosh/i.test(userAgent)
+      || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+
+    return canPlayWebm && !isAppleDevice;
   }
 
   private getSceneDistance(track: HTMLElement, selector: string, focusOffsetRem = 0): number {
