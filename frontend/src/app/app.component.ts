@@ -200,9 +200,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get introSceneFallbackSrc(): string {
-    return this.mobilePerformanceMode
-      ? 'assets/characters/gaby-standing.png'
-      : 'assets/characters/waving.gif';
+    return 'assets/characters/waving.gif';
   }
 
   get journeyBrideVideoSrc(): string {
@@ -210,23 +208,31 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get journeyBrideFallbackSrc(): string {
-    return 'assets/characters/gaby-walking.png';
+    return 'assets/characters/gaby-walking.gif';
   }
 
   get journeyCarVideoSrc(): string {
     return 'assets/characters/car.webm';
   }
 
+  get journeyCarFallbackSrc(): string {
+    return 'assets/characters/car.gif';
+  }
+
   get journeyDancingVideoSrc(): string {
     return 'assets/characters/dancing.webm';
   }
 
+  get journeyDancingFallbackSrc(): string {
+    return 'assets/characters/dancing.gif';
+  }
+
   get showJourneyCar(): boolean {
-    return !this.mobilePerformanceMode;
+    return true;
   }
 
   get showJourneyDancing(): boolean {
-    return !this.mobilePerformanceMode;
+    return true;
   }
 
   get useVideoAnimations(): boolean {
@@ -681,8 +687,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private refreshAfterEmbeddedAssets(section: HTMLElement): void {
-    section.querySelectorAll('img, iframe').forEach((asset) => {
+    section.querySelectorAll('img, iframe, video').forEach((asset) => {
       asset.addEventListener('load', this.resizeJourney, { once: true });
+      asset.addEventListener('loadedmetadata', this.resizeJourney, { once: true });
     });
   }
 
@@ -745,11 +752,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     const danceVisibility = this.getTransitionProgress(progress, danceStart, danceEnd);
 
     this.setAlpha(this.journeyElements.bride, 1 - carVisibility, 'lastBrideOpacity');
-
-    if (!this.mobilePerformanceMode) {
-      this.setAlpha(this.journeyElements.car, carVisibility * (1 - danceVisibility), 'lastCarOpacity');
-      this.setAlpha(this.journeyElements.dancing, danceVisibility, 'lastDancingOpacity');
-    }
+    this.setAlpha(this.journeyElements.car, carVisibility * (1 - danceVisibility), 'lastCarOpacity');
+    this.setAlpha(this.journeyElements.dancing, danceVisibility, 'lastDancingOpacity');
   }
 
   private getJourneyDistance(): number {

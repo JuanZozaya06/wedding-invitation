@@ -601,31 +601,47 @@
           }
 
           @if (showJourneyCar) {
-            <video
-              class="vintage-car"
-              autoplay
-              loop
-              muted
-              playsinline
-              preload="metadata"
-              aria-label="Gabriela y Juan camino a la recepci&oacute;n"
-            >
-              <source [src]="journeyCarVideoSrc" type="video/webm" />
-            </video>
+            @if (useVideoAnimations) {
+              <video
+                class="vintage-car"
+                autoplay
+                loop
+                muted
+                playsinline
+                preload="metadata"
+                aria-label="Gabriela y Juan camino a la recepci&oacute;n"
+              >
+                <source [src]="journeyCarVideoSrc" type="video/webm" />
+              </video>
+            } @else {
+              <img
+                class="vintage-car"
+                [src]="journeyCarFallbackSrc"
+                alt="Gabriela y Juan camino a la recepci&oacute;n"
+              />
+            }
           }
 
           @if (showJourneyDancing) {
-            <video
-              class="journey-dancing"
-              autoplay
-              loop
-              muted
-              playsinline
-              preload="metadata"
-              aria-label="Gabriela y Juan bailando en la recepci&oacute;n"
-            >
-              <source [src]="journeyDancingVideoSrc" type="video/webm" />
-            </video>
+            @if (useVideoAnimations) {
+              <video
+                class="journey-dancing"
+                autoplay
+                loop
+                muted
+                playsinline
+                preload="metadata"
+                aria-label="Gabriela y Juan bailando en la recepci&oacute;n"
+              >
+                <source [src]="journeyDancingVideoSrc" type="video/webm" />
+              </video>
+            } @else {
+              <img
+                class="journey-dancing"
+                [src]="journeyDancingFallbackSrc"
+                alt="Gabriela y Juan bailando en la recepci&oacute;n"
+              />
+            }
           }
         </div>
       </section>
