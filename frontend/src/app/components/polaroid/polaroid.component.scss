@@ -31,3 +31,17 @@
   line-height: 1.2;
   text-align: center;
 }
+
+@media (max-width: 860px) {
+  :host-context(.details-section) .polaroid-frame {
+    margin-bottom: 32px;
+  }
+
+  :host-context(.wish-section) .polaroid-frame {
+    margin-bottom: 24px;
+  }
+
+  :host-context(.rsvp-section) .polaroid-frame {
+    margin-bottom: 40px;
+  }
+}

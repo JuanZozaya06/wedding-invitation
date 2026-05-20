@@ -68,6 +68,10 @@ type JourneySceneElements = {
   backdrop: HTMLElement | null;
   hillsFar: HTMLElement | null;
   hillsNear: HTMLElement | null;
+  cloudOne: HTMLElement | null;
+  cloudTwo: HTMLElement | null;
+  cloudThree: HTMLElement | null;
+  cloudFour: HTMLElement | null;
   trees: HTMLElement | null;
   road: HTMLElement | null;
   bride: HTMLElement | null;
@@ -109,6 +113,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private lastBackdropX = Number.NaN;
   private lastHillsFarX = Number.NaN;
   private lastHillsNearX = Number.NaN;
+  private lastCloudOneX = Number.NaN;
+  private lastCloudTwoX = Number.NaN;
+  private lastCloudThreeX = Number.NaN;
+  private lastCloudFourX = Number.NaN;
   private lastTreesX = Number.NaN;
   private lastRoadX = Number.NaN;
   private lastBrideOpacity = Number.NaN;
@@ -731,6 +739,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setParallaxTransform(this.journeyElements.backdrop, trackX, 0.012, 'lastBackdropX');
     this.setParallaxTransform(this.journeyElements.hillsFar, trackX, 0.28, 'lastHillsFarX');
     this.setParallaxTransform(this.journeyElements.hillsNear, trackX, 0.46, 'lastHillsNearX');
+    this.setViewportParallaxTransform(this.journeyElements.cloudOne, trackX, 0.006, 'lastCloudOneX');
+    this.setViewportParallaxTransform(this.journeyElements.cloudTwo, trackX, 0.018, 'lastCloudTwoX');
+    this.setViewportParallaxTransform(this.journeyElements.cloudThree, trackX, 0.032, 'lastCloudThreeX');
+    this.setViewportParallaxTransform(this.journeyElements.cloudFour, trackX, 0.025, 'lastCloudFourX');
 
     if (!this.mobilePerformanceMode) {
       this.setParallaxTransform(this.journeyElements.trees, trackX, 0.7, 'lastTreesX');
@@ -779,6 +791,20 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setTransformX(element, offsetX, cacheKey);
   }
 
+  private setViewportParallaxTransform(
+    element: HTMLElement | null,
+    trackX: number,
+    ratio: number,
+    cacheKey: 'lastCloudOneX' | 'lastCloudTwoX' | 'lastCloudThreeX' | 'lastCloudFourX',
+  ): void {
+    if (!element) {
+      return;
+    }
+
+    const normalizedRatio = Math.min(0.05, Math.max(0, ratio));
+    this.setTransformX(element, trackX * normalizedRatio, cacheKey);
+  }
+
   private setAlpha(
     element: HTMLElement | null,
     opacity: number,
@@ -807,6 +833,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       | 'lastBackdropX'
       | 'lastHillsFarX'
       | 'lastHillsNearX'
+      | 'lastCloudOneX'
+      | 'lastCloudTwoX'
+      | 'lastCloudThreeX'
+      | 'lastCloudFourX'
       | 'lastTreesX'
       | 'lastRoadX',
   ): void {
@@ -840,6 +870,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       backdrop: section.querySelector<HTMLElement>('.avila-backdrop'),
       hillsFar: section.querySelector<HTMLElement>('.hills.far'),
       hillsNear: section.querySelector<HTMLElement>('.hills.near'),
+      cloudOne: section.querySelector<HTMLElement>('.journey-cloud-one'),
+      cloudTwo: section.querySelector<HTMLElement>('.journey-cloud-two'),
+      cloudThree: section.querySelector<HTMLElement>('.journey-cloud-three'),
+      cloudFour: section.querySelector<HTMLElement>('.journey-cloud-four'),
       trees: section.querySelector<HTMLElement>('.trees'),
       road: section.querySelector<HTMLElement>('.road'),
       bride: section.querySelector<HTMLElement>('.journey-bride'),

@@ -11,7 +11,11 @@
   place-items: center;
   padding: clamp(1.5rem, 4vw, 3rem);
   background:
-    radial-gradient(circle at top, rgba(255, 248, 232, 0.94), transparent 20rem),
+    radial-gradient(
+      circle at top,
+      rgba(255, 248, 232, 0.94),
+      transparent 20rem
+    ),
     linear-gradient(180deg, #edf4ff 0%, #efe2f6 100%);
 }
 
@@ -41,7 +45,11 @@
   min-height: 100vh;
   padding: clamp(1.25rem, 4vw, 3rem);
   background:
-    radial-gradient(circle at top left, rgba(255, 246, 222, 0.92), transparent 24rem),
+    radial-gradient(
+      circle at top left,
+      rgba(255, 246, 222, 0.92),
+      transparent 24rem
+    ),
     linear-gradient(180deg, #f7efe3 0%, #f5ebf7 48%, #eaf3ff 100%);
 }
 
@@ -367,7 +375,11 @@
   min-height: 100vh;
   overflow-x: clip;
   background:
-    radial-gradient(circle at 15% 10%, rgba(255, 244, 207, 0.8), transparent 22rem),
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(255, 244, 207, 0.8),
+      transparent 22rem
+    ),
     linear-gradient(180deg, #dfeeff 0%, #f9eef8 42%, #fff8e8 100%);
 }
 
@@ -418,7 +430,9 @@
   align-items: center;
   gap: clamp(2rem, 5vw, 5rem);
   padding: clamp(1.25rem, 4vw, 4rem);
-  transition: gap 650ms ease, padding-bottom 650ms ease;
+  transition:
+    gap 650ms ease,
+    padding-bottom 650ms ease;
   overflow-anchor: none;
 }
 
@@ -588,13 +602,19 @@ p {
   row-gap: 0.55rem;
   padding: 2rem clamp(1.4rem, 4vw, 2.35rem) 2rem;
   background:
-    linear-gradient(180deg, transparent calc(100% - 1px), rgba(131, 83, 41, 0.07) 100%),
+    linear-gradient(
+      180deg,
+      transparent calc(100% - 1px),
+      rgba(131, 83, 41, 0.07) 100%
+    ),
     #fff8e8;
   background-size: 100% 1.7rem;
   color: #6a456b;
   opacity: 0;
   transform: translateY(46%);
-  transition: opacity 450ms ease 260ms, transform 850ms ease 120ms;
+  transition:
+    opacity 450ms ease 260ms,
+    transform 850ms ease 120ms;
   z-index: 2;
 }
 
@@ -630,7 +650,9 @@ p {
 .parents-blessing {
   opacity: 0;
   transform: translateY(0.5rem);
-  transition: opacity 450ms ease 520ms, transform 450ms ease 520ms;
+  transition:
+    opacity 450ms ease 520ms,
+    transform 450ms ease 520ms;
 }
 
 .letter-preview em {
@@ -705,7 +727,9 @@ p {
   font-size: 1.35rem;
   font-weight: 700;
   transform: translate(-50%, -10%);
-  transition: transform 700ms ease, opacity 500ms ease;
+  transition:
+    transform 700ms ease,
+    opacity 500ms ease;
   z-index: 6;
 }
 
@@ -726,7 +750,9 @@ p {
   opacity: 0;
   text-align: center;
   transform: translate(-50%, 0.75rem);
-  transition: opacity 600ms ease 900ms, transform 600ms ease 900ms;
+  transition:
+    opacity 600ms ease 900ms,
+    transform 600ms ease 900ms;
 }
 
 .scroll-hint::before,
@@ -735,7 +761,12 @@ p {
   flex: 1 1 2rem;
   max-width: 3rem;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(140, 95, 183, 0.46), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(140, 95, 183, 0.46),
+    transparent
+  );
 }
 
 .invitation-open {
@@ -809,7 +840,13 @@ p {
 .scroll-cap {
   height: 2rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, #b87d4b, #edc18c 18%, #bf8655 82%, #8f5d38);
+  background: linear-gradient(
+    90deg,
+    #b87d4b,
+    #edc18c 18%,
+    #bf8655 82%,
+    #8f5d38
+  );
   box-shadow: 0 0.35rem 1rem rgba(94, 57, 40, 0.24);
 }
 
@@ -817,10 +854,21 @@ p {
   margin: -0.35rem clamp(1rem, 4vw, 2rem);
   padding: clamp(2rem, 5vw, 4rem);
   background:
-    linear-gradient(180deg, transparent calc(100% - 1px), rgba(96, 50, 25, 0.07) 100%),
-    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.7), transparent 18rem),
+    linear-gradient(
+      180deg,
+      transparent calc(100% - 1px),
+      rgba(96, 50, 25, 0.07) 100%
+    ),
+    radial-gradient(
+      circle at 20% 15%,
+      rgba(255, 255, 255, 0.7),
+      transparent 18rem
+    ),
     #fff1cf;
-  background-size: 100% 2rem, auto, auto;
+  background-size:
+    100% 2rem,
+    auto,
+    auto;
   border-inline: 1px solid rgba(132, 88, 55, 0.2);
 }
 
@@ -960,7 +1008,15 @@ dd {
   width: 1.65rem;
   height: 0.8rem;
   background: #dfbd55;
-  clip-path: polygon(0 100%, 18% 20%, 38% 100%, 50% 0, 64% 100%, 84% 20%, 100% 100%);
+  clip-path: polygon(
+    0 100%,
+    18% 20%,
+    38% 100%,
+    50% 0,
+    64% 100%,
+    84% 20%,
+    100% 100%
+  );
 }
 
 .storybook-character .dress {
@@ -1043,6 +1099,42 @@ dd {
   filter: drop-shadow(0 0.55rem 1rem rgba(214, 175, 88, 0.24));
 }
 
+.journey-cloud {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  height: auto;
+  pointer-events: none;
+  opacity: 0.96;
+  filter: drop-shadow(0 0.45rem 0.75rem rgba(52, 91, 148, 0.12));
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.journey-cloud-one {
+  top: 13%;
+  left: 7.5%;
+  width: clamp(12rem, 18vw, 22rem);
+}
+
+.journey-cloud-two {
+  top: 11%;
+  left: 30.5%;
+  width: clamp(7.75rem, 12vw, 13.5rem);
+}
+
+.journey-cloud-three {
+  top: 21.5%;
+  right: 5%;
+  width: clamp(8.5rem, 13vw, 14.5rem);
+}
+
+.journey-cloud-four {
+  top: 18%;
+  left: 60%;
+  width: clamp(7rem, 10vw, 12rem);
+}
+
 .journey-track {
   position: relative;
   z-index: 1;
@@ -1061,7 +1153,11 @@ dd {
   width: min(28rem, 76vw);
   height: 24rem;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(255, 248, 232, 0.28), transparent 62%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 248, 232, 0.28),
+    transparent 62%
+  );
   transform: translateX(-50%);
 }
 
@@ -1109,14 +1205,28 @@ dd {
 }
 
 .hills.far {
-  background: linear-gradient(135deg, transparent 0 18%, #9bc3a7 18% 38%, transparent 38% 52%, #a9c7b2 52% 72%, transparent 72%);
+  background: linear-gradient(
+    135deg,
+    transparent 0 18%,
+    #9bc3a7 18% 38%,
+    transparent 38% 52%,
+    #a9c7b2 52% 72%,
+    transparent 72%
+  );
   opacity: 0.68;
   z-index: 3;
 }
 
 .hills.near {
   bottom: 12%;
-  background: linear-gradient(135deg, transparent 0 12%, #81af80 12% 30%, transparent 30% 46%, #78a873 46% 68%, transparent 68%);
+  background: linear-gradient(
+    135deg,
+    transparent 0 12%,
+    #81af80 12% 30%,
+    transparent 30% 46%,
+    #78a873 46% 68%,
+    transparent 68%
+  );
   opacity: 0.5;
   z-index: 4;
 }
@@ -1129,8 +1239,16 @@ dd {
     radial-gradient(circle at 11rem 6rem, #6da15d 0 3rem, transparent 3.1rem),
     radial-gradient(circle at 22rem 7rem, #78ad6a 0 3.6rem, transparent 3.7rem),
     radial-gradient(circle at 53rem 5rem, #6da15d 0 3rem, transparent 3.1rem),
-    radial-gradient(circle at 105rem 6rem, #78ad6a 0 3.4rem, transparent 3.5rem),
-    radial-gradient(circle at 170rem 7rem, #6da15d 0 3.2rem, transparent 3.3rem),
+    radial-gradient(
+      circle at 105rem 6rem,
+      #78ad6a 0 3.4rem,
+      transparent 3.5rem
+    ),
+    radial-gradient(
+      circle at 170rem 7rem,
+      #6da15d 0 3.2rem,
+      transparent 3.3rem
+    ),
     radial-gradient(circle at 226rem 6rem, #78ad6a 0 3.2rem, transparent 3.3rem);
   z-index: 6;
 }
@@ -1141,7 +1259,12 @@ dd {
   bottom: 0;
   height: 31%;
   background:
-    linear-gradient(8deg, transparent 0 25%, rgba(255, 255, 255, 0.22) 25% 29%, transparent 29%),
+    linear-gradient(
+      8deg,
+      transparent 0 25%,
+      rgba(255, 255, 255, 0.22) 25% 29%,
+      transparent 29%
+    ),
     #dec28c;
   clip-path: polygon(0 48%, 100% 20%, 100% 100%, 0 100%);
   z-index: 5;
@@ -1292,7 +1415,7 @@ dd {
 }
 
 .journey-dancing {
-  width: min(14rem, 44vw);
+  width: min(18rem, 54vw);
   height: auto;
   filter: drop-shadow(0 0.8rem 1rem rgba(61, 43, 71, 0.16));
 }
@@ -1385,7 +1508,7 @@ dd {
   position: absolute;
   top: -7.5rem;
   right: clamp(2rem, 7vw, 7rem);
-  width: min(15rem, 20vw); 
+  width: min(15rem, 20vw);
   z-index: 3;
   pointer-events: none;
 }
@@ -1406,7 +1529,11 @@ dd {
 
 .schedule-summary-section {
   background:
-    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.72), transparent 16rem),
+    radial-gradient(
+      circle at 18% 12%,
+      rgba(255, 255, 255, 0.72),
+      transparent 16rem
+    ),
     linear-gradient(180deg, #dfeeff, #fff8e8);
 }
 
@@ -1545,8 +1672,8 @@ dd {
 }
 
 .rsvp-polaroid-front {
-      top: -33px;
-    left: 12.4rem;
+  top: -33px;
+  left: 12.4rem;
   z-index: 2;
 }
 
@@ -1703,7 +1830,11 @@ textarea {
   padding-bottom: clamp(9rem, 18vw, 12rem);
   text-align: center;
   background:
-    radial-gradient(circle at 50% 35%, rgba(255, 248, 232, 0.72), transparent 18rem),
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(255, 248, 232, 0.72),
+      transparent 18rem
+    ),
     linear-gradient(180deg, #efe0f4, #dfeeff);
   overflow: hidden;
 }
@@ -1834,7 +1965,9 @@ textarea {
 
   .cover {
     align-content: center;
-    gap: clamp(2.75rem, 8dvh, 5rem);
+    gap: clamp(1.4rem, 4dvh, 2.4rem);
+    padding-top: clamp(1.15rem, 3dvh, 2rem);
+    padding-bottom: clamp(1rem, 3dvh, 1.75rem);
   }
 
   .cover-copy {
@@ -1856,7 +1989,7 @@ textarea {
   }
 
   .envelope-stage {
-    min-height: 23rem;
+    min-height: clamp(15.75rem, 36dvh, 20rem);
   }
 
   .portrait-character {
@@ -1889,6 +2022,9 @@ textarea {
 
   .invitation-open {
     .cover-copy {
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
       transform: translateY(-1rem);
     }
 
@@ -1898,7 +2034,8 @@ textarea {
     }
 
     .envelope-stage {
-      transform: translateY(-8rem);
+      min-height: clamp(23rem, 60dvh, 31rem);
+      transform: translateY(clamp(0.75rem, 3dvh, 1.5rem));
     }
 
     .envelope {
@@ -1957,11 +2094,15 @@ textarea {
     padding-bottom: 6.2rem !important;
   }
 
+  .details-section {
+    padding-top: 0;
+  }
+
   .details-polaroid {
     position: static;
     display: flex;
     justify-content: center;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto;
     margin-top: 0;
     width: min(17rem, 78vw);
     order: -1;
@@ -1987,6 +2128,7 @@ textarea {
   }
 
   .wish-section {
+    padding-top: 40px;
     padding-bottom: clamp(4rem, 9vw, 8rem);
   }
 
@@ -1994,7 +2136,7 @@ textarea {
     position: static;
     align-self: center;
     width: min(17rem, 78vw);
-    margin: 0 auto 1.5rem;
+    margin: 0 auto;
     pointer-events: auto;
   }
 
@@ -2005,22 +2147,23 @@ textarea {
   .rsvp-polaroid-stack {
     position: static;
     display: flex;
+    gap: 0.75rem;
     justify-content: center;
-    width: min(18rem, 82vw);
+    width: 100%;
     height: auto;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto;
     pointer-events: auto;
   }
 
   .rsvp-polaroid {
     position: relative;
-    width: min(13.5rem, 64vw);
+    flex: 0 1 min(10.5rem, 42vw);
+    width: min(10.5rem, 42vw);
   }
 
   .rsvp-polaroid-back {
-    top: 2rem;
+    top: 0;
     left: 0;
-    margin-right: -7rem;
   }
 
   .rsvp-polaroid-front {
@@ -2034,13 +2177,12 @@ textarea {
   }
 
   .rsvp-section {
-    padding-top: clamp(4rem, 9vw, 8rem);
+    padding-top: 32px;
   }
 
   .final-image {
     width: min(17rem, 56vw);
   }
-
 
   .journey-track {
     width: 260rem;
@@ -2052,18 +2194,40 @@ textarea {
     width: clamp(4.25rem, 16vw, 6rem);
   }
 
+  .journey-cloud-one {
+    top: 12%;
+    left: 11%;
+    width: clamp(9.5rem, 38vw, 13rem);
+  }
+
+  .journey-cloud-two {
+    top: 8%;
+    left: 43%;
+    width: clamp(6.75rem, 27vw, 9rem);
+  }
+
+  .journey-cloud-three {
+    top: 15%;
+    right: -4%;
+    width: clamp(7rem, 30vw, 9.5rem);
+  }
+
+  .journey-cloud-four {
+    display: none;
+  }
+
   .avila-backdrop {
-    left: -16vw;
-    bottom: 17%;
-    width: 132vw;
-    height: 25rem;
+    left: -92vw;
+    bottom: 18%;
+    width: 285vw;
+    height: clamp(22rem, 56dvh, 28rem);
     opacity: 0.74;
   }
 
   .avila-image {
-    height: 205%;
-    object-position: center 34%;
-    transform: translateY(-31%);
+    height: 100%;
+    object-position: center center;
+    transform: none;
     filter: none;
   }
 
@@ -2109,6 +2273,10 @@ textarea {
   .party-illustration {
     width: 13rem;
     filter: none;
+  }
+
+  .journey-dancing {
+    width: min(16rem, 64vw);
   }
 
   .journey-bride,
