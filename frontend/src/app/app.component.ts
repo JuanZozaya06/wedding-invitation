@@ -14,6 +14,7 @@ import { buildRsvpDraft, createDemoInvitation } from './data/demo-invitation';
 import { isFirebaseConfigured } from './firebase/firebase.config';
 import { Guest, GuestWish, Invitation, RsvpDraft } from './models/invitation.model';
 import { InvitationNotFoundError, InvitationService } from './services/invitation.service';
+import { PolaroidComponent } from './components/polaroid/polaroid.component';
 
 type SeedWindow = Window & {
   seedDemoInvitation?: () => Promise<void>;
@@ -77,7 +78,7 @@ type JourneySceneElements = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PolaroidComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -465,12 +466,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return `de ${this.invitationGuestCount} personas invitadas`;
-  }
-
-  get finalClosingCopy(): string {
-    return this.isSingleInvitation
-      ? 'Con mucha ilusi\u00f3n, esperamos compartir este d\u00eda contigo.'
-      : 'Con mucha ilusi\u00f3n, esperamos compartir este d\u00eda con ustedes.';
   }
 
   get dressCodeCopy(): string {

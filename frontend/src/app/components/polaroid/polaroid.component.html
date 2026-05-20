@@ -1,0 +1,6 @@
+<div class="polaroid-frame">
+  <img class="polaroid-image" [src]="imageUrl()" [alt]="alt()" />
+  @if (caption()) {
+    <p class="polaroid-caption">{{ caption() }}</p>
+  }
+</div>

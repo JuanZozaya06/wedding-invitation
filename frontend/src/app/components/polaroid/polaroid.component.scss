@@ -1,0 +1,33 @@
+:host {
+  display: inline-block;
+}
+
+.polaroid-frame {
+  display: inline-block;
+  width: min(17rem, 100%);
+  padding: 0.9rem 0.9rem 1rem;
+  border: 1px solid rgba(98, 77, 104, 0.14);
+  border-radius: 0.2rem;
+  background: #fff;
+  box-shadow:
+    0 0.5rem 1rem rgba(81, 49, 94, 0.1),
+    0 1.3rem 2.2rem rgba(81, 49, 94, 0.14);
+}
+
+.polaroid-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #efe7de;
+  box-shadow: 0 0.15rem 0.35rem rgba(62, 45, 72, 0.12);
+}
+
+.polaroid-caption {
+  margin: 1rem 0 0;
+  color: #6c4f72;
+  font-family: "Brush Script MT", "Segoe Print", "Bradley Hand", cursive;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  line-height: 1.2;
+  text-align: center;
+}

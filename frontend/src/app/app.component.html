@@ -701,9 +701,20 @@
       </section>
 
       <section class="details-section">
-        <div class="chapter-copy">
-          <p class="eyebrow">Detalles del reino</p>
-          <h2>Para disfrutar la noche</h2>
+        <div class="details-header">
+          <div class="chapter-copy">
+            <p class="eyebrow">Detalles del reino</p>
+            <h2>Para disfrutar la noche</h2>
+          </div>
+          <div class="details-polaroid">
+            <div class="details-polaroid-inner">
+              <app-polaroid
+                imageUrl="assets/characters/toledo.jpg"
+                alt="Gabriela y Juan en Toledo"
+                caption="Toledo, 2025"
+              />
+            </div>
+          </div>
         </div>
         <div class="detail-grid">
           <article class="detail-card detail-card-dress-code">
@@ -735,40 +746,73 @@
       </section>
 
       <section class="wish-section">
-        <form class="wish-card" (ngSubmit)="submitWish()">
-          <p class="eyebrow">Opcional</p>
-          <h2>{{ wishTitle }}</h2>
-          <p>{{ wishBodyCopy }}</p>
+        <div class="wish-section-inner">
+          <div class="wish-polaroid">
+            <div class="wish-polaroid-inner">
+              <app-polaroid
+                imageUrl="assets/characters/paris.jpg"
+                alt="Gabriela y Juan en Paris"
+                caption="Paris, 2025"
+              />
+            </div>
+          </div>
 
-          <label>
-            Mensaje para Gabriela y Juan
-            <textarea
-              name="guestMessage"
-              rows="4"
-              [(ngModel)]="guestWish.message"
-              placeholder="Escriban algo bonito, un consejo o un deseo"
-            ></textarea>
-          </label>
+          <form class="wish-card" (ngSubmit)="submitWish()">
+            <p class="eyebrow">Opcional</p>
+            <h2>{{ wishTitle }}</h2>
+            <p>{{ wishBodyCopy }}</p>
 
-          <label>
-            Canci&oacute;n recomendada
-            <input
-              name="song"
-              type="text"
-              [(ngModel)]="guestWish.song"
-              placeholder="Canci&oacute;n y artista"
-            />
-          </label>
+            <label>
+              Mensaje para Gabriela y Juan
+              <textarea
+                name="guestMessage"
+                rows="4"
+                [(ngModel)]="guestWish.message"
+                placeholder="Escriban algo bonito, un consejo o un deseo"
+              ></textarea>
+            </label>
 
-          <button class="secondary-button" type="submit">Enviar detalle</button>
+            <label>
+              Canci&oacute;n recomendada
+              <input
+                name="song"
+                type="text"
+                [(ngModel)]="guestWish.song"
+                placeholder="Canci&oacute;n y artista"
+              />
+            </label>
 
-          @if (wishSubmitted) {
-            <p class="saved-message">Detalle guardado en el prototipo.</p>
-          }
-        </form>
+            <button class="secondary-button" type="submit">Enviar detalle</button>
+
+            @if (wishSubmitted) {
+              <p class="saved-message">Detalle guardado en el prototipo.</p>
+            }
+          </form>
+        </div>
       </section>
 
       <section class="rsvp-section">
+        <div class="rsvp-polaroid-stack" aria-hidden="true">
+          <div class="rsvp-polaroid rsvp-polaroid-back">
+            <div class="rsvp-polaroid-inner rsvp-polaroid-inner-back">
+              <app-polaroid
+                imageUrl="assets/characters/caracas.JPEG"
+                alt="Gabriela y Juan en Caracas"
+                caption="Caracas, 2023"
+              />
+            </div>
+          </div>
+          <div class="rsvp-polaroid rsvp-polaroid-front">
+            <div class="rsvp-polaroid-inner rsvp-polaroid-inner-front">
+              <app-polaroid
+                imageUrl="assets/characters/chichi.JPEG"
+                alt="Gabriela y Juan en Chichi"
+                caption="Chichi, 2025"
+              />
+            </div>
+          </div>
+        </div>
+
         <form class="rsvp-card" (ngSubmit)="submitRsvp()">
           <p class="eyebrow">RSVP</p>
           <h2>{{ rsvpTitle }}</h2>
@@ -821,7 +865,12 @@
         </div>
         <p class="eyebrow">Fin del cap&iacute;tulo</p>
         <h2>Gracias por ser parte de nuestra historia</h2>
-        <p>{{ finalClosingCopy }}</p>
+        <p class="final-fairytale-copy">Y fueron felices para siempre...</p>
+        <img
+          class="final-image"
+          src="assets/characters/fin.png"
+          alt="Final del cuento de Gabriela y Juan"
+        />
       </section>
     }
   </main>

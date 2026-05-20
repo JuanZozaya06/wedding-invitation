@@ -789,13 +789,16 @@ p {
 .parchment-section,
 .couple-intro,
 .schedule-summary-section,
-.details-section,
-.rsvp-section,
-.wish-section,
 .final-section {
   padding: clamp(4rem, 9vw, 8rem) clamp(1.25rem, 5vw, 5rem);
   content-visibility: auto;
   contain-intrinsic-size: 40rem;
+}
+
+.details-section,
+.wish-section,
+.rsvp-section {
+  padding: clamp(4rem, 9vw, 8rem) clamp(1.25rem, 5vw, 5rem);
 }
 
 .parchment {
@@ -1024,7 +1027,7 @@ dd {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: linear-gradient(180deg, #bfe3ff 0%, #eaf7ff 62%, #cbe1b9 62%);
+  background: linear-gradient(180deg, #0074fe 0%, #cef9ff 62%, #cbe1b9 62%);
   touch-action: pan-y;
   contain: layout paint;
 }
@@ -1363,7 +1366,42 @@ dd {
 }
 
 .details-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   background: #fff8e8;
+}
+
+.details-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  max-width: 72rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.details-polaroid {
+  position: absolute;
+  top: -7.5rem;
+  right: clamp(2rem, 7vw, 7rem);
+  width: min(15rem, 20vw); 
+  z-index: 3;
+  pointer-events: none;
+}
+
+.details-polaroid-inner {
+  transform: rotate(9deg);
+  transform-origin: center top;
+}
+
+.details-polaroid app-polaroid {
+  display: block;
+  width: 100%;
+}
+
+.details-section .chapter-copy {
+  max-width: 40rem;
 }
 
 .schedule-summary-section {
@@ -1403,11 +1441,16 @@ dd {
 }
 
 .detail-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   max-width: 72rem;
   margin: 2rem auto 0;
+  width: 100%;
+}
+
+.detail-grid > article {
+  flex: 1 1 18rem;
 }
 
 .detail-grid span {
@@ -1426,8 +1469,9 @@ dd {
   position: absolute;
   left: 50%;
   bottom: 1rem;
-  display: grid;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.35rem;
   text-align: center;
   transform: translateX(-50%);
@@ -1472,16 +1516,88 @@ dd {
 }
 
 .rsvp-section {
+  position: relative;
   display: grid;
   place-items: center;
+  padding-top: clamp(9rem, 12vw, 12rem);
   background: linear-gradient(180deg, #fff8e8, #f5eaf6);
 }
 
+.rsvp-polaroid-stack {
+  position: absolute;
+  top: -5.5rem;
+  left: clamp(1.5rem, 6vw, 6rem);
+  width: min(18rem, 24vw);
+  height: 22rem;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.rsvp-polaroid {
+  position: absolute;
+  width: min(14rem, 100%);
+}
+
+.rsvp-polaroid-back {
+  top: 2.6rem;
+  left: 0;
+  z-index: 1;
+}
+
+.rsvp-polaroid-front {
+      top: -33px;
+    left: 12.4rem;
+  z-index: 2;
+}
+
+.rsvp-polaroid-inner-back {
+  transform: rotate(-13deg);
+  transform-origin: center top;
+}
+
+.rsvp-polaroid-inner-front {
+  transform: rotate(8deg);
+  transform-origin: center top;
+}
+
+.rsvp-polaroid app-polaroid {
+  display: block;
+  width: 100%;
+}
+
 .wish-section {
-  display: grid;
-  place-items: center;
-  padding-top: clamp(6rem, 13vw, 11rem);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-top: clamp(4rem, 9vw, 8rem);
+  padding-bottom: clamp(8rem, 11vw, 10rem);
   background: linear-gradient(180deg, #efe0f4, #f8eef8);
+}
+
+.wish-section-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(72rem, 100%);
+}
+
+.wish-polaroid {
+  position: absolute;
+  top: -7rem;
+  left: clamp(2rem, 9vw, 8rem);
+  width: min(15rem, 22vw);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.wish-polaroid-inner {
+  transform: rotate(-10deg);
+  transform-origin: center top;
+}
+
+.wish-polaroid app-polaroid {
+  display: block;
+  width: 100%;
 }
 
 .rsvp-card,
@@ -1584,6 +1700,7 @@ textarea {
   min-height: 100vh;
   min-height: 100dvh;
   place-items: center;
+  padding-bottom: clamp(9rem, 18vw, 12rem);
   text-align: center;
   background:
     radial-gradient(circle at 50% 35%, rgba(255, 248, 232, 0.72), transparent 18rem),
@@ -1591,8 +1708,32 @@ textarea {
   overflow: hidden;
 }
 
+.final-image {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 0;
+  display: block;
+  width: min(14rem, 38vw);
+  height: auto;
+  object-fit: contain;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 0.8rem 1.4rem rgba(81, 49, 94, 0.16));
+}
+
+.final-fairytale-copy {
+  max-width: 42rem;
+  color: #6f4d75;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-style: italic;
+  line-height: 1.45;
+}
+
 .final-section h2,
 .final-section p {
+  position: relative;
+  z-index: 1;
   max-width: 42rem;
 }
 
@@ -1814,6 +1955,86 @@ textarea {
 
   .detail-card-dress-code {
     padding-bottom: 6.2rem !important;
+  }
+
+  .details-polaroid {
+    position: static;
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    margin-top: 0;
+    width: min(17rem, 78vw);
+    order: -1;
+    pointer-events: auto;
+  }
+
+  .details-polaroid-inner {
+    transform: none;
+  }
+
+  .details-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .details-section .chapter-copy {
+    max-width: 42rem;
+  }
+
+  .wish-section-inner {
+    width: 100%;
+  }
+
+  .wish-section {
+    padding-bottom: clamp(4rem, 9vw, 8rem);
+  }
+
+  .wish-polaroid {
+    position: static;
+    align-self: center;
+    width: min(17rem, 78vw);
+    margin: 0 auto 1.5rem;
+    pointer-events: auto;
+  }
+
+  .wish-polaroid-inner {
+    transform: none;
+  }
+
+  .rsvp-polaroid-stack {
+    position: static;
+    display: flex;
+    justify-content: center;
+    width: min(18rem, 82vw);
+    height: auto;
+    margin: 0 auto 1.5rem;
+    pointer-events: auto;
+  }
+
+  .rsvp-polaroid {
+    position: relative;
+    width: min(13.5rem, 64vw);
+  }
+
+  .rsvp-polaroid-back {
+    top: 2rem;
+    left: 0;
+    margin-right: -7rem;
+  }
+
+  .rsvp-polaroid-front {
+    top: 0;
+    left: 0;
+  }
+
+  .rsvp-polaroid-inner-back,
+  .rsvp-polaroid-inner-front {
+    transform: none;
+  }
+
+  .rsvp-section {
+    padding-top: clamp(4rem, 9vw, 8rem);
   }
 
 
