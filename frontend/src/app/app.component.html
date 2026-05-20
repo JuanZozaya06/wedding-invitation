@@ -13,8 +13,8 @@
         <p class="eyebrow">Panel privado</p>
         <h1>Admin de la boda</h1>
         <p>
-          Aqu&iacute; pueden ver aperturas, respuestas y el estado general de los invitados
-          en una vista m&aacute;s clara para operar el evento.
+          Aqu&iacute; pueden ver aperturas, respuestas y el estado general de
+          los invitados en una vista m&aacute;s clara para operar el evento.
         </p>
       </div>
 
@@ -30,8 +30,12 @@
             />
           </label>
 
-          <button class="primary-button" type="submit" [disabled]="adminLoading">
-            {{ adminLoading ? 'Validando...' : 'Entrar al panel' }}
+          <button
+            class="primary-button"
+            type="submit"
+            [disabled]="adminLoading"
+          >
+            {{ adminLoading ? "Validando..." : "Entrar al panel" }}
           </button>
 
           @if (adminKeyError) {
@@ -46,8 +50,12 @@
               <h2>Estado de invitaciones</h2>
             </div>
 
-            <button class="secondary-button" type="button" (click)="refreshAdminDashboard()">
-              {{ adminLoading ? 'Actualizando...' : 'Actualizar datos' }}
+            <button
+              class="secondary-button"
+              type="button"
+              (click)="refreshAdminDashboard()"
+            >
+              {{ adminLoading ? "Actualizando..." : "Actualizar datos" }}
             </button>
           </div>
 
@@ -95,13 +103,37 @@
           </section>
 
           <nav class="admin-tabs" aria-label="Secciones del admin">
-            <button type="button" [class.is-active]="activeAdminTab === 'overview'" (click)="setAdminTab('overview')">Resumen</button>
-            <button type="button" [class.is-active]="activeAdminTab === 'invitations'" (click)="setAdminTab('invitations')">Invitaciones</button>
-            <button type="button" [class.is-active]="activeAdminTab === 'confirmed'" (click)="setAdminTab('confirmed')">Confirmados</button>
-            <button type="button" [class.is-active]="activeAdminTab === 'responses'" (click)="setAdminTab('responses')">Respuestas</button>
+            <button
+              type="button"
+              [class.is-active]="activeAdminTab === 'overview'"
+              (click)="setAdminTab('overview')"
+            >
+              Resumen
+            </button>
+            <button
+              type="button"
+              [class.is-active]="activeAdminTab === 'invitations'"
+              (click)="setAdminTab('invitations')"
+            >
+              Invitaciones
+            </button>
+            <button
+              type="button"
+              [class.is-active]="activeAdminTab === 'confirmed'"
+              (click)="setAdminTab('confirmed')"
+            >
+              Confirmados
+            </button>
+            <button
+              type="button"
+              [class.is-active]="activeAdminTab === 'responses'"
+              (click)="setAdminTab('responses')"
+            >
+              Respuestas
+            </button>
           </nav>
 
-          @if (activeAdminTab === 'overview') {
+          @if (activeAdminTab === "overview") {
             <section class="admin-panels">
               <article class="admin-panel">
                 <div class="admin-panel-header">
@@ -116,14 +148,19 @@
                   <p class="admin-empty">Aun no hay aperturas registradas.</p>
                 } @else {
                   <div class="admin-list">
-                    @for (invitation of recentOpenedInvitations; track invitation.token) {
+                    @for (
+                      invitation of recentOpenedInvitations;
+                      track invitation.token
+                    ) {
                       <article class="admin-list-item">
                         <div>
                           <strong>{{ invitation.displayName }}</strong>
                           <p>Token: {{ invitation.token }}</p>
                         </div>
                         <div class="admin-badges">
-                          <span>{{ formatAdminDate(invitation.lastOpenedAt) }}</span>
+                          <span>{{
+                            formatAdminDate(invitation.lastOpenedAt)
+                          }}</span>
                           <span>{{ invitation.openCount }} visitas</span>
                         </div>
                       </article>
@@ -145,7 +182,10 @@
                   <p class="admin-empty">Aun no hay respuestas registradas.</p>
                 } @else {
                   <div class="admin-list">
-                    @for (invitation of recentRespondedInvitations; track invitation.token) {
+                    @for (
+                      invitation of recentRespondedInvitations;
+                      track invitation.token
+                    ) {
                       <article class="admin-list-item">
                         <div>
                           <strong>{{ invitation.displayName }}</strong>
@@ -153,7 +193,9 @@
                         </div>
                         <div class="admin-badges">
                           <span>{{ invitation.rsvpStatus }}</span>
-                          <span>{{ formatAdminDate(invitation.respondedAt) }}</span>
+                          <span>{{
+                            formatAdminDate(invitation.respondedAt)
+                          }}</span>
                         </div>
                       </article>
                     }
@@ -163,16 +205,58 @@
             </section>
           }
 
-          @if (activeAdminTab === 'invitations') {
+          @if (activeAdminTab === "invitations") {
             <section class="admin-filters admin-filters-compact">
               <div class="admin-filter-pills">
-                <button type="button" [class.is-active]="activeInvitationFilter === 'all'" (click)="setInvitationFilter('all')">Todas</button>
-                <button type="button" [class.is-active]="activeInvitationFilter === 'opened'" (click)="setInvitationFilter('opened')">Abiertas</button>
-                <button type="button" [class.is-active]="activeInvitationFilter === 'unopened'" (click)="setInvitationFilter('unopened')">No abiertas</button>
-                <button type="button" [class.is-active]="activeInvitationFilter === 'responded'" (click)="setInvitationFilter('responded')">Respondidas</button>
-                <button type="button" [class.is-active]="activeInvitationFilter === 'pending'" (click)="setInvitationFilter('pending')">Pendientes</button>
-                <button type="button" [class.is-active]="activeInvitationFilter === 'with-children'" (click)="setInvitationFilter('with-children')">Con ni&ntilde;os</button>
-                <button type="button" [class.is-active]="activeInvitationFilter === 'abroad'" (click)="setInvitationFilter('abroad')">Exterior</button>
+                <button
+                  type="button"
+                  [class.is-active]="activeInvitationFilter === 'all'"
+                  (click)="setInvitationFilter('all')"
+                >
+                  Todas
+                </button>
+                <button
+                  type="button"
+                  [class.is-active]="activeInvitationFilter === 'opened'"
+                  (click)="setInvitationFilter('opened')"
+                >
+                  Abiertas
+                </button>
+                <button
+                  type="button"
+                  [class.is-active]="activeInvitationFilter === 'unopened'"
+                  (click)="setInvitationFilter('unopened')"
+                >
+                  No abiertas
+                </button>
+                <button
+                  type="button"
+                  [class.is-active]="activeInvitationFilter === 'responded'"
+                  (click)="setInvitationFilter('responded')"
+                >
+                  Respondidas
+                </button>
+                <button
+                  type="button"
+                  [class.is-active]="activeInvitationFilter === 'pending'"
+                  (click)="setInvitationFilter('pending')"
+                >
+                  Pendientes
+                </button>
+                <button
+                  type="button"
+                  [class.is-active]="activeInvitationFilter === 'with-children'"
+                  (click)="setInvitationFilter('with-children')"
+                >
+                  Con ni&ntilde;os
+                </button>
+                <button
+                  type="button"
+                  [class.is-active]="activeInvitationFilter === 'abroad'"
+                  (click)="setInvitationFilter('abroad')"
+                >
+                  Exterior
+                </button>
               </div>
             </section>
 
@@ -187,10 +271,15 @@
                 </div>
 
                 @if (filteredAdminInvitations.length === 0) {
-                  <p class="admin-empty">No hay invitaciones que coincidan con esa busqueda.</p>
+                  <p class="admin-empty">
+                    No hay invitaciones que coincidan con esa busqueda.
+                  </p>
                 } @else {
                   <div class="admin-groups-grid">
-                    @for (invitation of filteredAdminInvitations; track invitation.token) {
+                    @for (
+                      invitation of filteredAdminInvitations;
+                      track invitation.token
+                    ) {
                       <article class="admin-group-card">
                         <div class="admin-group-head">
                           <div>
@@ -217,7 +306,7 @@
                             @for (guest of invitation.guests; track guest.id) {
                               <li>
                                 {{ guest.name }} · {{ guest.role }} ·
-                                {{ guest.attending ? 'va' : 'no va' }}
+                                {{ guest.attending ? "va" : "no va" }}
                               </li>
                             }
                           </ul>
@@ -230,7 +319,9 @@
                           </div>
                           <div>
                             <dt>Ultima apertura</dt>
-                            <dd>{{ formatAdminDate(invitation.lastOpenedAt) }}</dd>
+                            <dd>
+                              {{ formatAdminDate(invitation.lastOpenedAt) }}
+                            </dd>
                           </div>
                           <div>
                             <dt>Veces abierta</dt>
@@ -238,7 +329,9 @@
                           </div>
                           <div>
                             <dt>Ultima respuesta</dt>
-                            <dd>{{ formatAdminDate(invitation.respondedAt) }}</dd>
+                            <dd>
+                              {{ formatAdminDate(invitation.respondedAt) }}
+                            </dd>
                           </div>
                           <div>
                             <dt>Cambios</dt>
@@ -257,7 +350,7 @@
             </section>
           }
 
-          @if (activeAdminTab === 'confirmed') {
+          @if (activeAdminTab === "confirmed") {
             <section class="admin-panels admin-panels-single">
               <article class="admin-panel">
                 <div class="admin-panel-header">
@@ -265,18 +358,27 @@
                     <p class="eyebrow">Confirmados</p>
                     <h3>Listado de quienes van</h3>
                   </div>
-                  <span>{{ filteredAdminConfirmedGuests.length }} personas</span>
+                  <span
+                    >{{ filteredAdminConfirmedGuests.length }} personas</span
+                  >
                 </div>
 
                 @if (filteredAdminConfirmedGuests.length === 0) {
-                  <p class="admin-empty">No hay invitados confirmados que coincidan con la busqueda.</p>
+                  <p class="admin-empty">
+                    No hay invitados confirmados que coincidan con la busqueda.
+                  </p>
                 } @else {
                   <div class="admin-list">
-                    @for (guest of filteredAdminConfirmedGuests; track guest.token + guest.guestName) {
+                    @for (
+                      guest of filteredAdminConfirmedGuests;
+                      track guest.token + guest.guestName
+                    ) {
                       <article class="admin-list-item">
                         <div>
                           <strong>{{ guest.guestName }}</strong>
-                          <p>{{ guest.displayName }} · {{ guest.rsvpStatus }}</p>
+                          <p>
+                            {{ guest.displayName }} · {{ guest.rsvpStatus }}
+                          </p>
                         </div>
                         <div class="admin-badges">
                           <span>{{ guest.role }}</span>
@@ -298,7 +400,7 @@
             </section>
           }
 
-          @if (activeAdminTab === 'responses') {
+          @if (activeAdminTab === "responses") {
             <section class="admin-panels">
               <article class="admin-panel">
                 <div class="admin-panel-header">
@@ -310,7 +412,9 @@
                 </div>
 
                 @if (filteredAdminMessages.length === 0) {
-                  <p class="admin-empty">No hay mensajes que coincidan con la busqueda.</p>
+                  <p class="admin-empty">
+                    No hay mensajes que coincidan con la busqueda.
+                  </p>
                 } @else {
                   <div class="admin-list">
                     @for (entry of filteredAdminMessages; track entry.token) {
@@ -318,9 +422,13 @@
                         <div>
                           <strong>{{ entry.displayName }}</strong>
                           <p>Token: {{ entry.token }}</p>
-                          <p>Actualizado: {{ formatAdminDate(entry.updatedAt) }}</p>
+                          <p>
+                            Actualizado: {{ formatAdminDate(entry.updatedAt) }}
+                          </p>
                         </div>
-                        <blockquote class="admin-text-block">{{ entry.value }}</blockquote>
+                        <blockquote class="admin-text-block">
+                          {{ entry.value }}
+                        </blockquote>
                       </article>
                     }
                   </div>
@@ -337,7 +445,9 @@
                 </div>
 
                 @if (filteredAdminSongs.length === 0) {
-                  <p class="admin-empty">No hay canciones que coincidan con la busqueda.</p>
+                  <p class="admin-empty">
+                    No hay canciones que coincidan con la busqueda.
+                  </p>
                 } @else {
                   <div class="admin-list">
                     @for (entry of filteredAdminSongs; track entry.token) {
@@ -345,9 +455,13 @@
                         <div>
                           <strong>{{ entry.displayName }}</strong>
                           <p>Token: {{ entry.token }}</p>
-                          <p>Actualizado: {{ formatAdminDate(entry.updatedAt) }}</p>
+                          <p>
+                            Actualizado: {{ formatAdminDate(entry.updatedAt) }}
+                          </p>
                         </div>
-                        <blockquote class="admin-text-block">{{ entry.value }}</blockquote>
+                        <blockquote class="admin-text-block">
+                          {{ entry.value }}
+                        </blockquote>
                       </article>
                     }
                   </div>
@@ -364,7 +478,9 @@
                 </div>
 
                 @if (filteredAdminNotes.length === 0) {
-                  <p class="admin-empty">No hay notas que coincidan con la busqueda.</p>
+                  <p class="admin-empty">
+                    No hay notas que coincidan con la busqueda.
+                  </p>
                 } @else {
                   <div class="admin-list">
                     @for (entry of filteredAdminNotes; track entry.token) {
@@ -372,9 +488,13 @@
                         <div>
                           <strong>{{ entry.displayName }}</strong>
                           <p>Token: {{ entry.token }}</p>
-                          <p>Actualizado: {{ formatAdminDate(entry.updatedAt) }}</p>
+                          <p>
+                            Actualizado: {{ formatAdminDate(entry.updatedAt) }}
+                          </p>
                         </div>
-                        <blockquote class="admin-text-block">{{ entry.value }}</blockquote>
+                        <blockquote class="admin-text-block">
+                          {{ entry.value }}
+                        </blockquote>
                       </article>
                     }
                   </div>
@@ -400,7 +520,10 @@
     ></audio>
 
     @if (isOpen && musicAvailable) {
-      <div class="floating-audio-controls" aria-label="Controles de m&uacute;sica">
+      <div
+        class="floating-audio-controls"
+        aria-label="Controles de m&uacute;sica"
+      >
         <button
           class="audio-control-button"
           type="button"
@@ -408,7 +531,7 @@
           [attr.title]="musicToggleLabel"
           (click)="toggleMusicPlayback()"
         >
-          <span aria-hidden="true">{{ musicPlaying ? '❚❚' : '♪' }}</span>
+          <span aria-hidden="true">{{ musicPlaying ? "❚❚" : "♪" }}</span>
         </button>
       </div>
     }
@@ -437,7 +560,9 @@
           <div class="envelope-flap"></div>
           <div class="wax-seal">G&J</div>
         </div>
-        <p class="scroll-hint">Desliza para recorrer esta historia interactiva.</p>
+        <p class="scroll-hint">
+          Desliza para recorrer esta historia interactiva.
+        </p>
       </div>
 
       <div class="cover-copy">
@@ -482,12 +607,15 @@
           <p class="eyebrow">Cap&iacute;tulo I</p>
           <h2>La princesa y el caballero</h2>
           <p>
-            Ella llega con vestido de novia y brillo de cuento. &Eacute;l la espera como
-            caballero elegante, listo para seguir el camino juntos.
+            Ella llega con vestido de novia y brillo de cuento. &Eacute;l la
+            espera como caballero elegante, listo para seguir el camino juntos.
           </p>
         </div>
 
-        <div class="portrait-scene" aria-label="Ilustraci&oacute;n animada de los novios">
+        <div
+          class="portrait-scene"
+          aria-label="Ilustraci&oacute;n animada de los novios"
+        >
           @if (useVideoAnimations) {
             <video
               class="portrait-scene-gif"
@@ -721,7 +849,10 @@
             <span>*</span>
             <h3>Vestimenta</h3>
             <p>{{ dressCodeCopy }}</p>
-            <div class="reserved-colors" aria-label="Colores reservados del evento">
+            <div
+              class="reserved-colors"
+              aria-label="Colores reservados del evento"
+            >
               <p>Colores reservados del evento</p>
               <div class="reserved-colors-swatches" aria-hidden="true">
                 <span class="color-swatch color-swatch-lilac"></span>
@@ -782,7 +913,9 @@
               />
             </label>
 
-            <button class="secondary-button" type="submit">Enviar detalle</button>
+            <button class="secondary-button" type="submit">
+              Enviar detalle
+            </button>
 
             @if (wishSubmitted) {
               <p class="saved-message">Detalle guardado en el prototipo.</p>
@@ -823,7 +956,11 @@
             <span>{{ guestSummaryCopy }}</span>
           </div>
 
-          <div class="attendee-list" role="group" aria-label="Asistentes invitados">
+          <div
+            class="attendee-list"
+            role="group"
+            aria-label="Asistentes invitados"
+          >
             @for (guest of rsvp.guests; track guest.id) {
               <label class="guest-check">
                 <input
@@ -833,7 +970,11 @@
                 />
                 <span>
                   <strong>{{ guest.name }}</strong>
-                  <small>{{ guest.attending ? 'S&iacute; asistir&aacute;' : 'No asistir&aacute;' }}</small>
+                  <small>{{
+                    guest.attending
+                      ? "S&iacute; asistir&aacute;"
+                      : "No asistir&aacute;"
+                  }}</small>
                 </span>
               </label>
             }
@@ -849,7 +990,9 @@
             ></textarea>
           </label>
 
-          <button class="primary-button" type="submit">Guardar respuesta</button>
+          <button class="primary-button" type="submit">
+            Guardar respuesta
+          </button>
 
           @if (submitted) {
             <p class="saved-message">Respuesta guardada en el prototipo.</p>

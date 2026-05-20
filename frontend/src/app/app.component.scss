@@ -1714,7 +1714,7 @@ textarea {
   bottom: 0;
   z-index: 0;
   display: block;
-  width: min(14rem, 38vw);
+  width: min(20rem, 38vw);
   height: auto;
   object-fit: contain;
   transform: translateX(-50%);
@@ -2035,6 +2035,10 @@ textarea {
 
   .rsvp-section {
     padding-top: clamp(4rem, 9vw, 8rem);
+  }
+
+  .final-image {
+    width: min(17rem, 56vw);
   }
 
 
