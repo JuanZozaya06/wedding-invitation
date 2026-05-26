@@ -142,7 +142,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   invitation: Invitation = createDemoInvitation(this.readToken());
 
   readonly ceremony = {
-    name: 'Iglesia María Auxiliadora (Capilla grande)',
+    name: 'Iglesia Colegio María Auxiliadora - (Capilla del colegio)',
     address: 'Altamira, Chacao',
     time: '3:00 PM',
     embedUrl: this.trustedMap('Iglesia Maria Auxiliadora de Altamira Chacao'),
@@ -436,12 +436,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return ' Sabemos que algunas de las personas invitadas vienen desde fuera del pa\u00eds, as\u00ed que iremos compartiendo detalles \u00fatiles para facilitar el viaje.';
   }
 
-  get invitationBodyCopy(): string {
-    const base = this.isSingleInvitation
+  get invitationIntroCopy(): string {
+    return this.isSingleInvitation
       ? 'Nos encantar\u00eda que nos acompa\u00f1es en el inicio de esta nueva aventura.'
       : 'Nos encantar\u00eda que nos acompa\u00f1en en el inicio de esta nueva aventura.';
+  }
 
-    return `${base} ${this.invitationSeatsCopy}${this.invitationChildrenCopy}${this.invitationAbroadCopy}`;
+  get invitationBodyCopy(): string {
+    return `${this.invitationSeatsCopy}${this.invitationChildrenCopy}${this.invitationAbroadCopy}`;
+  }
+
+  get storyBridgeTitle(): string {
+    return 'Érase una vez...';
   }
 
   get wishTitle(): string {
@@ -477,9 +483,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get dressCodeCopy(): string {
-    return this.isSingleInvitation
-      ? 'Nos encantar\u00e1 que vengas en formal elegante. Si el calzado incluye tacones, te recomendamos elegir unos c\u00f3modos porque parte del evento ser\u00e1 sobre grama y queremos que disfrutes la noche sin preocuparte por nada.'
-      : 'Nos encantar\u00e1 que vengan en formal elegante. Si el calzado incluye tacones, les recomendamos elegir unos c\u00f3modos porque parte del evento ser\u00e1 sobre grama y queremos que disfruten la noche sin preocuparse por nada.';
+    return 'Formal elegante. Hombres: corbata. Mujeres: vestidos largos o midi. Si van a usar tacones, les recomendamos traer un par m\u00e1s c\u00f3modo para despu\u00e9s, ya que parte del evento ser\u00e1 sobre grama y queremos que disfruten la noche al m\u00e1ximo. Los colores blanco, beige y dorado est\u00e1n reservados para la novia. Lila y azul marino est\u00e1n reservados para el cortejo.';
   }
 
   get arrivalCopy(): string {
@@ -490,14 +494,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get giftsCopy(): string {
     return this.isSingleInvitation
-      ? 'Tu compa\u00f1\u00eda es lo m\u00e1s importante para nosotros, pero si deseas regalarnos algo, con mucho cari\u00f1o recibiremos aportes por Zelle a banking.vanguard@gmail.com (principal) o ayesapalaciosr@hotmail.com. Tambi\u00e9n recibiremos efectivo con mucho agradecimiento.'
-      : 'Su compa\u00f1\u00eda es lo m\u00e1s importante para nosotros, pero si desean regalarnos algo, con mucho cari\u00f1o recibiremos aportes por Zelle a banking.vanguard@gmail.com (principal) o ayesapalaciosr@hotmail.com. Tambi\u00e9n recibiremos efectivo con mucho agradecimiento.';
+      ? 'Tu compa\u00f1\u00eda es lo m\u00e1s importante para nosotros, pero si deseas regalarnos algo, con mucho cari\u00f1o lo recibiremos por Zelle a banking.vanguard@gmail.com (principal) o ayesapalaciosr@hotmail.com. Tambi\u00e9n recibiremos efectivo con mucho agradecimiento.'
+      : 'Su compa\u00f1\u00eda es lo m\u00e1s importante para nosotros, pero si desean regalarnos algo, con mucho cari\u00f1o lo recibiremos por Zelle a banking.vanguard@gmail.com (principal) o ayesapalaciosr@hotmail.com. Tambi\u00e9n recibiremos efectivo con mucho agradecimiento.';
   }
 
   get scheduleSummaryCopy(): string {
     return this.isSingleInvitation
-      ? 'Estos son los lugares donde viviremos cada momento de la boda, para que puedas organizarte con calma y acompa\u00f1arnos en cada cap\u00edtulo.'
-      : 'Estos son los lugares donde viviremos cada momento de la boda, para que puedan organizarse con calma y acompa\u00f1arnos en cada cap\u00edtulo.';
+      ? 'Estos son los lugares donde viviremos cada momento de la boda, para que puedas organizarte con calma y acompa\u00f1arnos en cada cap\u00edtulo. Tu presencia es muy importante para nosotros.'
+      : 'Estos son los lugares donde viviremos cada momento de la boda, para que puedan organizarse con calma y acompa\u00f1arnos en cada cap\u00edtulo. Tu presencia es muy importante para nosotros.';
   }
 
   get filteredAdminInvitations(): Invitation[] {
