@@ -740,13 +740,12 @@ p {
 }
 
 .wax-seal img {
-  width: 78%;
+  width: 74%;
   height: auto;
   max-height: 86%;
   object-fit: contain;
   opacity: 1;
-  filter: grayscale(1) brightness(2.25) contrast(1.35);
-  mix-blend-mode: screen;
+  filter: drop-shadow(0 0.08rem 0.12rem rgba(255, 255, 255, 0.18));
   transform: translateY(-2%);
 }
 
