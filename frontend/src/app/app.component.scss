@@ -20,10 +20,10 @@
 }
 
 .not-found-card {
-  width: min(34rem, 100%);
+  width: min(36rem, 100%);
   padding: clamp(1.75rem, 5vw, 3rem);
   border: 1px solid rgba(92, 57, 103, 0.16);
-  border-radius: 1.4rem;
+  border-radius: 0.85rem;
   background: rgba(255, 251, 244, 0.9);
   box-shadow: 0 1.5rem 3rem rgba(74, 48, 83, 0.14);
   text-align: center;
@@ -31,14 +31,35 @@
 
 .not-found-card h1 {
   margin-bottom: 0.75rem;
-  font-size: clamp(2.2rem, 6vw, 4rem);
-  line-height: 0.98;
+  font-size: clamp(2.1rem, 6vw, 3.8rem);
+  line-height: 1;
 }
 
-.not-found-card p:last-of-type {
+.not-found-card > p {
   max-width: 30rem;
   margin: 0 auto;
   font-size: 1.05rem;
+}
+
+.not-found-form {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 24rem;
+  margin: clamp(1.4rem, 4vw, 2rem) auto 0;
+  text-align: left;
+}
+
+.not-found-form .primary-button {
+  width: 100%;
+  margin-top: 0.2rem;
+}
+
+.form-error {
+  margin: 0;
+  color: #a33d5b;
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-align: center;
 }
 
 .admin-shell {

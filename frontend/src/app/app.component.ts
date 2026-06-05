@@ -12,8 +12,16 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { buildRsvpDraft, createDemoInvitation } from './data/demo-invitation';
 import { isFirebaseConfigured } from './firebase/firebase.config';
-import { Guest, GuestWish, Invitation, RsvpDraft } from './models/invitation.model';
-import { InvitationNotFoundError, InvitationService } from './services/invitation.service';
+import {
+  Guest,
+  GuestWish,
+  Invitation,
+  RsvpDraft,
+} from './models/invitation.model';
+import {
+  InvitationNotFoundError,
+  InvitationService,
+} from './services/invitation.service';
 import { PolaroidComponent } from './components/polaroid/polaroid.component';
 
 type SeedWindow = Window & {
@@ -60,7 +68,11 @@ type AdminTextEntry = {
 type RouteResolution =
   | { kind: 'admin'; segment: 'admin' }
   | { kind: 'invitation'; segment: string }
-  | { kind: 'not-found'; segment: ''; reason: 'missing-token' | 'invalid-route' };
+  | {
+      kind: 'not-found';
+      segment: '';
+      reason: 'missing-token' | 'invalid-route';
+    };
 
 type JourneySceneElements = {
   section: HTMLElement;
@@ -91,7 +103,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly backgroundAudioSrc = 'assets/audio/invitacion.mp3';
   @ViewChild('journeySection') private journeySection?: ElementRef<HTMLElement>;
   @ViewChild('journeyTrack') private journeyTrack?: ElementRef<HTMLElement>;
-  @ViewChild('backgroundAudio') private backgroundAudio?: ElementRef<HTMLAudioElement>;
+  @ViewChild('backgroundAudio')
+  private backgroundAudio?: ElementRef<HTMLAudioElement>;
 
   private readonly document = inject(DOCUMENT);
   private readonly sanitizer = inject(DomSanitizer);
@@ -135,9 +148,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly isAdminRoute = this.route.kind === 'admin';
   readonly isNotFoundRoute = this.route.kind === 'not-found';
   missingInvitation = false;
-  notFoundTitle = 'Invitaci\u00f3n no encontrada';
+  notFoundTitle = 'Bienvenidos a nuestra boda';
   notFoundMessage =
-    'Este enlace no existe o ya no est\u00e1 disponible. Si crees que es un error, pide nuevamente tu enlace privado.';
+    'Para ver la invitaci\u00f3n necesitamos el c\u00f3digo que les enviamos.';
+  invitationAccessCode = '';
+  invitationAccessCodeError = '';
+  isCheckingInvitationCode = false;
 
   invitation: Invitation = createDemoInvitation(this.readToken());
 
@@ -248,6 +264,48 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.videoAnimationsEnabled;
   }
 
+  async openInvitationByCode(): Promise<void> {
+    if (this.isCheckingInvitationCode) {
+      return;
+    }
+
+    const invitationCode = this.extractInvitationCode(
+      this.invitationAccessCode,
+    );
+
+    if (!invitationCode) {
+      this.invitationAccessCodeError =
+        'Escribe el c\u00f3digo de invitaci\u00f3n para continuar.';
+      return;
+    }
+
+    this.invitationAccessCodeError = '';
+    this.isCheckingInvitationCode = true;
+
+    try {
+      await this.invitationService.getInvitationByToken(invitationCode);
+
+      const prefix = this.isUsingGithubPagesBasePath()
+        ? `/${this.githubPagesBaseSegment}`
+        : '';
+      const search = window.location.search;
+      window.location.assign(
+        `${prefix}/${encodeURIComponent(invitationCode)}${search}`,
+      );
+    } catch (error) {
+      if (error instanceof InvitationNotFoundError) {
+        this.invitationAccessCodeError =
+          'No encontramos una invitaci\u00f3n con ese c\u00f3digo. Rev\u00edsalo e intenta de nuevo.';
+        return;
+      }
+
+      this.invitationAccessCodeError =
+        'No pudimos validar el c\u00f3digo ahora. Intenta de nuevo en unos segundos.';
+    } finally {
+      this.isCheckingInvitationCode = false;
+    }
+  }
+
   async ngOnInit(): Promise<void> {
     this.registerDevSeed();
 
@@ -279,7 +337,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     const openingScrollY = window.scrollY;
     this.isOpen = true;
     this.invitation.openedInvitation = true;
-    this.invitation.openedAt = this.invitation.openedAt ?? new Date().toISOString();
+    this.invitation.openedAt =
+      this.invitation.openedAt ?? new Date().toISOString();
     window.scrollTo({ top: openingScrollY, behavior: 'auto' });
 
     void this.invitationService.markInvitationOpened(this.invitation.token);
@@ -296,7 +355,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get primaryGuest(): Guest | undefined {
-    return this.invitation.guests.find((guest) => guest.role === 'primary') ?? this.invitation.guests[0];
+    return (
+      this.invitation.guests.find((guest) => guest.role === 'primary') ??
+      this.invitation.guests[0]
+    );
   }
 
   get invitationGuestCount(): number {
@@ -317,7 +379,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get childGuestCount(): number {
-    const childCount = this.invitation.guests.filter((guest) => guest.isChild).length;
+    const childCount = this.invitation.guests.filter(
+      (guest) => guest.isChild,
+    ).length;
 
     if (childCount > 0) {
       return childCount;
@@ -327,7 +391,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get abroadGuestCount(): number {
-    const abroadCount = this.invitation.guests.filter((guest) => guest.isAbroad).length;
+    const abroadCount = this.invitation.guests.filter(
+      (guest) => guest.isAbroad,
+    ).length;
 
     if (abroadCount > 0) {
       return abroadCount;
@@ -451,7 +517,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get wishTitle(): string {
-    return this.isSingleInvitation ? 'D\u00e9janos un recuerdo' : 'D\u00e9jennos un recuerdo';
+    return this.isSingleInvitation
+      ? 'D\u00e9janos un recuerdo'
+      : 'D\u00e9jennos un recuerdo';
   }
 
   get wishBodyCopy(): string {
@@ -461,7 +529,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get rsvpTitle(): string {
-    return this.isSingleInvitation ? 'Confirma tu asistencia' : 'Confirmen su asistencia';
+    return this.isSingleInvitation
+      ? 'Confirma tu asistencia'
+      : 'Confirmen su asistencia';
   }
 
   get rsvpBodyCopy(): string {
@@ -505,17 +575,19 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get filteredAdminInvitations(): Invitation[] {
-    return this.adminInvitations.filter((invitation) => this.matchesInvitationSearch(invitation))
+    return this.adminInvitations
+      .filter((invitation) => this.matchesInvitationSearch(invitation))
       .filter((invitation) => this.matchesInvitationFilter(invitation));
   }
 
   get filteredAdminConfirmedGuests(): AdminConfirmedGuest[] {
     const normalizedSearch = this.adminSearchTerm.trim().toLowerCase();
-    return this.adminConfirmedGuests.filter((guest) =>
-      normalizedSearch.length === 0 ||
-      guest.displayName.toLowerCase().includes(normalizedSearch) ||
-      guest.token.toLowerCase().includes(normalizedSearch) ||
-      guest.guestName.toLowerCase().includes(normalizedSearch),
+    return this.adminConfirmedGuests.filter(
+      (guest) =>
+        normalizedSearch.length === 0 ||
+        guest.displayName.toLowerCase().includes(normalizedSearch) ||
+        guest.token.toLowerCase().includes(normalizedSearch) ||
+        guest.guestName.toLowerCase().includes(normalizedSearch),
     );
   }
 
@@ -534,14 +606,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   get recentOpenedInvitations(): Invitation[] {
     return [...this.adminInvitations]
       .filter((invitation) => invitation.lastOpenedAt)
-      .sort((left, right) => (right.lastOpenedAt ?? '').localeCompare(left.lastOpenedAt ?? ''))
+      .sort((left, right) =>
+        (right.lastOpenedAt ?? '').localeCompare(left.lastOpenedAt ?? ''),
+      )
       .slice(0, 5);
   }
 
   get recentRespondedInvitations(): Invitation[] {
     return [...this.adminInvitations]
       .filter((invitation) => invitation.respondedAt)
-      .sort((left, right) => (right.respondedAt ?? '').localeCompare(left.respondedAt ?? ''))
+      .sort((left, right) =>
+        (right.respondedAt ?? '').localeCompare(left.respondedAt ?? ''),
+      )
       .slice(0, 5);
   }
 
@@ -558,7 +634,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async submitWish(): Promise<void> {
-    await this.invitationService.saveGuestWish(this.invitation.token, this.guestWish);
+    await this.invitationService.saveGuestWish(
+      this.invitation.token,
+      this.guestWish,
+    );
     this.wishSubmitted = true;
     console.table({
       token: this.invitation.token,
@@ -572,7 +651,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.adminLoading = true;
 
     try {
-      const masterKeyHash = await this.invitationService.getAdminMasterKeyHash();
+      const masterKeyHash =
+        await this.invitationService.getAdminMasterKeyHash();
 
       if (!masterKeyHash) {
         this.adminKeyError =
@@ -672,7 +752,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private setupJourneyAnimation(): void {
-    if (this.reduceMotion || !this.journeySection || !this.journeyTrack || this.journeyReady) {
+    if (
+      this.reduceMotion ||
+      !this.journeySection ||
+      !this.journeyTrack ||
+      this.journeyReady
+    ) {
       return;
     }
 
@@ -680,7 +765,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.journeyReady = true;
     this.layoutJourney();
     this.requestJourneyUpdate();
-    window.addEventListener('scroll', this.updateJourneyFromScroll, { passive: true });
+    window.addEventListener('scroll', this.updateJourneyFromScroll, {
+      passive: true,
+    });
     window.addEventListener('resize', this.resizeJourney, { passive: true });
     this.refreshAfterEmbeddedAssets(this.journeySection.nativeElement);
   }
@@ -696,7 +783,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private refreshAfterEmbeddedAssets(section: HTMLElement): void {
     section.querySelectorAll('img, iframe, video').forEach((asset) => {
       asset.addEventListener('load', this.resizeJourney, { once: true });
-      asset.addEventListener('loadedmetadata', this.resizeJourney, { once: true });
+      asset.addEventListener('loadedmetadata', this.resizeJourney, {
+        once: true,
+      });
     });
   }
 
@@ -707,13 +796,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.journeySectionTop = this.journeyElements.section.offsetTop;
     this.journeyDistance = this.getJourneyDistance();
-    this.churchTime = this.progressForLandmark('.church') * this.journeyTravelEnd;
-    this.ballroomTime = this.progressForLandmark('.ballroom') * this.journeyTravelEnd;
+    this.churchTime =
+      this.progressForLandmark('.church') * this.journeyTravelEnd;
+    this.ballroomTime =
+      this.progressForLandmark('.ballroom') * this.journeyTravelEnd;
 
     const scrollMultiplier = this.mobilePerformanceMode ? 1.95 : 2.55;
     const minimumScrollLength = this.mobilePerformanceMode ? 2600 : 4200;
 
-    this.journeyScrollLength = Math.max(this.journeyDistance * scrollMultiplier, minimumScrollLength);
+    this.journeyScrollLength = Math.max(
+      this.journeyDistance * scrollMultiplier,
+      minimumScrollLength,
+    );
     this.journeyElements.section.style.height = `${this.journeyScrollLength + window.innerHeight}px`;
   }
 
@@ -734,37 +828,112 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const { track } = this.journeyElements;
-    const rawProgress = (window.scrollY - this.journeySectionTop) / this.journeyScrollLength;
+    const rawProgress =
+      (window.scrollY - this.journeySectionTop) / this.journeyScrollLength;
     const progress = this.clampProgress(rawProgress);
     const travelProgress = this.clampProgress(progress / this.journeyTravelEnd);
     const trackX = -this.journeyDistance * travelProgress;
 
     this.setTransformX(track, trackX, 'lastTrackX');
-    this.setParallaxTransform(this.journeyElements.backdrop, trackX, 0.012, 'lastBackdropX');
-    this.setParallaxTransform(this.journeyElements.hillsFar, trackX, 0.28, 'lastHillsFarX');
-    this.setParallaxTransform(this.journeyElements.hillsNear, trackX, 0.46, 'lastHillsNearX');
-    this.setViewportParallaxTransform(this.journeyElements.cloudOne, trackX, 0.006, 'lastCloudOneX');
-    this.setViewportParallaxTransform(this.journeyElements.cloudTwo, trackX, 0.018, 'lastCloudTwoX');
-    this.setViewportParallaxTransform(this.journeyElements.cloudThree, trackX, 0.032, 'lastCloudThreeX');
-    this.setViewportParallaxTransform(this.journeyElements.cloudFour, trackX, 0.025, 'lastCloudFourX');
+    this.setParallaxTransform(
+      this.journeyElements.backdrop,
+      trackX,
+      0.012,
+      'lastBackdropX',
+    );
+    this.setParallaxTransform(
+      this.journeyElements.hillsFar,
+      trackX,
+      0.28,
+      'lastHillsFarX',
+    );
+    this.setParallaxTransform(
+      this.journeyElements.hillsNear,
+      trackX,
+      0.46,
+      'lastHillsNearX',
+    );
+    this.setViewportParallaxTransform(
+      this.journeyElements.cloudOne,
+      trackX,
+      0.006,
+      'lastCloudOneX',
+    );
+    this.setViewportParallaxTransform(
+      this.journeyElements.cloudTwo,
+      trackX,
+      0.018,
+      'lastCloudTwoX',
+    );
+    this.setViewportParallaxTransform(
+      this.journeyElements.cloudThree,
+      trackX,
+      0.032,
+      'lastCloudThreeX',
+    );
+    this.setViewportParallaxTransform(
+      this.journeyElements.cloudFour,
+      trackX,
+      0.025,
+      'lastCloudFourX',
+    );
 
     if (!this.mobilePerformanceMode) {
-      this.setParallaxTransform(this.journeyElements.trees, trackX, 0.7, 'lastTreesX');
-      this.setParallaxTransform(this.journeyElements.road, trackX, 0.9, 'lastRoadX');
+      this.setParallaxTransform(
+        this.journeyElements.trees,
+        trackX,
+        0.7,
+        'lastTreesX',
+      );
+      this.setParallaxTransform(
+        this.journeyElements.road,
+        trackX,
+        0.9,
+        'lastRoadX',
+      );
     }
 
-    const carIn = Math.min(this.journeyTravelEnd - 0.14, this.churchTime + 0.02);
+    const carIn = Math.min(
+      this.journeyTravelEnd - 0.14,
+      this.churchTime + 0.02,
+    );
     const transitionStart = Math.max(0, carIn - this.characterTransitionWindow);
-    const transitionEnd = Math.min(this.journeyTravelEnd, carIn + this.characterTransitionWindow);
-    const carVisibility = this.getTransitionProgress(progress, transitionStart, transitionEnd);
+    const transitionEnd = Math.min(
+      this.journeyTravelEnd,
+      carIn + this.characterTransitionWindow,
+    );
+    const carVisibility = this.getTransitionProgress(
+      progress,
+      transitionStart,
+      transitionEnd,
+    );
     const danceIn = Math.max(this.ballroomTime, this.journeyTravelEnd);
-    const danceStart = Math.max(carIn, danceIn - this.celebrationTransitionWindow);
+    const danceStart = Math.max(
+      carIn,
+      danceIn - this.celebrationTransitionWindow,
+    );
     const danceEnd = Math.min(1, danceIn + this.celebrationTransitionWindow);
-    const danceVisibility = this.getTransitionProgress(progress, danceStart, danceEnd);
+    const danceVisibility = this.getTransitionProgress(
+      progress,
+      danceStart,
+      danceEnd,
+    );
 
-    this.setAlpha(this.journeyElements.bride, 1 - carVisibility, 'lastBrideOpacity');
-    this.setAlpha(this.journeyElements.car, carVisibility * (1 - danceVisibility), 'lastCarOpacity');
-    this.setAlpha(this.journeyElements.dancing, danceVisibility, 'lastDancingOpacity');
+    this.setAlpha(
+      this.journeyElements.bride,
+      1 - carVisibility,
+      'lastBrideOpacity',
+    );
+    this.setAlpha(
+      this.journeyElements.car,
+      carVisibility * (1 - danceVisibility),
+      'lastCarOpacity',
+    );
+    this.setAlpha(
+      this.journeyElements.dancing,
+      danceVisibility,
+      'lastDancingOpacity',
+    );
   }
 
   private getJourneyDistance(): number {
@@ -799,7 +968,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     element: HTMLElement | null,
     trackX: number,
     ratio: number,
-    cacheKey: 'lastCloudOneX' | 'lastCloudTwoX' | 'lastCloudThreeX' | 'lastCloudFourX',
+    cacheKey:
+      | 'lastCloudOneX'
+      | 'lastCloudTwoX'
+      | 'lastCloudThreeX'
+      | 'lastCloudFourX',
   ): void {
     if (!element) {
       return;
@@ -818,7 +991,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const normalizedOpacity = Math.round(this.clampProgress(opacity) * 1000) / 1000;
+    const normalizedOpacity =
+      Math.round(this.clampProgress(opacity) * 1000) / 1000;
 
     if (this[cacheKey] === normalizedOpacity) {
       return;
@@ -860,7 +1034,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return this.clampProgress(
-      this.getSceneDistance(this.journeyElements.track, selector) / Math.max(this.journeyDistance, 1),
+      this.getSceneDistance(this.journeyElements.track, selector) /
+        Math.max(this.journeyDistance, 1),
     );
   }
 
@@ -887,26 +1062,39 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private syncViewportPreferences(): void {
-    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.mobilePerformanceMode = window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;
+    this.reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    this.mobilePerformanceMode = window.matchMedia(
+      '(max-width: 860px), (pointer: coarse)',
+    ).matches;
     this.videoAnimationsEnabled = this.detectVideoAnimationSupport();
   }
 
   private detectVideoAnimationSupport(): boolean {
     const video = this.document.createElement('video');
-    const canPlayWebm = video.canPlayType('video/webm; codecs="vp8, vorbis"') !== ''
-      || video.canPlayType('video/webm; codecs="vp9"') !== '';
+    const canPlayWebm =
+      video.canPlayType('video/webm; codecs="vp8, vorbis"') !== '' ||
+      video.canPlayType('video/webm; codecs="vp9"') !== '';
     const userAgent = window.navigator.userAgent;
     const isAppleDevice =
-      /iPhone|iPad|iPod|Macintosh/i.test(userAgent)
-      || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+      /iPhone|iPad|iPod|Macintosh/i.test(userAgent) ||
+      (window.navigator.platform === 'MacIntel' &&
+        window.navigator.maxTouchPoints > 1);
 
     return canPlayWebm && !isAppleDevice;
   }
 
-  private getSceneDistance(track: HTMLElement, selector: string, focusOffsetRem = 0): number {
+  private getSceneDistance(
+    track: HTMLElement,
+    selector: string,
+    focusOffsetRem = 0,
+  ): number {
     const target = track.querySelector<HTMLElement>(selector);
-    const rem = Number.parseFloat(getComputedStyle(this.document.documentElement).fontSize) || 16;
+    const rem =
+      Number.parseFloat(
+        getComputedStyle(this.document.documentElement).fontSize,
+      ) || 16;
 
     if (!target) {
       return track.scrollWidth - window.innerWidth;
@@ -925,7 +1113,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return Math.min(1, Math.max(0, value));
   }
 
-  private getTransitionProgress(value: number, start: number, end: number): number {
+  private getTransitionProgress(
+    value: number,
+    start: number,
+    end: number,
+  ): number {
     if (end <= start) {
       return value >= end ? 1 : 0;
     }
@@ -944,7 +1136,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     seedWindow.seedDemoInvitation = async () => {
       if (!this.invitationService.isRemoteEnabled()) {
-      console.warn('Firebase no est\u00e1 configurado todav\u00eda.');
+        console.warn('Firebase no est\u00e1 configurado todav\u00eda.');
         return;
       }
 
@@ -958,7 +1150,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     const token = this.readToken();
 
     try {
-      this.invitation = await this.invitationService.getInvitationByToken(token);
+      this.invitation =
+        await this.invitationService.getInvitationByToken(token);
       this.rsvp = buildRsvpDraft(this.invitation);
       this.guestWish = {
         message: this.invitation.message,
@@ -998,7 +1191,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private readToken(): string {
-    return this.isAdminRoute ? 'demo-cuento' : this.routeSegment || 'demo-cuento';
+    return this.isAdminRoute
+      ? 'demo-cuento'
+      : this.routeSegment || 'demo-cuento';
   }
 
   private resolveRoute(): RouteResolution {
@@ -1008,7 +1203,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       .filter((segment) => segment.length > 0);
 
     const normalizedSegments =
-      segments[0] === this.githubPagesBaseSegment ? segments.slice(1) : segments;
+      segments[0] === this.githubPagesBaseSegment
+        ? segments.slice(1)
+        : segments;
 
     if (normalizedSegments.length === 0) {
       return {
@@ -1041,18 +1238,60 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private applyRouteNotFoundState(): void {
     this.missingInvitation = true;
-    const missingToken = this.route.kind === 'not-found' && this.route.reason === 'missing-token';
-    this.notFoundTitle = 'Enlace no v\u00e1lido';
+    this.notFoundTitle = 'Bienvenidos a nuestra boda';
     this.notFoundMessage =
-      missingToken
-        ? 'Aqu\u00ed no hay una invitaci\u00f3n para mostrar. Entra usando tu enlace privado completo.'
-        : 'La direcci\u00f3n que abriste no corresponde a una invitaci\u00f3n v\u00e1lida.';
+      'Para ver la invitaci\u00f3n necesitamos el c\u00f3digo que les enviamos.';
   }
 
   private applyInvitationNotFoundState(token: string): void {
     this.missingInvitation = true;
-    this.notFoundTitle = 'Invitaci\u00f3n no encontrada';
-    this.notFoundMessage = `No encontramos una invitaci\u00f3n activa para el c\u00f3digo "${token}". Revisa el enlace o pide uno nuevo a los novios.`;
+    this.notFoundTitle = 'No encontramos ese c\u00f3digo';
+    this.notFoundMessage = `Revisa el c\u00f3digo que les enviamos o pídenos ayuda.`;
+    this.invitationAccessCode = token;
+  }
+
+  private extractInvitationCode(value: string): string {
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+      return '';
+    }
+
+    const pathValue = this.tryReadPathname(trimmedValue) ?? trimmedValue;
+    const pathWithoutQuery = pathValue.split(/[?#]/)[0] ?? '';
+    const segments = pathWithoutQuery
+      .split('/')
+      .map((segment) => segment.trim())
+      .filter((segment) => segment.length > 0);
+
+    if (segments.length === 0) {
+      return '';
+    }
+
+    const baseIndex = segments.indexOf(this.githubPagesBaseSegment);
+    const codeSegment =
+      baseIndex >= 0 ? segments[baseIndex + 1] : segments[segments.length - 1];
+
+    return codeSegment && codeSegment !== 'admin'
+      ? decodeURIComponent(codeSegment)
+      : '';
+  }
+
+  private tryReadPathname(value: string): string | null {
+    try {
+      return new URL(value).pathname;
+    } catch {
+      return null;
+    }
+  }
+
+  private isUsingGithubPagesBasePath(): boolean {
+    const firstSegment = window.location.pathname
+      .split('/')
+      .map((segment) => segment.trim())
+      .find((segment) => segment.length > 0);
+
+    return firstSegment === this.githubPagesBaseSegment;
   }
 
   private async tryStartBackgroundMusic(): Promise<void> {
@@ -1151,10 +1390,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private matchesInvitationSearch(invitation: Invitation): boolean {
     const normalizedSearch = this.adminSearchTerm.trim().toLowerCase();
-    return normalizedSearch.length === 0 ||
+    return (
+      normalizedSearch.length === 0 ||
       invitation.displayName.toLowerCase().includes(normalizedSearch) ||
       invitation.token.toLowerCase().includes(normalizedSearch) ||
-      invitation.guests.some((guest) => guest.name.toLowerCase().includes(normalizedSearch));
+      invitation.guests.some((guest) =>
+        guest.name.toLowerCase().includes(normalizedSearch),
+      )
+    );
   }
 
   private matchesInvitationFilter(invitation: Invitation): boolean {
@@ -1178,11 +1421,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private filterTextEntries(entries: AdminTextEntry[]): AdminTextEntry[] {
     const normalizedSearch = this.adminSearchTerm.trim().toLowerCase();
-    return entries.filter((entry) =>
-      normalizedSearch.length === 0 ||
-      entry.displayName.toLowerCase().includes(normalizedSearch) ||
-      entry.token.toLowerCase().includes(normalizedSearch) ||
-      entry.value.toLowerCase().includes(normalizedSearch),
+    return entries.filter(
+      (entry) =>
+        normalizedSearch.length === 0 ||
+        entry.displayName.toLowerCase().includes(normalizedSearch) ||
+        entry.token.toLowerCase().includes(normalizedSearch) ||
+        entry.value.toLowerCase().includes(normalizedSearch),
     );
   }
 }

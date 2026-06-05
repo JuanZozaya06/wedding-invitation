@@ -1,9 +1,39 @@
 ﻿@if (showNotFoundState) {
   <main class="not-found-shell">
     <section class="not-found-card">
-      <p class="eyebrow">Error 404</p>
+      <p class="eyebrow">Gabriela &amp; Juan</p>
       <h1>{{ notFoundTitle }}</h1>
       <p>{{ notFoundMessage }}</p>
+
+      <form class="not-found-form" (ngSubmit)="openInvitationByCode()">
+        <label>
+          C&oacute;digo de invitaci&oacute;n
+          <input
+            name="invitationAccessCode"
+            type="text"
+            autocomplete="off"
+            [(ngModel)]="invitationAccessCode"
+            [disabled]="isCheckingInvitationCode"
+            placeholder="Escribe tu c&oacute;digo"
+          />
+        </label>
+
+        @if (invitationAccessCodeError) {
+          <p class="form-error">{{ invitationAccessCodeError }}</p>
+        }
+
+        <button
+          class="primary-button"
+          type="submit"
+          [disabled]="isCheckingInvitationCode"
+        >
+          @if (isCheckingInvitationCode) {
+            Revisando c&oacute;digo...
+          } @else {
+            Entrar a la invitaci&oacute;n
+          }
+        </button>
+      </form>
     </section>
   </main>
 } @else if (isAdminRoute) {
@@ -504,6 +534,14 @@
           }
         </section>
       }
+    </section>
+  </main>
+} @else if (isLoadingInvitation) {
+  <main class="not-found-shell">
+    <section class="not-found-card">
+      <p class="eyebrow">Gabriela &amp; Juan</p>
+      <h1>Preparando invitaci&oacute;n</h1>
+      <p>Estamos revisando el c&oacute;digo para abrir la historia correcta.</p>
     </section>
   </main>
 } @else {
