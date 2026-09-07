@@ -8,7 +8,6 @@
 >
   <audio
     #backgroundAudio
-    src="assets/audio/civil.mp3"
     loop
     preload="auto"
     (loadedmetadata)="onMusicLoadedMetadata()"
@@ -161,7 +160,6 @@
         <video
           #introVideo
           class="intro-video"
-          src="assets/civil.mp4"
           poster="assets/civil-poster.jpg"
           muted
           [muted]="true"
@@ -181,9 +179,22 @@
 
       @if (state === 'loading' || state === 'loading-out') {
         <div class="loading-screen" [class.is-leaving]="state === 'loading-out'">
-          <div class="loading-message" role="status" aria-live="polite">
-            <p>Estamos cargando<br />un mensaje para ti.</p>
-            <span class="loading-indicator" aria-hidden="true">
+          <div class="loading-message">
+            <p class="loading-copy" role="status" aria-live="polite">
+              <span class="loading-copy-variant" [class.is-visible]="loadingMessageState === 'loading'" [attr.aria-hidden]="loadingMessageState !== 'loading'">
+                Estamos cargando<br />un mensaje para ti.
+              </span>
+              <span class="loading-copy-variant" [class.is-visible]="loadingMessageState === 'ready'" [attr.aria-hidden]="loadingMessageState !== 'ready'">
+                ¡Listo!
+              </span>
+              <span class="loading-copy-variant" [class.is-visible]="loadingMessageState === 'load-error'" [attr.aria-hidden]="loadingMessageState !== 'load-error'">
+                No pudimos cargar<br />tu mensaje. Intenta de nuevo.
+              </span>
+              <span class="loading-copy-variant" [class.is-visible]="loadingMessageState === 'start-error'" [attr.aria-hidden]="loadingMessageState !== 'start-error'">
+                No pudimos iniciar<br />tu mensaje. Intenta de nuevo.
+              </span>
+            </p>
+            <span class="loading-indicator" [class.is-visible]="loadingMessageState === 'loading'" aria-hidden="true">
               <span></span><span></span><span></span>
             </span>
             <img
@@ -194,14 +205,21 @@
               alt=""
               aria-hidden="true"
             />
-          </div>
-          @if (state === 'loading' && loadingMinimumElapsed && videoNeedsInteraction) {
-            <div class="media-start-prompt loading-help">
-              <button type="button" (click)="startMediaFromGesture()">
-                {{ videoLoadFailed ? 'Volver a intentar' : 'Abrir mensaje' }}
+            <div class="loading-action">
+              <button class="loading-open-button" type="button"
+                [class.is-visible]="loadingMinimumElapsed && mediaLoadFailed"
+                [disabled]="!loadingMinimumElapsed || !mediaLoadFailed"
+                [attr.aria-hidden]="!loadingMinimumElapsed || !mediaLoadFailed"
+                (click)="loadMessageMedia()">Volver a intentar</button>
+              <button class="loading-open-button" type="button"
+                [class.is-visible]="messageReady"
+                [disabled]="!messageReady || openingRequested"
+                [attr.aria-hidden]="!messageReady"
+                (click)="openMessage()">
+                {{ videoNeedsInteraction ? 'Volver a intentar' : 'Abrir mensaje' }}
               </button>
             </div>
-          }
+          </div>
         </div>
       }
 
@@ -219,7 +237,7 @@
             type="button"
             [attr.aria-label]="musicToggleLabel"
             [attr.title]="musicToggleLabel"
-            [disabled]="!musicAvailable"
+            [disabled]="!musicAvailable || !openingRequested || state === 'loading'"
             (click)="toggleMusicPlayback()"
           >
             <span aria-hidden="true">{{ musicPlaying ? "❚❚" : "♪" }}</span>

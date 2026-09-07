@@ -1,22 +1,25 @@
 import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { CivilInvitationComponent } from './civil-invitation.component';
 
-describe('CivilInvitationComponent media loading', () => {
+describe('CivilInvitationComponent message opening', () => {
   let fixture: ComponentFixture<CivilInvitationComponent>;
   let component: CivilInvitationComponent;
   let video: HTMLVideoElement;
   let audio: HTMLAudioElement;
-  let videoReadyState: number;
-  let videoEnded: boolean;
+  let videoReady: number;
+  let audioReady: number;
   let videoPaused: boolean;
   let audioPaused: boolean;
-  let audioReadyState: number;
+  let videoEnded: boolean;
   let videoPlay: jasmine.Spy;
   let audioPlay: jasmine.Spy;
+  let fetchMedia: jasmine.Spy;
+  let revokeUrl: jasmine.Spy;
+
+  const response = () => ({ ok: true, blob: () => Promise.resolve(new Blob(['media'])) }) as Response;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [CivilInvitationComponent] });
-    // No network media in timing tests; the actual template is checked in the browser.
     TestBed.overrideComponent(CivilInvitationComponent, {
       set: { template: '<video #introVideo></video><audio #backgroundAudio></audio>' },
     });
@@ -24,24 +27,32 @@ describe('CivilInvitationComponent media loading', () => {
     component = fixture.componentInstance;
     video = fixture.nativeElement.querySelector('video');
     audio = fixture.nativeElement.querySelector('audio');
-    videoReadyState = HTMLMediaElement.HAVE_NOTHING;
+    videoReady = audioReady = HTMLMediaElement.HAVE_NOTHING;
+    videoPaused = audioPaused = true;
     videoEnded = false;
-    videoPaused = true;
-    audioPaused = true;
-    audioReadyState = HTMLMediaElement.HAVE_METADATA;
-    spyOnProperty(video, 'readyState').and.callFake(() => videoReadyState);
-    spyOnProperty(video, 'ended').and.callFake(() => videoEnded);
+    spyOnProperty(video, 'readyState').and.callFake(() => videoReady);
+    spyOnProperty(audio, 'readyState').and.callFake(() => audioReady);
     spyOnProperty(video, 'paused').and.callFake(() => videoPaused);
-    spyOnProperty(audio, 'readyState').and.callFake(() => audioReadyState);
     spyOnProperty(audio, 'paused').and.callFake(() => audioPaused);
+    spyOnProperty(video, 'ended').and.callFake(() => videoEnded);
+    spyOn(video, 'load');
+    spyOn(audio, 'load');
+    spyOn(video, 'pause').and.callFake(() => { videoPaused = true; });
+    spyOn(audio, 'pause').and.callFake(() => { audioPaused = true; });
     videoPlay = spyOn(video, 'play').and.callFake(() => {
-      beginPlayback();
+      videoPaused = false;
+      videoReady = HTMLMediaElement.HAVE_ENOUGH_DATA;
+      component.onVideoPlay();
       return Promise.resolve();
     });
-    audioPlay = spyOn(audio, 'play').and.returnValue(Promise.resolve());
-    spyOn(video, 'pause');
-    spyOn(audio, 'pause').and.callFake(() => { audioPaused = true; });
-    spyOn(video, 'load');
+    audioPlay = spyOn(audio, 'play').and.callFake(() => {
+      audioPaused = false;
+      component.onMusicPlay();
+      return Promise.resolve();
+    });
+    fetchMedia = spyOn(window, 'fetch').and.callFake(() => Promise.resolve(response()));
+    spyOn(URL, 'createObjectURL').and.returnValues('blob:video-test', 'blob:audio-test');
+    revokeUrl = spyOn(URL, 'revokeObjectURL');
   });
 
   afterEach(() => fixture.destroy());
@@ -49,192 +60,171 @@ describe('CivilInvitationComponent media loading', () => {
   function start(): void {
     fixture.detectChanges();
     component.reduceMotion = false;
+    flushMicrotasks();
   }
 
-  function beginPlayback(): void {
-    videoPaused = false;
-    videoReadyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
-    component.onVideoPlay();
-  }
-
-  it('holds the first frame for the configured minimum even if the video is already ready', fakeAsync(() => {
-    videoReadyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
+  function ready(): void {
     start();
-    component.onVideoCanPlay();
-    tick(component.timings.loadingMinimumMs - 1);
-    expect(component.state).toBe('loading');
-    expect(videoPlay).not.toHaveBeenCalled();
-    expect(video.autoplay).toBeFalse();
-    tick(1);
-    expect(component.state).toBe('loading-out');
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    tick(component.timings.loadingFadeMs - 1);
-    expect(component.state).toBe('loading-out');
-    tick(1);
-    expect(component.state).toBe('intro');
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    expect(video.muted && video.defaultMuted && video.playsInline).toBeTrue();
-    fixture.destroy();
-  }));
-
-  it('calls play after the minimum even if Safari preloaded only metadata', fakeAsync(() => {
-    videoPlay.and.returnValue(new Promise<void>(() => {}));
-    start();
-    videoReadyState = HTMLMediaElement.HAVE_METADATA;
+    videoReady = audioReady = HTMLMediaElement.HAVE_METADATA;
     component.onVideoLoadedMetadata();
-    tick(component.timings.loadingMinimumMs + 1000);
-    expect(component.state).toBe('loading');
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    videoReadyState = HTMLMediaElement.HAVE_FUTURE_DATA;
-    component.onVideoCanPlay();
-    expect(component.state).toBe('loading');
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    beginPlayback();
-    expect(component.state).toBe('loading-out');
-    tick(component.timings.loadingFadeMs);
-    expect(component.state).toBe('intro');
-    fixture.destroy();
-  }));
-
-  it('does not let a tap bypass the minimum loading time', fakeAsync(() => {
-    start();
-    component.onVideoError();
-    tick(1000);
-    component.startMediaFromGesture();
-    expect(videoPlay).not.toHaveBeenCalled();
-    expect(component.state).toBe('loading');
-    fixture.destroy();
-  }));
-
-  it('does not require a tap just because a slow video takes more than 8 seconds', fakeAsync(() => {
-    videoPlay.and.returnValue(new Promise<void>(() => {}));
-    start();
-    tick(component.timings.loadingMinimumMs + 8000);
-    expect(component.state).toBe('loading');
-    expect(component.videoNeedsInteraction).toBeFalse();
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    beginPlayback();
-    expect(component.state).toBe('loading-out');
-    fixture.destroy();
-  }));
-
-  it('shows the start button when autoplay is denied, without opening the paper', fakeAsync(() => {
-    videoPlay.and.callFake(() => Promise.reject(new DOMException('Blocked', 'NotAllowedError')));
-    videoReadyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
-    start();
-    tick(component.timings.loadingMinimumMs + component.timings.loadingFadeMs);
-    expect(component.videoNeedsInteraction).toBeTrue();
-    expect(component.state).toBe('loading');
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    component.onVideoCanPlay();
-    tick(10000);
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    component.onVideoEnded();
-    expect(component.state).toBe('loading');
-    videoPlay.and.callFake(() => {
-      beginPlayback();
-      return Promise.resolve();
-    });
-    component.startMediaFromGesture();
-    expect(component.videoNeedsInteraction).toBeFalse();
-    expect(component.state).toBe('loading-out');
-    tick(component.timings.loadingFadeMs);
-    expect(component.state).toBe('intro');
-    videoEnded = true;
-    component.onVideoEnded();
-    expect(component.state).toBe('transitioning');
-    fixture.destroy();
-  }));
-
-  it('allows a gesture to retry audio even while automatic play is pending', fakeAsync(() => {
-    audioPlay.and.returnValue(new Promise<void>(() => {}));
-    start();
-    expect(audioPlay).toHaveBeenCalledTimes(1);
-    component.startMediaFromGesture();
-    expect(audioPlay).toHaveBeenCalledTimes(2);
-    expect(audio.currentTime).toBe(1);
-    fixture.destroy();
-  }));
-
-  it('keeps the configured minimum with reduced motion but skips the fade', fakeAsync(() => {
-    videoReadyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
-    start();
-    component.reduceMotion = true;
-    tick(component.timings.loadingMinimumMs - 1);
-    expect(component.state).toBe('loading');
-    tick(1);
-    expect(component.state).toBe('intro');
-    expect(videoPlay).toHaveBeenCalledTimes(1);
-    fixture.destroy();
-  }));
-
-  it('cancels loading timers and pending playback on destruction', fakeAsync(() => {
-    let resolveVideo!: () => void;
-    videoPlay.and.returnValue(new Promise<void>((resolve) => { resolveVideo = resolve; }));
-    videoReadyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
-    start();
-    tick(component.timings.loadingMinimumMs + component.timings.loadingFadeMs);
-    fixture.destroy();
-    resolveVideo();
-    flushMicrotasks();
-    tick(10000);
-    expect(video.pause).toHaveBeenCalled();
-    expect(audio.pause).toHaveBeenCalled();
-    expect(component.videoNeedsInteraction).toBeFalse();
-  }));
-
-  it('preserves the ended transition if the video finishes during the loading fade', fakeAsync(() => {
-    start();
-    tick(component.timings.loadingMinimumMs);
-    expect(component.state).toBe('loading-out');
-    videoEnded = true;
-    component.onVideoEnded();
-    tick(component.timings.loadingFadeMs);
-    expect(component.state).toBe('transitioning');
-    fixture.destroy();
-  }));
-
-  it('lets a real gesture retry a pending automatic play without waiting for it', fakeAsync(() => {
-    videoPlay.and.returnValue(new Promise<void>(() => {}));
-    start();
-    tick(component.timings.loadingMinimumMs);
-    videoPaused = false;
-    component.startMediaFromGesture();
-    expect(videoPlay).toHaveBeenCalledTimes(2);
-    fixture.destroy();
-  }));
-
-  it('requests music immediately, even before metadata is available', fakeAsync(() => {
-    audioReadyState = HTMLMediaElement.HAVE_NOTHING;
-    audio.muted = true;
-    start();
-    expect(audioPlay).toHaveBeenCalledTimes(1);
-    expect(audio.muted).toBeFalse();
-    audioReadyState = HTMLMediaElement.HAVE_METADATA;
     component.onMusicLoadedMetadata();
-    expect(audio.currentTime).toBe(1);
+    tick(component.timings.loadingMinimumMs);
+  }
+
+  it('downloads both files without playing them and enforces the minimum', fakeAsync(() => {
+    start();
+    expect(fetchMedia).toHaveBeenCalledTimes(2);
+    videoReady = audioReady = HTMLMediaElement.HAVE_METADATA;
+    tick(component.timings.loadingMinimumMs - 1);
+    expect(component.messageReady).toBeFalse();
+    component.openMessage();
+    expect(videoPlay).not.toHaveBeenCalled();
+    expect(audioPlay).not.toHaveBeenCalled();
+    tick(1);
+    expect(component.messageReady).toBeTrue();
+    expect(video.autoplay).toBeFalse();
+    expect(videoPlay).not.toHaveBeenCalled();
+    expect(audioPlay).not.toHaveBeenCalled();
     fixture.destroy();
   }));
 
-  it('respects pause during this visit but resets it when returning from the page cache', fakeAsync(() => {
+  it('does not enable opening until both downloaded files have metadata', fakeAsync(() => {
     start();
+    tick(component.timings.loadingMinimumMs);
+    videoReady = HTMLMediaElement.HAVE_ENOUGH_DATA;
+    component.onVideoCanPlay();
+    expect(component.messageReady).toBeFalse();
+    component.openMessage();
+    expect(videoPlay).not.toHaveBeenCalled();
+    audioReady = HTMLMediaElement.HAVE_METADATA;
+    component.onMusicLoadedMetadata();
+    expect(component.messageReady).toBeTrue();
+    expect(audioPlay).not.toHaveBeenCalled();
+    fixture.destroy();
+  }));
+
+  it('waits for the complete audio download even when video is available', fakeAsync(() => {
+    let completeAudio!: (value: Response) => void;
+    fetchMedia.and.returnValues(Promise.resolve(response()), new Promise<Response>((resolve) => { completeAudio = resolve; }));
+    start();
+    videoReady = audioReady = HTMLMediaElement.HAVE_METADATA;
+    tick(component.timings.loadingMinimumMs + 8000);
+    expect(component.messageReady).toBeFalse();
+    completeAudio(response());
     flushMicrotasks();
+    expect(component.messageReady).toBeTrue();
+    fixture.destroy();
+  }));
+
+  it('starts both play calls synchronously from the opening action and seeks music to second 1', fakeAsync(() => {
+    ready();
+    component.openMessage();
+    // No microtask flush: both calls must happen in the original click stack.
+    expect(videoPlay).toHaveBeenCalledTimes(1);
+    expect(audioPlay).toHaveBeenCalledTimes(1);
+    expect(audio.currentTime).toBe(1);
+    expect(video.currentTime).toBe(0);
+    expect(audio.muted).toBeFalse();
+    expect(video.muted && video.playsInline).toBeTrue();
+    expect(component.state).toBe('loading-out');
+    tick(component.timings.loadingFadeMs);
+    expect(component.state).toBe('intro');
+    fixture.destroy();
+  }));
+
+  it('waits for both playing events before fading the loader', fakeAsync(() => {
+    audioPlay.and.returnValue(new Promise<void>(() => {}));
+    ready();
+    component.openMessage();
+    expect(component.state).toBe('loading');
+    tick(1000);
+    expect(component.state).toBe('loading');
     audioPaused = false;
     component.onMusicPlay();
-    void component.toggleMusicPlayback();
-    flushMicrotasks();
-    component.onMusicCanPlay();
-    component.startMediaFromGesture();
-    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: false }));
-    expect(audioPlay).toHaveBeenCalledTimes(1);
-    expect(audioPaused).toBeTrue();
-
-    audio.currentTime = 9;
-    audio.muted = true;
-    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
-    expect(audioPlay).toHaveBeenCalledTimes(2);
-    expect(audio.currentTime).toBe(1);
-    expect(audio.muted).toBeFalse();
+    expect(component.state).toBe('loading-out');
     fixture.destroy();
+  }));
+
+  it('does not allow background taps or the music toggle to bypass the opening button', fakeAsync(() => {
+    ready();
+    component.startMediaFromGesture();
+    void component.toggleMusicPlayback();
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    expect(videoPlay).not.toHaveBeenCalled();
+    expect(audioPlay).not.toHaveBeenCalled();
+    fixture.destroy();
+  }));
+
+  it('stops both and permits retry when audio playback fails', fakeAsync(() => {
+    audioPlay.and.callFake(() => Promise.reject(new DOMException('Blocked', 'NotAllowedError')));
+    ready();
+    component.openMessage();
+    flushMicrotasks();
+    expect(component.state).toBe('loading');
+    expect(component.openingRequested).toBeFalse();
+    expect(component.videoNeedsInteraction).toBeTrue();
+    expect(videoPaused && audioPaused).toBeTrue();
+    expect(component.messageReady).toBeTrue();
+    fixture.destroy();
+  }));
+
+  it('stops both and permits retry when video playback fails', fakeAsync(() => {
+    videoPlay.and.callFake(() => Promise.reject(new DOMException('Blocked', 'NotAllowedError')));
+    ready();
+    component.openMessage();
+    flushMicrotasks();
+    expect(component.openingRequested).toBeFalse();
+    expect(component.videoNeedsInteraction).toBeTrue();
+    expect(videoPaused && audioPaused).toBeTrue();
+    fixture.destroy();
+  }));
+
+  it('offers a download retry after a failed response', fakeAsync(() => {
+    fetchMedia.and.returnValue(Promise.resolve({ ok: false, status: 503 } as Response));
+    start();
+    tick(component.timings.loadingMinimumMs);
+    expect(component.mediaLoadFailed).toBeTrue();
+    expect(component.messageReady).toBeFalse();
+    fetchMedia.and.callFake(() => Promise.resolve(response()));
+    void component.loadMessageMedia();
+    flushMicrotasks();
+    videoReady = audioReady = HTMLMediaElement.HAVE_METADATA;
+    expect(component.mediaLoadFailed).toBeFalse();
+    expect(component.messageReady).toBeTrue();
+    expect(video.autoplay).toBeFalse();
+    fixture.destroy();
+  }));
+
+  it('only opens the paper after the actual video end', fakeAsync(() => {
+    ready();
+    component.openMessage();
+    tick(component.timings.loadingFadeMs);
+    component.onVideoEnded();
+    expect(component.state).toBe('intro');
+    videoEnded = true;
+    component.onVideoEnded();
+    expect(component.state).toBe('transitioning');
+    fixture.destroy();
+  }));
+
+  it('keeps the end transition if playback ends during the loading fade', fakeAsync(() => {
+    ready();
+    component.openMessage();
+    videoEnded = true;
+    component.onVideoEnded();
+    tick(component.timings.loadingFadeMs);
+    expect(component.state).toBe('transitioning');
+    fixture.destroy();
+  }));
+
+  it('cleans up object URLs and cancels downloads on destruction', fakeAsync(() => {
+    ready();
+    const signal = fetchMedia.calls.first().args[1].signal as AbortSignal;
+    fixture.destroy();
+    expect(signal.aborted).toBeTrue();
+    expect(revokeUrl).toHaveBeenCalledWith('blob:video-test');
+    expect(revokeUrl).toHaveBeenCalledWith('blob:audio-test');
+    tick(50000);
+    expect(videoPlay).not.toHaveBeenCalled();
   }));
 });
