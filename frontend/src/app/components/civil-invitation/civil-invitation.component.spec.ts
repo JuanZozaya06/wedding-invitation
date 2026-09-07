@@ -8,6 +8,7 @@ describe('CivilInvitationComponent media loading', () => {
   let audio: HTMLAudioElement;
   let videoReadyState: number;
   let videoEnded: boolean;
+  let videoPaused: boolean;
   let audioPaused: boolean;
   let audioReadyState: number;
   let videoPlay: jasmine.Spy;
@@ -25,13 +26,18 @@ describe('CivilInvitationComponent media loading', () => {
     audio = fixture.nativeElement.querySelector('audio');
     videoReadyState = HTMLMediaElement.HAVE_NOTHING;
     videoEnded = false;
+    videoPaused = true;
     audioPaused = true;
     audioReadyState = HTMLMediaElement.HAVE_METADATA;
     spyOnProperty(video, 'readyState').and.callFake(() => videoReadyState);
     spyOnProperty(video, 'ended').and.callFake(() => videoEnded);
+    spyOnProperty(video, 'paused').and.callFake(() => videoPaused);
     spyOnProperty(audio, 'readyState').and.callFake(() => audioReadyState);
     spyOnProperty(audio, 'paused').and.callFake(() => audioPaused);
-    videoPlay = spyOn(video, 'play').and.returnValue(Promise.resolve());
+    videoPlay = spyOn(video, 'play').and.callFake(() => {
+      beginPlayback();
+      return Promise.resolve();
+    });
     audioPlay = spyOn(audio, 'play').and.returnValue(Promise.resolve());
     spyOn(video, 'pause');
     spyOn(audio, 'pause').and.callFake(() => { audioPaused = true; });
@@ -45,6 +51,12 @@ describe('CivilInvitationComponent media loading', () => {
     component.reduceMotion = false;
   }
 
+  function beginPlayback(): void {
+    videoPaused = false;
+    videoReadyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
+    component.onVideoPlay();
+  }
+
   it('holds the first frame for the configured minimum even if the video is already ready', fakeAsync(() => {
     videoReadyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
     start();
@@ -55,8 +67,9 @@ describe('CivilInvitationComponent media loading', () => {
     expect(video.autoplay).toBeFalse();
     tick(1);
     expect(component.state).toBe('loading-out');
+    expect(videoPlay).toHaveBeenCalledTimes(1);
     tick(component.timings.loadingFadeMs - 1);
-    expect(videoPlay).not.toHaveBeenCalled();
+    expect(component.state).toBe('loading-out');
     tick(1);
     expect(component.state).toBe('intro');
     expect(videoPlay).toHaveBeenCalledTimes(1);
@@ -64,15 +77,19 @@ describe('CivilInvitationComponent media loading', () => {
     fixture.destroy();
   }));
 
-  it('waits beyond the minimum when only metadata has loaded', fakeAsync(() => {
+  it('calls play after the minimum even if Safari preloaded only metadata', fakeAsync(() => {
+    videoPlay.and.returnValue(new Promise<void>(() => {}));
     start();
     videoReadyState = HTMLMediaElement.HAVE_METADATA;
     component.onVideoLoadedMetadata();
     tick(component.timings.loadingMinimumMs + 1000);
     expect(component.state).toBe('loading');
-    expect(videoPlay).not.toHaveBeenCalled();
+    expect(videoPlay).toHaveBeenCalledTimes(1);
     videoReadyState = HTMLMediaElement.HAVE_FUTURE_DATA;
     component.onVideoCanPlay();
+    expect(component.state).toBe('loading');
+    expect(videoPlay).toHaveBeenCalledTimes(1);
+    beginPlayback();
     expect(component.state).toBe('loading-out');
     tick(component.timings.loadingFadeMs);
     expect(component.state).toBe('intro');
@@ -89,15 +106,14 @@ describe('CivilInvitationComponent media loading', () => {
     fixture.destroy();
   }));
 
-  it('offers a real gesture to unlock loading when Safari does not preload', fakeAsync(() => {
+  it('does not require a tap just because a slow video takes more than 8 seconds', fakeAsync(() => {
+    videoPlay.and.returnValue(new Promise<void>(() => {}));
     start();
-    tick(Math.max(component.timings.loadingMinimumMs, component.timings.loadingHelpMs));
+    tick(component.timings.loadingMinimumMs + 8000);
     expect(component.state).toBe('loading');
-    expect(component.videoNeedsInteraction).toBeTrue();
-    component.startMediaFromGesture();
+    expect(component.videoNeedsInteraction).toBeFalse();
     expect(videoPlay).toHaveBeenCalledTimes(1);
-    videoReadyState = HTMLMediaElement.HAVE_FUTURE_DATA;
-    component.onVideoCanPlay();
+    beginPlayback();
     expect(component.state).toBe('loading-out');
     fixture.destroy();
   }));
@@ -108,9 +124,21 @@ describe('CivilInvitationComponent media loading', () => {
     start();
     tick(component.timings.loadingMinimumMs + component.timings.loadingFadeMs);
     expect(component.videoNeedsInteraction).toBeTrue();
-    expect(component.state).toBe('intro');
+    expect(component.state).toBe('loading');
+    expect(videoPlay).toHaveBeenCalledTimes(1);
+    component.onVideoCanPlay();
+    tick(10000);
     expect(videoPlay).toHaveBeenCalledTimes(1);
     component.onVideoEnded();
+    expect(component.state).toBe('loading');
+    videoPlay.and.callFake(() => {
+      beginPlayback();
+      return Promise.resolve();
+    });
+    component.startMediaFromGesture();
+    expect(component.videoNeedsInteraction).toBeFalse();
+    expect(component.state).toBe('loading-out');
+    tick(component.timings.loadingFadeMs);
     expect(component.state).toBe('intro');
     videoEnded = true;
     component.onVideoEnded();
@@ -153,6 +181,27 @@ describe('CivilInvitationComponent media loading', () => {
     expect(video.pause).toHaveBeenCalled();
     expect(audio.pause).toHaveBeenCalled();
     expect(component.videoNeedsInteraction).toBeFalse();
+  }));
+
+  it('preserves the ended transition if the video finishes during the loading fade', fakeAsync(() => {
+    start();
+    tick(component.timings.loadingMinimumMs);
+    expect(component.state).toBe('loading-out');
+    videoEnded = true;
+    component.onVideoEnded();
+    tick(component.timings.loadingFadeMs);
+    expect(component.state).toBe('transitioning');
+    fixture.destroy();
+  }));
+
+  it('lets a real gesture retry a pending automatic play without waiting for it', fakeAsync(() => {
+    videoPlay.and.returnValue(new Promise<void>(() => {}));
+    start();
+    tick(component.timings.loadingMinimumMs);
+    videoPaused = false;
+    component.startMediaFromGesture();
+    expect(videoPlay).toHaveBeenCalledTimes(2);
+    fixture.destroy();
   }));
 
   it('requests music immediately, even before metadata is available', fakeAsync(() => {

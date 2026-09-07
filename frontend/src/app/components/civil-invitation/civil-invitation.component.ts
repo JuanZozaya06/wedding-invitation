@@ -22,9 +22,7 @@ type CivilExperienceState =
 const CIVIL_TIMINGS = {
   loadingMinimumMs: 2_000,
   loadingFadeMs: 550,
-  loadingHelpMs: 8_000,
   musicStartSeconds: 1,
-  videoStartupCheckMs: 2_500,
   whipDurationMs: 850,
   reducedWhipDurationMs: 350,
   paperSettleMs: 160,
@@ -66,6 +64,8 @@ export class CivilInvitationComponent
   private musicPlayAttempt = 0;
   private destroyed = false;
   private videoAutoplayRetries = 0;
+  private videoPlayPending = false;
+  private videoPlayAttempt = 0;
 
   readonly timings = CIVIL_TIMINGS;
   state: CivilExperienceState = 'loading';
@@ -77,7 +77,7 @@ export class CivilInvitationComponent
   videoLoadFailed = false;
 
   private readonly resumeVideoAutoplay = () => {
-    if (this.state === 'intro' && !this.document.hidden) {
+    if (!this.document.hidden) {
       this.ensureVideoAutoplay();
     }
   };
@@ -114,13 +114,9 @@ export class CivilInvitationComponent
     this.startMusicForVisit();
     this.schedule('loading-minimum', () => {
       this.loadingMinimumElapsed = true;
-      this.finishLoadingWhenReady();
+      // play() impulsa la carga en Safari aunque preload solo dé metadata.
+      this.ensureVideoAutoplay();
     }, this.timings.loadingMinimumMs);
-    this.schedule('loading-help', () => {
-      if (this.state === 'loading') {
-        this.videoNeedsInteraction = true;
-      }
-    }, this.timings.loadingHelpMs);
   }
 
   ngOnDestroy(): void {
@@ -142,7 +138,6 @@ export class CivilInvitationComponent
   }
 
   onVideoCanPlay(): void {
-    this.finishLoadingWhenReady();
     this.ensureVideoAutoplay();
   }
 
@@ -151,23 +146,19 @@ export class CivilInvitationComponent
     if (
       this.destroyed || this.state !== 'loading' ||
       !this.loadingMinimumElapsed || !video ||
-      video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA || video.error
+      video.paused || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || video.error
     ) {
       return;
     }
 
-    this.clearTimer('loading-help');
     this.videoNeedsInteraction = false;
     this.videoLoadFailed = false;
     this.state = 'loading-out';
     this.schedule('loading-fade', () => {
       this.state = 'intro';
-      this.ensureVideoAutoplay();
-      this.schedule('video-startup-check', () => {
-        if (!this.document.hidden && this.state === 'intro' && video.paused) {
-          this.videoNeedsInteraction = true;
-        }
-      }, this.timings.videoStartupCheckMs);
+      if (this.videoHasEnded) {
+        this.startTransition();
+      }
     }, this.reduceMotion ? 0 : this.timings.loadingFadeMs);
   }
 
@@ -176,14 +167,17 @@ export class CivilInvitationComponent
       return;
     }
     this.videoAutoplayRetries = 0;
+    this.videoPlayPending = false;
     this.videoNeedsInteraction = false;
     this.videoLoadFailed = false;
-    this.clearTimer('video-startup-check');
     this.clearTimer('video-autoplay-retry');
+    // Solo playing confirma que hay reproducción, no loadedmetadata/canplay.
+    this.finishLoadingWhenReady();
   }
 
   onVideoPause(): void {
-    if (!this.destroyed && this.state === 'intro' && !this.videoHasEnded) {
+    if (!this.destroyed && (this.state === 'intro' || this.state === 'loading-out') &&
+      !this.introVideo?.nativeElement.ended) {
       this.videoNeedsInteraction = true;
     }
   }
@@ -198,6 +192,9 @@ export class CivilInvitationComponent
 
   onVideoError(): void {
     if (!this.destroyed) {
+      this.videoPlayAttempt += 1;
+      this.videoPlayPending = false;
+      this.clearTimer('video-autoplay-retry');
       this.videoLoadFailed = true;
       this.videoNeedsInteraction = true;
     }
@@ -259,7 +256,7 @@ export class CivilInvitationComponent
 
   async toggleMusicPlayback(): Promise<void> {
     // El botón de música también desbloquea el video si Safari lo detuvo.
-    this.ensureVideoAutoplay();
+    this.ensureVideoAutoplay(true);
     const audio = this.backgroundAudio?.nativeElement;
     if (!audio || !this.musicAvailable) {
       return;
@@ -277,11 +274,10 @@ export class CivilInvitationComponent
 
   private ensureVideoAutoplay(fromGesture = false): void {
     const video = this.introVideo?.nativeElement;
-    // Si Safari no precarga, un toque real puede desbloquear la carga, pero
-    // nunca acorta los dos segundos mínimos de la pantalla inicial.
-    const canUnlockLoading = fromGesture && this.state === 'loading' &&
-      this.loadingMinimumElapsed && this.videoNeedsInteraction;
-    if (this.destroyed || !video || (this.state !== 'intro' && !canUnlockLoading) || video.ended) {
+    const canStart = this.state === 'intro' ||
+      (this.state === 'loading' && this.loadingMinimumElapsed);
+    if (this.destroyed || !video || !canStart || video.ended ||
+      (!fromGesture && (this.videoPlayPending || this.videoNeedsInteraction))) {
       return;
     }
 
@@ -292,24 +288,33 @@ export class CivilInvitationComponent
     video.playsInline = true;
     video.controls = false;
 
-    if (!video.paused) {
+    if (!video.paused && !this.videoPlayPending) {
       return;
     }
 
+    this.videoPlayPending = true;
+    const attempt = ++this.videoPlayAttempt;
+    if (fromGesture) {
+      this.videoNeedsInteraction = false;
+      this.videoAutoplayRetries = 0;
+      this.clearTimer('video-autoplay-retry');
+    }
     void video.play().then(() => {
       if (this.destroyed) {
         video.pause();
       }
     }).catch((error: unknown) => {
-      if (this.destroyed || (this.state !== 'intro' && this.state !== 'loading') || !video.paused) {
+      if (this.destroyed || attempt !== this.videoPlayAttempt ||
+        (this.state !== 'intro' && this.state !== 'loading') || !video.paused) {
         return;
       }
-      this.videoNeedsInteraction = true;
       // Repetir con timers no concede el permiso que requiere un clic real.
       if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        this.videoNeedsInteraction = true;
         return;
       }
       if (this.videoAutoplayRetries >= 3) {
+        this.videoNeedsInteraction = true;
         return;
       }
 
@@ -319,6 +324,10 @@ export class CivilInvitationComponent
         () => this.ensureVideoAutoplay(),
         180 * this.videoAutoplayRetries,
       );
+    }).finally(() => {
+      if (attempt === this.videoPlayAttempt) {
+        this.videoPlayPending = false;
+      }
     });
   }
 

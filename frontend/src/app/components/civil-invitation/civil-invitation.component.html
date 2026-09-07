@@ -198,7 +198,7 @@
           @if (state === 'loading' && loadingMinimumElapsed && videoNeedsInteraction) {
             <div class="media-start-prompt loading-help">
               <button type="button" (click)="startMediaFromGesture()">
-                {{ videoLoadFailed ? 'Reintentar video' : 'Toca para cargar' }}
+                {{ videoLoadFailed ? 'Volver a intentar' : 'Abrir mensaje' }}
               </button>
             </div>
           }
@@ -208,7 +208,7 @@
       @if (state === 'intro' && videoNeedsInteraction) {
         <div class="media-start-prompt">
           <button type="button" (click)="startMediaFromGesture()">
-            {{ videoLoadFailed ? 'Reintentar video' : 'Toca para comenzar' }}
+            {{ videoLoadFailed ? 'Volver a intentar' : 'Abrir mensaje' }}
           </button>
         </div>
       }
