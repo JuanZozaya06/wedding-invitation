@@ -1,4 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Allura&family=Nunito:wght@400;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Allura&family=Monsieur+La+Doulaise&family=Nunito:wght@400;700;800;900&family=Parisienne&display=swap");
+// Dongle: alfabeto español para evitar cargar sus extensos rangos coreanos.
+@import url("https://fonts.googleapis.com/css2?family=Dongle:wght@400;700&display=swap&text=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%C3%81%C3%89%C3%8D%C3%93%C3%9A%C3%9C%C3%91%C3%A1%C3%A9%C3%AD%C3%B3%C3%BA%C3%BC%C3%B1%20%26%2C%2E%3A%E2%80%94");
 
 * {
   box-sizing: border-box;

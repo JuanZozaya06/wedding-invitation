@@ -1,0 +1,497 @@
+:host {
+  display: block;
+  color: #243126;
+  font-family: "Dongle", "Segoe UI", sans-serif;
+}
+
+.civil-shell {
+  --whip-duration: 850ms;
+  --reduced-whip-duration: 350ms;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(145, 119, 77, 0.34), transparent 38rem),
+    #172019;
+}
+
+.civil-viewport {
+  width: 100%;
+  max-width: 440px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #402d1f;
+  box-shadow: 0 0 4rem rgba(4, 10, 6, 0.48);
+}
+
+.cinematic-stage {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 35rem;
+  overflow: hidden;
+  isolation: isolate;
+  background: #231b15;
+}
+
+.video-layer,
+.paper-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.video-layer {
+  z-index: 3;
+  overflow: hidden;
+  background: #111510;
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: 50% 46%;
+  transition:
+    transform var(--whip-duration) cubic-bezier(0.22, 0.66, 0.3, 1),
+    filter var(--whip-duration) ease-out,
+    opacity var(--whip-duration) ease-out;
+  will-change: transform, filter, opacity;
+}
+
+.intro-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.paper-layer {
+  z-index: 2;
+  overflow: hidden;
+  background: #49321f;
+  opacity: 0;
+  transition: opacity 280ms ease-out;
+}
+
+.paper-plane {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, calc(100dvh * 941 / 1672));
+  aspect-ratio: 941 / 1672;
+  filter: blur(8px);
+  opacity: 0.45;
+  transform: translate3d(-50%, -30%, 0) scale(1.025);
+  transform-origin: center;
+  transition:
+    transform var(--whip-duration) cubic-bezier(0.22, 0.66, 0.3, 1),
+    filter var(--whip-duration) ease-out,
+    opacity 300ms ease-out;
+  will-change: transform, filter, opacity;
+}
+
+.paper-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.paper-content {
+  position: absolute;
+  z-index: 1;
+  top: 22.2%;
+  right: 13.4%;
+  bottom: 17.2%;
+  left: 17.1%;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: space-between;
+  padding: clamp(0.7rem, 2.7dvh, 1.4rem) clamp(0.55rem, 2.4vw, 0.9rem)
+    clamp(0.45rem, 1.6dvh, 0.8rem);
+  text-align: center;
+}
+
+.document-heading,
+.event-details,
+.signatures,
+.signature-card {
+  margin: 0;
+}
+
+.opening-copy,
+.event-kind,
+.event-details p,
+.signature-kicker,
+.signature-card figcaption {
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.opening-copy {
+  color: #596052;
+  font-size: clamp(0.8rem, 2.2dvh, 1.12rem);
+  font-style: normal;
+  letter-spacing: 0.055em;
+  line-height: 0.95;
+  text-transform: none;
+}
+
+.couple-name {
+  margin: clamp(0.85rem, 3.2dvh, 1.7rem) 0 clamp(0.16rem, 0.75dvh, 0.35rem);
+  color: #2d402f;
+  font-family: "Parisienne", "Brush Script MT", cursive;
+  font-size: clamp(1.8rem, 5.5dvh, 2.75rem);
+  font-weight: 400;
+  line-height: 0.9;
+  padding-left: 0.08em;
+}
+
+.ornament {
+  display: block;
+  width: clamp(2.6rem, 11vw, 3.6rem);
+  height: 1px;
+  margin: 0 auto clamp(0.27rem, 0.9dvh, 0.5rem);
+  background: linear-gradient(90deg, transparent, #957d50 22% 78%, transparent);
+}
+
+.event-kind,
+.signature-kicker {
+  color: #314637;
+  font-size: clamp(0.87rem, 2.34dvh, 1.19rem);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+}
+
+.event-details {
+  display: grid;
+  gap: clamp(0.18rem, 0.7dvh, 0.38rem);
+  margin-top: 0;
+  color: #443f34;
+}
+
+.event-details p {
+  font-size: clamp(0.91rem, 2.48dvh, 1.24rem);
+  letter-spacing: 0.105em;
+  line-height: 0.95;
+}
+
+.event-details .event-date,
+.event-details .event-place {
+  font-weight: 700;
+}
+
+.event-details .event-place {
+  margin-top: clamp(0.2rem, 0.7dvh, 0.4rem);
+}
+
+.dress-code {
+  display: grid;
+  gap: 0.08rem;
+  margin-top: clamp(0.55rem, 1.45dvh, 0.8rem) !important;
+}
+
+.dress-code span {
+  color: #314637;
+  font-size: 0.86em;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.dress-code strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25em;
+  font-size: 1.15em;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.cocktail-glass {
+  width: 0.7em;
+  height: 0.7em;
+  flex: 0 0 auto;
+  color: #314637;
+}
+
+.reveal-item {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+}
+
+.state-revealing .reveal-item {
+  animation: reveal-copy 560ms cubic-bezier(0.22, 0.75, 0.26, 1) both;
+  animation-delay: var(--reveal-delay);
+}
+
+.state-signing .reveal-item,
+.state-ready .reveal-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.signatures {
+  margin-top: 0;
+  opacity: 0;
+  transform: translate3d(0, 5px, 0);
+}
+
+.state-signing .signatures,
+.state-ready .signatures {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 360ms ease-out,
+    transform 360ms ease-out;
+}
+
+.signature-kicker {
+  margin-bottom: clamp(0.15rem, 0.55dvh, 0.32rem);
+  font-size: clamp(0.69rem, 1.85dvh, 0.92rem);
+  letter-spacing: 0.3em;
+}
+
+.signature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.75rem, 4.4vw, 1.3rem);
+  align-items: end;
+}
+
+.signature-card {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.signature-script {
+  display: grid;
+  width: 100%;
+  height: clamp(2.1rem, 6.4dvh, 3.15rem);
+  place-items: center;
+  padding: 0.15em 0.3em;
+  color: #263c2e;
+  font-family: "Monsieur La Doulaise", "Segoe Print", cursive;
+  font-size: clamp(0.95rem, 19cqi, 1.6rem);
+  font-weight: 400;
+  line-height: 1.65;
+  clip-path: inset(0 100% 0 0);
+  white-space: nowrap;
+}
+
+.state-signing .signature-script {
+  animation: fill-signature var(--signature-duration) ease-in-out both;
+  animation-delay: var(--signature-delay);
+}
+
+.state-ready .signature-script {
+  clip-path: inset(0);
+}
+
+.signature-rule {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: rgba(49, 63, 49, 0.52);
+  opacity: 0;
+  transform: scaleX(0.35);
+}
+
+.signature-card figcaption {
+  margin-top: clamp(0.2rem, 0.55dvh, 0.35rem);
+  color: #43483e;
+  font-size: clamp(0.64rem, 1.68dvh, 0.86rem);
+  letter-spacing: 0.13em;
+  line-height: 1;
+  opacity: 0;
+  transform: translate3d(0, 3px, 0);
+  white-space: nowrap;
+}
+
+.state-signing .signature-rule {
+  animation: reveal-signature-rule 420ms ease-out both;
+  animation-delay: var(--label-delay);
+}
+
+.state-signing .signature-card figcaption {
+  animation: reveal-signature-name 420ms ease-out both;
+  animation-delay: var(--label-delay);
+}
+
+.state-ready .signature-rule,
+.state-ready .signature-card figcaption {
+  opacity: 1;
+  transform: none;
+}
+
+.state-transitioning .video-layer {
+  filter: blur(6px);
+  opacity: 0;
+  transform: translate3d(0, -6.5%, 0) scale(1.025);
+}
+
+.state-transitioning .paper-layer,
+.state-paper .paper-layer,
+.state-revealing .paper-layer,
+.state-signing .paper-layer,
+.state-ready .paper-layer {
+  opacity: 1;
+}
+
+.state-transitioning .paper-plane,
+.state-paper .paper-plane,
+.state-revealing .paper-plane,
+.state-signing .paper-plane,
+.state-ready .paper-plane {
+  filter: blur(0);
+  opacity: 1;
+  transform: translate3d(-50%, -50%, 0) scale(1);
+}
+
+.state-paper .video-layer,
+.state-revealing .video-layer,
+.state-signing .video-layer,
+.state-ready .video-layer {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.civil-audio-controls {
+  position: absolute;
+  z-index: 6;
+  right: max(0.8rem, env(safe-area-inset-right));
+  bottom: max(0.8rem, env(safe-area-inset-bottom));
+}
+
+.civil-audio-button {
+  display: grid;
+  width: 2.85rem;
+  height: 2.85rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 248, 230, 0.3);
+  border-radius: 50%;
+  background: rgba(31, 43, 33, 0.74);
+  box-shadow: 0 0.65rem 1.5rem rgba(20, 16, 11, 0.22);
+  color: #fff9e9;
+  cursor: pointer;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.civil-audio-button:hover {
+  background: rgba(39, 55, 42, 0.9);
+  transform: translateY(-1px);
+}
+
+.civil-audio-button:focus-visible {
+  outline: 2px solid rgba(255, 247, 219, 0.9);
+  outline-offset: 3px;
+}
+
+@keyframes reveal-copy {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fill-signature {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes reveal-signature-rule {
+  from {
+    opacity: 0;
+    transform: scaleX(0.35);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes reveal-signature-name {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 3px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (min-width: 441px) {
+  .civil-viewport {
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+@media (max-height: 670px) {
+  .paper-content {
+    padding-top: 0.45rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .couple-name {
+    margin-top: 0.7rem;
+    font-size: clamp(1.65rem, 5.3dvh, 2.25rem);
+  }
+
+  .event-details {
+    gap: 0.12rem;
+    margin-top: 0;
+  }
+
+  .event-details .event-place {
+    margin-top: 0.12rem !important;
+  }
+
+  .dress-code {
+    margin-top: 0.42rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-layer,
+  .paper-plane {
+    transition-duration: var(--reduced-whip-duration);
+  }
+
+  .reduce-motion.state-transitioning .video-layer {
+    filter: none;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  .reduce-motion .paper-plane {
+    filter: none;
+    transform: translate3d(-50%, -50%, 0) scale(1);
+  }
+
+  .reduce-motion.state-ready .reveal-item,
+  .reduce-motion.state-ready .signatures,
+  .reduce-motion.state-ready .signature-rule,
+  .reduce-motion.state-ready .signature-card figcaption {
+    transition: none;
+  }
+}

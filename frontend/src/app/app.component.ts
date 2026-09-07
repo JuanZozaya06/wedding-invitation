@@ -23,6 +23,7 @@ import {
   InvitationService,
 } from './services/invitation.service';
 import { PolaroidComponent } from './components/polaroid/polaroid.component';
+import { CivilInvitationComponent } from './components/civil-invitation/civil-invitation.component';
 
 type SeedWindow = Window & {
   seedDemoInvitation?: () => Promise<void>;
@@ -67,6 +68,7 @@ type AdminTextEntry = {
 
 type RouteResolution =
   | { kind: 'admin'; segment: 'admin' }
+  | { kind: 'civil'; segment: 'civil' }
   | { kind: 'invitation'; segment: string }
   | {
       kind: 'not-found';
@@ -94,7 +96,12 @@ type JourneySceneElements = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, PolaroidComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PolaroidComponent,
+    CivilInvitationComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -146,6 +153,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly route = this.resolveRoute();
   readonly routeSegment = this.route.segment;
   readonly isAdminRoute = this.route.kind === 'admin';
+  readonly isCivilRoute = this.route.kind === 'civil';
   readonly isNotFoundRoute = this.route.kind === 'not-found';
   missingInvitation = false;
   notFoundTitle = 'Bienvenidos a nuestra boda';
@@ -309,7 +317,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     this.registerDevSeed();
 
-    if (this.isAdminRoute) {
+    if (this.isAdminRoute || this.isCivilRoute) {
       this.isLoadingInvitation = false;
       return;
     }
@@ -1227,6 +1235,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       return {
         kind: 'admin',
         segment: 'admin',
+      };
+    }
+
+    if (normalizedSegments[0] === 'civil') {
+      return {
+        kind: 'civil',
+        segment: 'civil',
       };
     }
 

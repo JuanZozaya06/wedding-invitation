@@ -1,0 +1,192 @@
+<main
+  class="civil-shell state-{{ state }}"
+  [class.reduce-motion]="reduceMotion"
+  [style.--whip-duration]="timings.whipDurationMs + 'ms'"
+  [style.--reduced-whip-duration]="timings.reducedWhipDurationMs + 'ms'"
+>
+  <audio
+    #backgroundAudio
+    src="assets/audio/civil.mp3"
+    loop
+    preload="auto"
+    (loadedmetadata)="onMusicLoadedMetadata()"
+    (canplay)="onMusicCanPlay()"
+    (play)="onMusicPlay()"
+    (pause)="onMusicPause()"
+    (error)="onMusicError()"
+  ></audio>
+
+  <div class="civil-viewport">
+    <section class="cinematic-stage" aria-label="Invitaci&oacute;n de boda civil">
+      <div class="paper-layer" [attr.aria-hidden]="state === 'intro'">
+        <div class="paper-plane">
+          <img
+            class="paper-image"
+            src="assets/paper.png"
+            alt="Mesa de madera con un documento de boda"
+          />
+
+          <article class="paper-content" aria-labelledby="civil-couple-name">
+            <header class="document-heading">
+              <p
+                class="opening-copy reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[0] + 'ms'"
+              >
+                Antes de celebrar nuestra historia,
+              </p>
+              <p
+                class="opening-copy reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[1] + 'ms'"
+              >
+                vamos a hacerla oficial.
+              </p>
+
+              <h1
+                id="civil-couple-name"
+                class="couple-name reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[2] + 'ms'"
+              >
+                Gaby &amp; Juan
+              </h1>
+
+              <span
+                class="ornament reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[3] + 'ms'"
+                aria-hidden="true"
+              ></span>
+              <p
+                class="event-kind reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[3] + 'ms'"
+              >
+                Boda civil
+              </p>
+            </header>
+
+            <div class="event-details">
+              <p
+                class="event-date reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[4] + 'ms'"
+              >
+                21 de noviembre de 2026
+              </p>
+              <p
+                class="event-time reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[5] + 'ms'"
+              >
+                3:00 PM
+              </p>
+              <p
+                class="event-place reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[6] + 'ms'"
+              >
+                Loma Linda, La Lagunita
+              </p>
+              <p
+                class="dress-code reveal-item"
+                [style.--reveal-delay]="timings.revealDelaysMs[7] + 'ms'"
+              >
+                <span>Dress code</span>
+                <strong>
+                  Cocktail
+                  <svg
+                    class="cocktail-glass"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M4 5h16l-8 9-8-9Zm8 9v7m-4 0h8M7 8h10m-4 1 6-7" />
+                  </svg>
+                </strong>
+              </p>
+            </div>
+
+            <section class="signatures" aria-label="Firmas de los novios">
+              <p class="signature-kicker">Firmas</p>
+              <div class="signature-grid">
+                <figure
+                  class="signature-card signature-gabriela"
+                  [style.--label-delay]="'0ms'"
+                >
+                  <span
+                    class="signature-script"
+                    [style.--signature-delay]="
+                      timings.signaturePreludeMs + 'ms'
+                    "
+                    [style.--signature-duration]="
+                      timings.gabrielaSignatureMs + 'ms'
+                    "
+                    aria-label="Gabriela"
+                  >
+                    Gabriela
+                  </span>
+                  <span class="signature-rule" aria-hidden="true"></span>
+                  <figcaption>Gabriela Landa</figcaption>
+                </figure>
+
+                <figure
+                  class="signature-card signature-juan"
+                  [style.--label-delay]="timings.signatureLabelStaggerMs + 'ms'"
+                >
+                  <span
+                    class="signature-script"
+                    [style.--signature-delay]="
+                      timings.signaturePreludeMs +
+                        timings.signatureStaggerMs +
+                        'ms'
+                    "
+                    [style.--signature-duration]="
+                      timings.juanSignatureMs + 'ms'
+                    "
+                    aria-label="Juan"
+                  >
+                    Juan
+                  </span>
+                  <span class="signature-rule" aria-hidden="true"></span>
+                  <figcaption>Juan Zozaya</figcaption>
+                </figure>
+              </div>
+            </section>
+          </article>
+        </div>
+      </div>
+
+      <div class="video-layer" [attr.aria-hidden]="state !== 'intro'">
+        <video
+          #introVideo
+          class="intro-video"
+          src="assets/civil.mp4"
+          autoplay
+          muted
+          playsinline
+          webkit-playsinline
+          preload="auto"
+          disablepictureinpicture
+          (loadedmetadata)="onVideoLoadedMetadata()"
+          (canplay)="onVideoCanPlay()"
+          (play)="onVideoPlay()"
+          (ended)="onVideoEnded()"
+          (error)="onVideoError()"
+        ></video>
+      </div>
+
+        <div class="civil-audio-controls" aria-label="Controles de m&uacute;sica">
+          <button
+            class="civil-audio-button"
+            type="button"
+            [attr.aria-label]="musicToggleLabel"
+            [attr.title]="musicToggleLabel"
+            [disabled]="!musicAvailable"
+            (click)="toggleMusicPlayback()"
+          >
+            <span aria-hidden="true">{{ musicPlaying ? "❚❚" : "♪" }}</span>
+          </button>
+        </div>
+
+    </section>
+  </div>
+</main>
