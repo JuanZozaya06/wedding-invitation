@@ -359,6 +359,112 @@
   visibility: hidden;
 }
 
+.loading-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.64);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 1;
+  transition: opacity var(--loading-fade-duration, 550ms) ease-out;
+}
+
+.loading-screen.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-message {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  width: min(100%, 19rem);
+  padding: 2rem 1rem;
+  color: #f9f4e9;
+  text-align: center;
+}
+
+.loading-message p {
+  margin: 0;
+  font-family: "Dongle", "Segoe UI", sans-serif;
+  font-size: clamp(1.85rem, 8vw, 2.1rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.025em;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 0.5rem;
+}
+
+.loading-indicator span {
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  animation: loading-dot 1.5s ease-in-out infinite;
+}
+
+.loading-indicator span:nth-child(2) {
+  animation-delay: 180ms;
+}
+
+.loading-indicator span:nth-child(3) {
+  animation-delay: 360ms;
+}
+
+.loading-heart {
+  display: block;
+  width: 3.45rem;
+  height: auto;
+  margin-top: 0.25rem;
+}
+
+.media-start-prompt.loading-help {
+  top: calc(50% + 9rem);
+  bottom: auto;
+}
+
+@keyframes loading-dot {
+  0%, 80%, 100% { opacity: 0; }
+  25%, 55% { opacity: 1; }
+}
+
+.media-start-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.media-start-prompt button {
+  min-height: 48px;
+  padding: 0.8rem 1.25rem;
+  border: 1px solid rgba(255, 248, 230, 0.6);
+  border-radius: 999px;
+  background: rgba(31, 43, 33, 0.92);
+  color: #fff9e9;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.media-start-prompt button:focus-visible {
+  outline: 2px solid #fff9e9;
+  outline-offset: 4px;
+}
+
 .civil-audio-controls {
   position: absolute;
   z-index: 6;
@@ -473,6 +579,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .loading-screen {
+    transition: none;
+  }
+
+  .loading-indicator span {
+    animation: none;
+    opacity: 1;
+  }
+
   .video-layer,
   .paper-plane {
     transition-duration: var(--reduced-whip-duration);

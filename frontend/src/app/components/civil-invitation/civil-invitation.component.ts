@@ -10,6 +10,8 @@ import {
 import { DOCUMENT } from '@angular/common';
 
 type CivilExperienceState =
+  | 'loading'
+  | 'loading-out'
   | 'intro'
   | 'transitioning'
   | 'paper'
@@ -18,7 +20,11 @@ type CivilExperienceState =
   | 'ready';
 
 const CIVIL_TIMINGS = {
+  loadingMinimumMs: 2_000,
+  loadingFadeMs: 550,
+  loadingHelpMs: 8_000,
   musicStartSeconds: 1,
+  videoStartupCheckMs: 2_500,
   whipDurationMs: 850,
   reducedWhipDurationMs: 350,
   paperSettleMs: 160,
@@ -57,14 +63,18 @@ export class CivilInvitationComponent
   private musicStarted = false;
   private musicPausedByUser = false;
   private musicPlayPending = false;
+  private musicPlayAttempt = 0;
   private destroyed = false;
   private videoAutoplayRetries = 0;
 
   readonly timings = CIVIL_TIMINGS;
-  state: CivilExperienceState = 'intro';
+  state: CivilExperienceState = 'loading';
+  loadingMinimumElapsed = false;
   reduceMotion = false;
   musicPlaying = false;
   musicAvailable = true;
+  videoNeedsInteraction = false;
+  videoLoadFailed = false;
 
   private readonly resumeVideoAutoplay = () => {
     if (this.state === 'intro' && !this.document.hidden) {
@@ -72,20 +82,12 @@ export class CivilInvitationComponent
     }
   };
 
-  private readonly startMusicOnInteraction = (event: Event) => {
-    // El toggle gestiona su propio clic: no iniciar y pausar en el mismo toque.
-    if (
-      event.target instanceof Element &&
-      event.target.closest('.civil-audio-button')
-    ) {
-      return;
-    }
-
-    if (!this.musicStarted && !this.musicPausedByUser && this.musicAvailable) {
-      const audio = this.backgroundAudio?.nativeElement;
-      if (audio) {
-        void this.playAudio(audio);
-      }
+  private readonly onPageShow = (event: PageTransitionEvent) => {
+    this.resumeVideoAutoplay();
+    if (event.persisted) {
+      // Safari puede restaurar la misma instancia al volver con Atrás.
+      // Cada visita empieza con música habilitada, sin conservar la pausa.
+      this.startMusicForVisit();
     }
   };
 
@@ -105,17 +107,20 @@ export class CivilInvitationComponent
       'visibilitychange',
       this.resumeVideoAutoplay,
     );
-    window.addEventListener('pageshow', this.resumeVideoAutoplay);
-    window.addEventListener('pointerdown', this.resumeVideoAutoplay, {
-      passive: true,
-    });
-    window.addEventListener('click', this.startMusicOnInteraction);
-    window.addEventListener('keydown', this.startMusicOnInteraction);
+    window.addEventListener('pageshow', this.onPageShow);
   }
 
   ngAfterViewInit(): void {
-    this.ensureVideoAutoplay();
-    void this.tryStartBackgroundMusic();
+    this.startMusicForVisit();
+    this.schedule('loading-minimum', () => {
+      this.loadingMinimumElapsed = true;
+      this.finishLoadingWhenReady();
+    }, this.timings.loadingMinimumMs);
+    this.schedule('loading-help', () => {
+      if (this.state === 'loading') {
+        this.videoNeedsInteraction = true;
+      }
+    }, this.timings.loadingHelpMs);
   }
 
   ngOnDestroy(): void {
@@ -125,34 +130,101 @@ export class CivilInvitationComponent
       'visibilitychange',
       this.resumeVideoAutoplay,
     );
-    window.removeEventListener('pageshow', this.resumeVideoAutoplay);
-    window.removeEventListener('pointerdown', this.resumeVideoAutoplay);
-    this.removeMusicInteractionListeners();
+    window.removeEventListener('pageshow', this.onPageShow);
+    this.introVideo?.nativeElement.pause();
     this.backgroundAudio?.nativeElement.pause();
     this.unlockScroll();
     this.document.title = this.previousTitle;
   }
 
   onVideoLoadedMetadata(): void {
-    this.ensureVideoAutoplay();
+    this.onVideoCanPlay();
   }
 
   onVideoCanPlay(): void {
+    this.finishLoadingWhenReady();
     this.ensureVideoAutoplay();
   }
 
+  private finishLoadingWhenReady(): void {
+    const video = this.introVideo?.nativeElement;
+    if (
+      this.destroyed || this.state !== 'loading' ||
+      !this.loadingMinimumElapsed || !video ||
+      video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA || video.error
+    ) {
+      return;
+    }
+
+    this.clearTimer('loading-help');
+    this.videoNeedsInteraction = false;
+    this.videoLoadFailed = false;
+    this.state = 'loading-out';
+    this.schedule('loading-fade', () => {
+      this.state = 'intro';
+      this.ensureVideoAutoplay();
+      this.schedule('video-startup-check', () => {
+        if (!this.document.hidden && this.state === 'intro' && video.paused) {
+          this.videoNeedsInteraction = true;
+        }
+      }, this.timings.videoStartupCheckMs);
+    }, this.reduceMotion ? 0 : this.timings.loadingFadeMs);
+  }
+
   onVideoPlay(): void {
+    if (this.destroyed) {
+      return;
+    }
     this.videoAutoplayRetries = 0;
-    window.removeEventListener('pointerdown', this.resumeVideoAutoplay);
+    this.videoNeedsInteraction = false;
+    this.videoLoadFailed = false;
+    this.clearTimer('video-startup-check');
+    this.clearTimer('video-autoplay-retry');
+  }
+
+  onVideoPause(): void {
+    if (!this.destroyed && this.state === 'intro' && !this.videoHasEnded) {
+      this.videoNeedsInteraction = true;
+    }
   }
 
   onVideoEnded(): void {
+    if (this.destroyed || !this.introVideo?.nativeElement.ended) {
+      return;
+    }
     this.videoHasEnded = true;
     this.startTransition();
   }
 
   onVideoError(): void {
-    // No se revela el papel: la transición depende de que el video termine.
+    if (!this.destroyed) {
+      this.videoLoadFailed = true;
+      this.videoNeedsInteraction = true;
+    }
+  }
+
+  onInvitationInteraction(event: Event): void {
+    if (
+      event.target instanceof Element &&
+      event.target.closest('button')
+    ) {
+      return;
+    }
+    this.startMediaFromGesture();
+  }
+
+  startMediaFromGesture(): void {
+    const video = this.introVideo?.nativeElement;
+    if (video && (this.state === 'intro' || this.state === 'loading') && this.videoLoadFailed) {
+      this.videoLoadFailed = false;
+      video.load();
+    }
+    // Ambas llamadas a play() ocurren dentro del mismo clic, sin await previo.
+    this.ensureVideoAutoplay(true);
+    const audio = this.backgroundAudio?.nativeElement;
+    if (audio && !this.musicStarted && !this.musicPausedByUser && this.musicAvailable) {
+      void this.playAudio(audio, true);
+    }
   }
 
   onMusicLoadedMetadata(): void {
@@ -169,9 +241,11 @@ export class CivilInvitationComponent
   }
 
   onMusicPlay(): void {
+    if (this.destroyed) {
+      return;
+    }
     this.musicPlaying = true;
     this.musicStarted = true;
-    this.removeMusicInteractionListeners();
   }
 
   onMusicPause(): void {
@@ -184,6 +258,8 @@ export class CivilInvitationComponent
   }
 
   async toggleMusicPlayback(): Promise<void> {
+    // El botón de música también desbloquea el video si Safari lo detuvo.
+    this.ensureVideoAutoplay();
     const audio = this.backgroundAudio?.nativeElement;
     if (!audio || !this.musicAvailable) {
       return;
@@ -191,7 +267,7 @@ export class CivilInvitationComponent
 
     if (audio.paused) {
       this.musicPausedByUser = false;
-      await this.playAudio(audio);
+      await this.playAudio(audio, true);
       return;
     }
 
@@ -199,9 +275,13 @@ export class CivilInvitationComponent
     audio.pause();
   }
 
-  private ensureVideoAutoplay(): void {
+  private ensureVideoAutoplay(fromGesture = false): void {
     const video = this.introVideo?.nativeElement;
-    if (!video || this.state !== 'intro') {
+    // Si Safari no precarga, un toque real puede desbloquear la carga, pero
+    // nunca acorta los dos segundos mínimos de la pantalla inicial.
+    const canUnlockLoading = fromGesture && this.state === 'loading' &&
+      this.loadingMinimumElapsed && this.videoNeedsInteraction;
+    if (this.destroyed || !video || (this.state !== 'intro' && !canUnlockLoading) || video.ended) {
       return;
     }
 
@@ -216,8 +296,20 @@ export class CivilInvitationComponent
       return;
     }
 
-    void video.play().catch(() => {
-      if (this.videoAutoplayRetries >= 3 || this.state !== 'intro') {
+    void video.play().then(() => {
+      if (this.destroyed) {
+        video.pause();
+      }
+    }).catch((error: unknown) => {
+      if (this.destroyed || (this.state !== 'intro' && this.state !== 'loading') || !video.paused) {
+        return;
+      }
+      this.videoNeedsInteraction = true;
+      // Repetir con timers no concede el permiso que requiere un clic real.
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        return;
+      }
+      if (this.videoAutoplayRetries >= 3) {
         return;
       }
 
@@ -272,6 +364,19 @@ export class CivilInvitationComponent
     this.state = 'ready';
   }
 
+  private startMusicForVisit(): void {
+    if (this.destroyed) {
+      return;
+    }
+    this.musicPausedByUser = false;
+    this.musicStarted = false;
+    this.musicPositioned = false;
+    this.musicPlayPending = false;
+    // Invalida resultados de intentos anteriores a la restauración.
+    this.musicPlayAttempt += 1;
+    void this.tryStartBackgroundMusic();
+  }
+
   private async tryStartBackgroundMusic(): Promise<void> {
     if (
       this.destroyed ||
@@ -283,7 +388,7 @@ export class CivilInvitationComponent
     }
 
     const audio = this.backgroundAudio?.nativeElement;
-    if (!audio || audio.readyState < HTMLMediaElement.HAVE_METADATA) {
+    if (!audio) {
       return;
     }
 
@@ -291,19 +396,26 @@ export class CivilInvitationComponent
   }
 
   private prepareAudio(audio: HTMLAudioElement): void {
+    audio.defaultMuted = false;
+    audio.muted = false;
     audio.volume = 0.3;
     if (!this.musicPositioned && audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
-      audio.currentTime = this.timings.musicStartSeconds;
-      this.musicPositioned = true;
+      try {
+        audio.currentTime = this.timings.musicStartSeconds;
+        this.musicPositioned = true;
+      } catch {
+        // Safari puede rechazar el seek hasta cargar datos; no impedir play().
+      }
     }
   }
 
-  private async playAudio(audio: HTMLAudioElement): Promise<void> {
-    if (this.destroyed || this.musicPlayPending) {
+  private async playAudio(audio: HTMLAudioElement, fromGesture = false): Promise<void> {
+    if (this.destroyed || (this.musicPlayPending && !fromGesture)) {
       return;
     }
 
     this.musicPlayPending = true;
+    const attempt = ++this.musicPlayAttempt;
     try {
       this.prepareAudio(audio);
       await audio.play();
@@ -311,17 +423,14 @@ export class CivilInvitationComponent
         audio.pause();
       }
     } catch {
-      if (!this.destroyed) {
+      if (!this.destroyed && attempt === this.musicPlayAttempt) {
         this.musicPlaying = !audio.paused;
       }
     } finally {
-      this.musicPlayPending = false;
+      if (attempt === this.musicPlayAttempt) {
+        this.musicPlayPending = false;
+      }
     }
-  }
-
-  private removeMusicInteractionListeners(): void {
-    window.removeEventListener('click', this.startMusicOnInteraction);
-    window.removeEventListener('keydown', this.startMusicOnInteraction);
   }
 
   private lockScroll(): void {

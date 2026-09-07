@@ -3,6 +3,8 @@
   [class.reduce-motion]="reduceMotion"
   [style.--whip-duration]="timings.whipDurationMs + 'ms'"
   [style.--reduced-whip-duration]="timings.reducedWhipDurationMs + 'ms'"
+  [style.--loading-fade-duration]="timings.loadingFadeMs + 'ms'"
+  (click)="onInvitationInteraction($event)"
 >
   <audio
     #backgroundAudio
@@ -11,14 +13,14 @@
     preload="auto"
     (loadedmetadata)="onMusicLoadedMetadata()"
     (canplay)="onMusicCanPlay()"
-    (play)="onMusicPlay()"
+    (playing)="onMusicPlay()"
     (pause)="onMusicPause()"
     (error)="onMusicError()"
   ></audio>
 
   <div class="civil-viewport">
     <section class="cinematic-stage" aria-label="Invitaci&oacute;n de boda civil">
-      <div class="paper-layer" [attr.aria-hidden]="state === 'intro'">
+      <div class="paper-layer" [attr.aria-hidden]="state === 'loading' || state === 'loading-out' || state === 'intro'">
         <div class="paper-plane">
           <img
             class="paper-image"
@@ -155,24 +157,61 @@
         </div>
       </div>
 
-      <div class="video-layer" [attr.aria-hidden]="state !== 'intro'">
+      <div class="video-layer" [attr.aria-hidden]="state !== 'loading' && state !== 'loading-out' && state !== 'intro'">
         <video
           #introVideo
           class="intro-video"
           src="assets/civil.mp4"
-          autoplay
+          poster="assets/civil-poster.jpg"
           muted
+          [muted]="true"
+          [defaultMuted]="true"
           playsinline
           webkit-playsinline
           preload="auto"
           disablepictureinpicture
           (loadedmetadata)="onVideoLoadedMetadata()"
           (canplay)="onVideoCanPlay()"
-          (play)="onVideoPlay()"
+          (playing)="onVideoPlay()"
+          (pause)="onVideoPause()"
           (ended)="onVideoEnded()"
           (error)="onVideoError()"
         ></video>
       </div>
+
+      @if (state === 'loading' || state === 'loading-out') {
+        <div class="loading-screen" [class.is-leaving]="state === 'loading-out'">
+          <div class="loading-message" role="status" aria-live="polite">
+            <p>Estamos cargando<br />un mensaje para ti.</p>
+            <span class="loading-indicator" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </span>
+            <img
+              class="loading-heart"
+              src="assets/civil-heart.svg"
+              width="55"
+              height="65"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
+          @if (state === 'loading' && loadingMinimumElapsed && videoNeedsInteraction) {
+            <div class="media-start-prompt loading-help">
+              <button type="button" (click)="startMediaFromGesture()">
+                {{ videoLoadFailed ? 'Reintentar video' : 'Toca para cargar' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (state === 'intro' && videoNeedsInteraction) {
+        <div class="media-start-prompt">
+          <button type="button" (click)="startMediaFromGesture()">
+            {{ videoLoadFailed ? 'Reintentar video' : 'Toca para comenzar' }}
+          </button>
+        </div>
+      }
 
         <div class="civil-audio-controls" aria-label="Controles de m&uacute;sica">
           <button
