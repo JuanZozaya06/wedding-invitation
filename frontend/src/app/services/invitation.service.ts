@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore/lite';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore/lite';
 import { createDemoInvitation } from '../data/demo-invitation';
 import { getCurrentAppInstance } from '../firebase/app-instance';
 import { getInvitationFirestore } from '../firebase/firebase';
@@ -21,6 +21,49 @@ export class InvitationNotFoundError extends Error {
 })
 export class InvitationService {
   private readonly appInstance = getCurrentAppInstance();
+
+  async saveInvitationDetails(draft: Invitation, creating: boolean): Promise<void> {
+    const firestore = getInvitationFirestore();
+    if (!firestore) throw new Error('Firebase no está configurado.');
+    if (!draft.displayName.trim() || !draft.guests.length ||
+        draft.guests.some((guest) => !guest.name.trim()) ||
+        draft.guests.filter((guest) => guest.role === 'primary').length !== 1 ||
+        new Set(draft.guests.map((guest) => guest.id)).size !== draft.guests.length) {
+      throw new Error('Completa los nombres y selecciona exactamente un invitado principal.');
+    }
+    if (creating && !/^[A-Z0-9]{6}$/.test(draft.token)) {
+      throw new Error('El código de la nueva invitación no es válido.');
+    }
+    const reference = doc(firestore, this.appInstance.invitationsCollection, draft.token);
+    const snapshot = await getDoc(reference);
+    if (creating && snapshot.exists()) throw new Error('El código ya existe. Crea otra invitación para generar uno nuevo.');
+    if (!creating && !snapshot.exists()) throw new Error('Esta invitación ya no existe. Actualiza el panel.');
+    const current = snapshot.exists()
+      ? this.normalizeInvitation(draft.token, snapshot.data() as FirestoreInvitation) : null;
+    const guests = draft.guests.map((guest) => ({
+      ...guest, name: guest.name.trim(),
+      attending: current?.guests.find((existing) => existing.id === guest.id)?.attending ?? false,
+    }));
+    const confirmedCount = guests.filter((guest) => guest.attending).length;
+    const details = {
+      displayName: draft.displayName.trim(), guests, guestCount: guests.length,
+      hasChildren: guests.some((guest) => guest.isChild),
+      hasAbroadGuests: guests.some((guest) => guest.isAbroad), confirmedCount,
+      rsvpStatus: current && current.rsvpStatus !== 'pending'
+        ? this.resolveRsvpStatus(confirmedCount, guests.length - confirmedCount, current.rsvpStatus)
+        : 'pending' as RsvpStatus,
+      updatedAt: new Date().toISOString(),
+    };
+    if (creating) {
+      await setDoc(reference, {
+        ...details, token: draft.token, openedInvitation: false, openedAt: null,
+        lastOpenedAt: null, openCount: 0, notes: '', message: '', song: '',
+        respondedAt: null, responseEditCount: 0,
+      });
+    } else {
+      await updateDoc(reference, details);
+    }
+  }
 
   isRemoteEnabled(): boolean {
     return getInvitationFirestore() !== null;

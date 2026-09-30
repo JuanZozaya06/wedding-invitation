@@ -23,6 +23,7 @@ import {
   InvitationService,
 } from './services/invitation.service';
 import { PolaroidComponent } from './components/polaroid/polaroid.component';
+import { AttendanceStatusComponent } from './components/attendance-status/attendance-status.component';
 import { CivilInvitationComponent } from './components/civil-invitation/civil-invitation.component';
 
 type SeedWindow = Window & {
@@ -63,6 +64,7 @@ type AdminTextEntry = {
   token: string;
   displayName: string;
   value: string;
+  rsvpStatus: Invitation['rsvpStatus'];
   updatedAt: string | null;
 };
 
@@ -97,6 +99,7 @@ type JourneySceneElements = {
   selector: 'app-root',
   standalone: true,
   imports: [
+    AttendanceStatusComponent,
     CommonModule,
     FormsModule,
     PolaroidComponent,
@@ -196,6 +199,121 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   };
 
   adminKey = '';
+  invitationEditor: Invitation | null = null;
+  creatingInvitation = false;
+  invitationSaving = false;
+  invitationEditorError = '';
+  invitationEditorSuccess = '';
+  invitationShareToken = '';
+  invitationShareMessage = '';
+
+  async copyInvitationLink(token: string): Promise<void> {
+    this.invitationShareToken = token;
+    this.invitationShareMessage = '';
+    try {
+      await navigator.clipboard.writeText(this.adminInvitationUrl(token));
+      this.invitationShareMessage = 'Enlace copiado';
+    } catch {
+      this.invitationShareMessage = 'No se pudo copiar. Abre la invitación y copia el enlace de la barra de direcciones.';
+    }
+  }
+
+  openInvitationEditor(invitation?: Invitation): void {
+    if (this.invitationSaving || !this.adminAccessGranted) return;
+    this.creatingInvitation = !invitation;
+    this.invitationEditorError = '';
+    this.invitationEditorSuccess = '';
+    this.invitationEditor = invitation
+      ? { ...invitation, guests: invitation.guests.map((guest) => ({ ...guest })) }
+      : {
+          token: this.generateInvitationCode(),
+          displayName: '', guests: [], guestCount: 0, hasChildren: false,
+          hasAbroadGuests: false, openedInvitation: false, openedAt: null,
+          lastOpenedAt: null, openCount: 0, notes: '', message: '', song: '',
+          rsvpStatus: 'pending', respondedAt: null, responseEditCount: 0, updatedAt: null,
+        };
+    if (!invitation) this.addEditorGuest();
+    setTimeout(() => {
+      const dialog = this.document.getElementById('invitation-editor-dialog') as HTMLDialogElement | null;
+      if (dialog && !dialog.open) dialog.showModal();
+      this.document.getElementById('invitation-display-name')?.focus();
+    });
+  }
+
+  closeInvitationEditor(): void {
+    if (this.invitationSaving) return;
+    (this.document.getElementById('invitation-editor-dialog') as HTMLDialogElement | null)?.close();
+    this.invitationEditor = null;
+  }
+
+  addEditorGuest(): void {
+    this.invitationEditor?.guests.push({
+      id: crypto.randomUUID(), name: '', gender: null,
+      role: this.invitationEditor.guests.length ? 'guest' : 'primary',
+      attending: false, isChild: false, isAbroad: false,
+    });
+  }
+
+  private generateInvitationCode(): string {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    while (code.length < 6) {
+      for (const value of crypto.getRandomValues(new Uint8Array(6))) {
+        // Reject the incomplete range so every character has equal probability.
+        if (value < 252) code += alphabet[value % alphabet.length];
+        if (code.length === 6) break;
+      }
+    }
+    return code;
+  }
+
+  adminInvitationUrl(token: string): string {
+    return new URL(encodeURIComponent(token), this.document.baseURI).href;
+  }
+
+  removeEditorGuest(id: string): void {
+    if (!this.invitationEditor || this.invitationEditor.guests.length <= 1) return;
+    this.invitationEditor.guests = this.invitationEditor.guests.filter((guest) => guest.id !== id);
+    if (!this.invitationEditor.guests.some((guest) => guest.role === 'primary')) {
+      this.invitationEditor.guests[0].role = 'primary';
+    }
+  }
+
+  selectEditorPrimary(id: string): void {
+    this.invitationEditor?.guests.forEach((guest) => {
+      if (guest.id === id) guest.role = 'primary';
+      else if (guest.role === 'primary') guest.role = 'guest';
+    });
+  }
+
+  async saveInvitationEditor(): Promise<void> {
+    if (!this.invitationEditor || this.invitationSaving || !this.adminAccessGranted) return;
+    this.invitationSaving = true;
+    this.invitationEditorError = '';
+    try {
+      await this.invitationService.saveInvitationDetails(this.invitationEditor, this.creatingInvitation);
+      this.invitationEditorSuccess = this.creatingInvitation ? 'Invitación creada.' : 'Cambios guardados.';
+      (this.document.getElementById('invitation-editor-dialog') as HTMLDialogElement | null)?.close();
+      this.invitationEditor = null;
+      this.activeAdminTab = 'invitations';
+      await this.refreshAdminDashboard();
+    } catch (error) {
+      const code = typeof error === 'object' && error !== null && 'code' in error
+        ? String(error.code).replace(/^firestore\//, '') : '';
+      if (code === 'permission-denied') {
+        this.invitationEditorError = this.creatingInvitation
+          ? 'Firestore denegó el acceso para crear la invitación. Revisa los permisos de lectura y creación de la colección.'
+          : 'Firestore denegó el acceso para editar la invitación. Revisa los permisos de lectura y actualización de la colección.';
+      } else if (code === 'unavailable' || code === 'deadline-exceeded') {
+        this.invitationEditorError = 'No pudimos conectar con Firestore. Tus datos siguen aquí; vuelve a intentar guardar.';
+      } else {
+        this.invitationEditorError = error instanceof Error && !code
+          ? error.message : `No pudimos guardar la invitación${code ? ' (' + code + ')' : ''}. Tus datos siguen aquí; vuelve a intentarlo.`;
+      }
+    } finally {
+      this.invitationSaving = false;
+    }
+  }
   adminKeyError = '';
   adminAccessGranted = false;
   adminLoading = false;
@@ -600,11 +718,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get filteredAdminMessages(): AdminTextEntry[] {
-    return this.filterTextEntries(this.adminMessages);
+    return this.sortTextEntriesByDate(this.filterTextEntries(this.adminMessages));
   }
 
   get filteredAdminSongs(): AdminTextEntry[] {
-    return this.filterTextEntries(this.adminSongs);
+    return this.sortTextEntriesByDate(this.filterTextEntries(this.adminSongs));
   }
 
   get filteredAdminNotes(): AdminTextEntry[] {
@@ -712,6 +830,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           token: invitation.token,
           displayName: invitation.displayName,
           value: invitation.message,
+          rsvpStatus: invitation.rsvpStatus,
           updatedAt: invitation.updatedAt,
         }));
       this.adminSongs = this.adminInvitations
@@ -720,6 +839,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           token: invitation.token,
           displayName: invitation.displayName,
           value: invitation.song,
+          rsvpStatus: invitation.rsvpStatus,
           updatedAt: invitation.updatedAt,
         }));
       this.adminNotes = this.adminInvitations
@@ -728,6 +848,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           token: invitation.token,
           displayName: invitation.displayName,
           value: invitation.notes,
+          rsvpStatus: invitation.rsvpStatus,
           updatedAt: invitation.updatedAt,
         }));
 
@@ -1432,6 +1553,16 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       default:
         return true;
     }
+  }
+
+  private sortTextEntriesByDate(entries: AdminTextEntry[]): AdminTextEntry[] {
+    const timestamp = (value: string | null): number => {
+      const parsed = value ? Date.parse(value) : NaN;
+      return Number.isFinite(parsed) ? parsed : -Infinity;
+    };
+    return [...entries].sort((left, right) =>
+      (timestamp(right.updatedAt) - timestamp(left.updatedAt)) || left.token.localeCompare(right.token),
+    );
   }
 
   private filterTextEntries(entries: AdminTextEntry[]): AdminTextEntry[] {

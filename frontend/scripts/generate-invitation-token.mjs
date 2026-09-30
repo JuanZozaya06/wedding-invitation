@@ -1,8 +1,8 @@
 import { randomInt } from 'node:crypto';
 
-const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
-const rawLength = Number.parseInt(process.argv[2] ?? '8', 10);
-const length = Number.isFinite(rawLength) ? rawLength : 8;
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const rawLength = Number.parseInt(process.argv[2] ?? '6', 10);
+const length = Number.isFinite(rawLength) ? rawLength : 6;
 
 if (length < 6 || length > 32) {
   console.error('La longitud debe estar entre 6 y 32 caracteres.');

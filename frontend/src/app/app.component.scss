@@ -140,6 +140,23 @@
   align-items: center;
 }
 
+.admin-toolbar {
+  flex-wrap: wrap;
+}
+
+.admin-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-toolbar-actions > button {
+  margin: 0;
+  min-height: 3rem;
+}
+
+
 .admin-stats-grid,
 .admin-panels {
   display: grid;
@@ -261,6 +278,17 @@
   font-weight: 800;
 }
 
+.admin-response-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.admin-response-topline .eyebrow { margin: 0; }
+.admin-response-topline > span { color: #7b657e; font-size: 0.85rem; font-weight: 800; white-space: nowrap; }
+
 .admin-list {
   display: grid;
   gap: 0.75rem;
@@ -274,8 +302,22 @@
 
 .admin-list-item-stacked {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  justify-items: stretch;
   gap: 0.85rem;
 }
+
+.admin-entry-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.admin-entry-heading strong { min-width: 0; overflow-wrap: anywhere; }
+.admin-entry-heading app-attendance-status { margin-left: auto; flex-shrink: 0; }
 
 .admin-list-item p {
   margin: 0.25rem 0 0;
@@ -299,7 +341,7 @@
   border: 1px solid rgba(92, 57, 103, 0.12);
   border-radius: 0.95rem;
   background: rgba(255, 255, 255, 0.72);
-  padding: 1rem;
+  padding: 1.25rem;
 }
 
 .admin-group-head {
@@ -309,13 +351,127 @@
   align-items: flex-start;
 }
 
-.admin-group-section {
+.admin-group-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+}
+
+.admin-group-name > strong {
+  font-size: 1.4rem;
+  line-height: 1.25;
+  font-weight: 900;
+  color: #51315e;
+  overflow-wrap: anywhere;
+}
+
+.admin-group-head > div { min-width: 0; }
+
+.admin-group-actions { display: flex; gap: 0.5rem; }
+
+.admin-group-card .admin-group-code {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: #7b657e;
+}
+
+.admin-group-code code { margin-left: 0.35rem; letter-spacing: 0.07em; }
+
+.admin-group-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 1.5rem;
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(92, 57, 103, 0.1);
 }
 
-.admin-group-section h4 {
+.admin-group-history {
+  padding: 1rem;
+  border-radius: 0.65rem;
+  background: #faf8fc;
+}
+
+.admin-guest-count {
+  margin-left: 0.35rem;
+  color: #7b657e;
+  font-weight: 600;
+}
+
+.admin-guest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-guest-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(92, 57, 103, 0.08);
+}
+
+.admin-guest-list li:last-child { border-bottom: 0; }
+.admin-guest-list strong { overflow-wrap: anywhere; }
+.admin-guest-role { display: block; color: #7b657e; font-size: 0.8rem; margin-top: 0.15rem; }
+.admin-guest-list app-attendance-status { flex-shrink: 0; }
+
+@media (max-width: 900px) {
+  .admin-group-body { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+.admin-share-status {
+  color: #724798;
+  font-size: 0.85rem;
+}
+
+.admin-open-link,
+.admin-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(140, 95, 183, 0.25);
+  border-radius: 0.4rem;
+  background: rgba(140, 95, 183, 0.025);
+  color: #724798;
+  text-decoration: none;
+}
+
+.admin-edit-button {
+  cursor: pointer;
+}
+
+.admin-edit-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-open-link:hover,
+.admin-edit-button:hover:not(:disabled) {
+  background: rgba(140, 95, 183, 0.1);
+}
+
+.admin-open-link:focus-visible,
+.admin-edit-button:focus-visible {
+  outline: 2px solid #8c5fb7;
+  outline-offset: 2px;
+}
+
+.admin-group-section {
+  min-width: 0;
+}
+
+.admin-group-section h4,
+.admin-group-history h4 {
   margin: 0 0 0.45rem;
   color: #51315e;
   font-size: 1rem;
@@ -332,30 +488,26 @@
 
 .admin-meta-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 0;
 }
 
 .admin-meta-grid div {
-  border: 1px solid rgba(92, 57, 103, 0.1);
-  border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 0.75rem;
+  min-width: 0;
 }
 
 .admin-meta-grid dt {
   color: #7b657e;
-  font-size: 0.76rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .admin-meta-grid dd {
   margin: 0.35rem 0 0;
   color: #51315e;
   font-weight: 800;
+  font-size: 0.85rem;
 }
 
 .admin-badges {
@@ -2402,4 +2554,37 @@ textarea {
     height: 40rem;
     overflow-x: auto;
   }
+}
+.invitation-modal {
+  width: min(52rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: calc(100dvh - 2rem);
+  box-sizing: border-box;
+  padding: 0;
+  border: 1px solid #d8cbe6;
+  border-radius: 1rem;
+  background: #fffcf8;
+  color: #3e2d48;
+  box-shadow: 0 1.5rem 5rem rgba(50, 30, 65, 0.25);
+  overscroll-behavior: contain;
+}
+
+.invitation-modal::backdrop { background: rgba(40, 28, 48, 0.45); }
+.invitation-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.invitation-modal-header .admin-edit-button { font-size: 1.5rem; }
+.invitation-modal .invitation-editor { margin: 0; border: 0; padding: clamp(1rem, 3vw, 1.5rem); }
+.invitation-modal .primary-button, .invitation-modal .secondary-button { margin-top: 0; }
+
+.invitation-editor {
+  margin-block: 1.5rem;
+  fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+  label { display: grid; gap: .4rem; min-width: 0; }
+  .editor-token { overflow-wrap: anywhere; font-size: .85rem; }
+  .editor-guest { border: 1px solid #d8cbe6; border-radius: 16px; padding: 1rem; margin-block: 1rem; }
+  legend { padding-inline: .4rem; font-weight: 600; }
+  .editor-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+  .editor-options, .editor-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+  .editor-options label { display: flex; align-items: center; }
+  .editor-options input { width: auto; accent-color: #9169ae; }
+  input, select { box-sizing: border-box; width: 100%; }
 }

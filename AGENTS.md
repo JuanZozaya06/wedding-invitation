@@ -121,7 +121,7 @@ The app is now data-driven from Firestore.
 
 - One Firestore document represents one invitation group.
 - The Firestore document ID is the invitation token.
-- Tokens should be random alphanumeric strings of 8 characters minimum.
+- New invitation tokens must be exactly 6 uppercase alphanumeric characters (A-Z, 0-9), e.g. `O3A0W6`, per the user's preference. Preserve existing tokens when editing and check for duplicates before creation.
 - Each invitation contains a `guests` array.
 - Exactly one guest per invitation must use `role = primary`.
 
