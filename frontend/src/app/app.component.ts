@@ -50,7 +50,7 @@ type AdminConfirmedGuest = {
   rsvpStatus: string;
 };
 
-type AdminTab = 'overview' | 'invitations' | 'confirmed' | 'responses';
+type AdminTab = 'overview' | 'invitations' | 'confirmed' | 'messages' | 'songs' | 'notes';
 type InvitationFilter =
   | 'all'
   | 'opened'
@@ -106,7 +106,7 @@ type JourneySceneElements = {
     CivilInvitationComponent,
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
+  styleUrls: ['./app.component.scss', './admin-backoffice.scss'],
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly githubPagesBaseSegment = 'wedding-invitation';
@@ -200,6 +200,20 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   adminKey = '';
   invitationEditor: Invitation | null = null;
+  invitationDetail: Invitation | null = null;
+
+  openInvitationDetail(invitation: Invitation): void {
+    this.invitationDetail = invitation;
+    setTimeout(() => {
+      const dialog = this.document.getElementById('invitation-detail-dialog') as HTMLDialogElement | null;
+      if (dialog && !dialog.open) dialog.showModal();
+    });
+  }
+
+  closeInvitationDetail(): void {
+    (this.document.getElementById('invitation-detail-dialog') as HTMLDialogElement | null)?.close();
+    this.invitationDetail = null;
+  }
   creatingInvitation = false;
   invitationSaving = false;
   invitationEditorError = '';
@@ -323,6 +337,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   adminSongs: AdminTextEntry[] = [];
   adminNotes: AdminTextEntry[] = [];
   activeAdminTab: AdminTab = 'overview';
+  adminMenuOpen = false;
+
+  closeAdminMenu(): void {
+    this.adminMenuOpen = false;
+    this.document.getElementById('admin-menu-toggle')?.focus();
+  }
   activeInvitationFilter: InvitationFilter = 'all';
   adminSearchTerm = '';
   adminStats: AdminStats = {
@@ -1457,6 +1477,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setAdminTab(tab: AdminTab): void {
     this.activeAdminTab = tab;
+    if (this.adminMenuOpen) this.closeAdminMenu();
   }
 
   setInvitationFilter(filter: InvitationFilter): void {

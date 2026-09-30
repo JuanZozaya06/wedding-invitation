@@ -23,6 +23,51 @@ describe('AppComponent', () => {
     expect(app.invitation.guests.length).toBeGreaterThan(0);
   });
 
+  it('renders the backoffice navigation and switches sections without losing admin access', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    Object.defineProperty(app, 'isAdminRoute', { value: true });
+    spyOnProperty(app, 'showNotFoundState', 'get').and.returnValue(false);
+    spyOn(app, 'ngOnInit');
+    spyOn(app, 'ngAfterViewInit');
+    app.adminAccessGranted = true;
+    fixture.detectChanges();
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelector('.backoffice-sidebar')).not.toBeNull();
+    const buttons = element.querySelectorAll<HTMLButtonElement>('.backoffice-nav button');
+    expect(buttons.length).toBe(6);
+    expect(element.querySelectorAll('.admin-nav-icon').length).toBe(6);
+    const menuToggle = element.querySelector<HTMLButtonElement>('#admin-menu-toggle')!;
+    menuToggle.click();
+    fixture.detectChanges();
+    expect(menuToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(element.querySelector('.backoffice-nav.is-open')).not.toBeNull();
+    buttons[1].click();
+    fixture.detectChanges();
+    expect(app.adminMenuOpen).toBeFalse();
+    expect(menuToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(app.activeAdminTab).toBe('invitations');
+    expect(element.querySelector('.admin-toolbar h1')?.textContent).toBe('Invitaciones');
+    expect(buttons[1].getAttribute('aria-current')).toBe('page');
+    expect(app.adminAccessGranted).toBeTrue();
+    expect(element.querySelector('.journey-section')).toBeNull();
+    const invitation = { ...app.invitation, message: 'Un mensaje especial', song: 'Nuestra canción', notes: 'Menú vegetariano' };
+    app.adminInvitations = [invitation];
+    fixture.detectChanges();
+    expect(element.querySelector('.admin-group-card .admin-group-body')).toBeNull();
+    element.querySelector<HTMLButtonElement>('.invitation-detail-name')!.click();
+    fixture.detectChanges();
+    const detail = element.querySelector('.invitation-detail-modal')!;
+    expect(detail.textContent).toContain(invitation.message);
+    expect(detail.textContent).toContain(invitation.song);
+    expect(detail.textContent).toContain(invitation.notes);
+    expect(detail.textContent).toContain(invitation.guests[0].name);
+    expect(detail.textContent).toContain('Primera apertura');
+    app.closeInvitationDetail();
+    fixture.detectChanges();
+    expect(element.querySelector('.invitation-detail-modal')).toBeNull();
+  });
+
   it('sorts messages and songs newest first, keeps missing dates last and preserves searching', () => {
     const app = TestBed.createComponent(AppComponent).componentInstance;
     const entries = [
