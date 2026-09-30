@@ -40,6 +40,7 @@ type AdminStats = {
 };
 
 type AdminConfirmedGuest = {
+  updatedAt: string | null;
   token: string;
   displayName: string;
   guestName: string;
@@ -721,14 +722,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get filteredAdminInvitations(): Invitation[] {
-    return this.adminInvitations
+    return this.sortTextEntriesByDate(this.adminInvitations)
       .filter((invitation) => this.matchesInvitationSearch(invitation))
       .filter((invitation) => this.matchesInvitationFilter(invitation));
   }
 
   get filteredAdminConfirmedGuests(): AdminConfirmedGuest[] {
     const normalizedSearch = this.adminSearchTerm.trim().toLowerCase();
-    return this.adminConfirmedGuests.filter(
+    return this.sortTextEntriesByDate(this.adminConfirmedGuests).filter(
       (guest) =>
         normalizedSearch.length === 0 ||
         guest.displayName.toLowerCase().includes(normalizedSearch) ||
@@ -746,7 +747,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get filteredAdminNotes(): AdminTextEntry[] {
-    return this.filterTextEntries(this.adminNotes);
+    return this.sortTextEntriesByDate(this.filterTextEntries(this.adminNotes));
   }
 
   get recentOpenedInvitations(): Invitation[] {
@@ -755,7 +756,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       .sort((left, right) =>
         (right.lastOpenedAt ?? '').localeCompare(left.lastOpenedAt ?? ''),
       )
-      .slice(0, 5);
+      .slice(0, 10);
   }
 
   get recentRespondedInvitations(): Invitation[] {
@@ -764,7 +765,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       .sort((left, right) =>
         (right.respondedAt ?? '').localeCompare(left.respondedAt ?? ''),
       )
-      .slice(0, 5);
+      .slice(0, 10);
   }
 
   async submitRsvp(): Promise<void> {
@@ -837,6 +838,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
             token: invitation.token,
             displayName: invitation.displayName,
             guestName: guest.name,
+            updatedAt: invitation.updatedAt ?? invitation.respondedAt,
             role: guest.role,
             isChild: guest.isChild,
             isAbroad: guest.isAbroad,
@@ -1576,7 +1578,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private sortTextEntriesByDate(entries: AdminTextEntry[]): AdminTextEntry[] {
+  private sortTextEntriesByDate<T extends { updatedAt: string | null; token: string }>(entries: T[]): T[] {
     const timestamp = (value: string | null): number => {
       const parsed = value ? Date.parse(value) : NaN;
       return Number.isFinite(parsed) ? parsed : -Infinity;

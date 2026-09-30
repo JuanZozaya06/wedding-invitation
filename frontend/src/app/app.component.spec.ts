@@ -34,7 +34,7 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelector('.backoffice-sidebar')).not.toBeNull();
-    const buttons = element.querySelectorAll<HTMLButtonElement>('.backoffice-nav button');
+    const buttons = element.querySelectorAll<HTMLButtonElement>('.backoffice-nav > button');
     expect(buttons.length).toBe(6);
     expect(element.querySelectorAll('.admin-nav-icon').length).toBe(6);
     const menuToggle = element.querySelector<HTMLButtonElement>('#admin-menu-toggle')!;
@@ -78,12 +78,83 @@ describe('AppComponent', () => {
     ];
     app.adminMessages = entries;
     app.adminSongs = entries;
+    app.adminNotes = entries;
     expect(app.filteredAdminMessages.map((entry) => entry.token)).toEqual(['NEW001', 'OLD001', 'BAD001', 'NONE01']);
     expect(app.filteredAdminSongs.map((entry) => entry.token)).toEqual(['NEW001', 'OLD001', 'BAD001', 'NONE01']);
+    expect(app.filteredAdminNotes.map((entry) => entry.token)).toEqual(['NEW001', 'OLD001', 'BAD001', 'NONE01']);
     app.adminSearchTerm = 'rocha';
     expect(app.filteredAdminMessages.map((entry) => entry.token)).toEqual(['NEW001', 'OLD001', 'NONE01']);
     expect(entries[0].token).toBe('OLD001');
   });
+
+  it('sorts invitation and confirmed lists and returns ten recent openings and responses', () => {
+    const app = TestBed.createComponent(AppComponent).componentInstance;
+    app.adminInvitations = Array.from({ length: 12 }, (_, index) => {
+      const date = new Date(Date.UTC(2026, 8, index + 1)).toISOString();
+      return { ...app.invitation, token: `TEST${index.toString().padStart(2, '0')}`, updatedAt: date, lastOpenedAt: date, respondedAt: date };
+    });
+    app.adminConfirmedGuests = app.adminInvitations.map((invitation) => ({
+      token: invitation.token, updatedAt: invitation.updatedAt, displayName: invitation.displayName,
+      guestName: 'Invitado', role: 'primary', isChild: false, isAbroad: false, openedInvitation: true, rsvpStatus: 'accepted',
+    }));
+    expect(app.filteredAdminInvitations[0].token).toBe('TEST11');
+    expect(app.filteredAdminConfirmedGuests[0].token).toBe('TEST11');
+    expect(app.recentOpenedInvitations.length).toBe(10);
+    expect(app.recentRespondedInvitations.length).toBe(10);
+    expect(app.recentOpenedInvitations[9].token).toBe('TEST02');
+    expect(app.recentRespondedInvitations[0].token).toBe('TEST11');
+  });
+
+  for (const [width, height] of [[320, 640], [360, 780], [390, 844], [430, 932], [844, 390], [1440, 900]]) {
+    it(`keeps the list scrollable and places admin tools correctly at ${width}x${height}`, () => {
+      const fixture = TestBed.createComponent(AppComponent);
+      const app = fixture.componentInstance;
+      Object.defineProperty(app, 'isAdminRoute', { value: true });
+      spyOnProperty(app, 'showNotFoundState', 'get').and.returnValue(false);
+      spyOn(app, 'ngOnInit');
+      spyOn(app, 'ngAfterViewInit');
+      app.adminAccessGranted = true;
+      app.activeAdminTab = 'invitations';
+      app.adminInvitations = Array.from({ length: 20 }, (_, index) => ({ ...app.invitation, token: `CODE${index}` }));
+      fixture.detectChanges();
+      const frame = document.createElement('iframe');
+      frame.style.cssText = `width:${width}px;height:${height}px;border:0`;
+      document.body.appendChild(frame);
+      try {
+        const frameDoc = frame.contentDocument!;
+        document.querySelectorAll('style').forEach((style) => frameDoc.head.appendChild(style.cloneNode(true)));
+        const base = frameDoc.createElement('style');
+        base.textContent = '*{box-sizing:border-box}body{margin:0}';
+        frameDoc.head.appendChild(base);
+        frameDoc.body.appendChild(fixture.nativeElement);
+        const root: HTMLElement = fixture.nativeElement;
+        const style = (selector: string) => frame.contentWindow!.getComputedStyle(root.querySelector(selector)!);
+        const mobile = width <= 760 || (width <= 1000 && height <= 500);
+        expect(style('.admin-desktop-actions').display === 'none').toBe(mobile);
+        expect(style('.admin-desktop-stats').display === 'none').toBe(mobile);
+        const list = root.querySelector<HTMLElement>('.admin-groups-grid')!;
+        expect(list.clientHeight).toBeGreaterThan(height <= 500 ? 70 : 300);
+        expect(list.scrollHeight).toBeGreaterThan(list.clientHeight);
+        expect(frameDoc.documentElement.scrollHeight).toBeLessThanOrEqual(height);
+        expect(frameDoc.documentElement.scrollWidth).toBeLessThanOrEqual(width);
+        if (mobile) {
+          root.querySelector<HTMLButtonElement>('#admin-menu-toggle')!.click();
+          fixture.detectChanges();
+          expect(style('.admin-mobile-tools').display).toBe('block');
+          expect(root.querySelectorAll('.admin-mobile-tools .admin-stats-grid article').length).toBe(6);
+          const menu = root.querySelector<HTMLElement>('.backoffice-nav')!;
+          expect(menu.getBoundingClientRect().bottom).toBeLessThanOrEqual(height);
+          expect(menu.scrollWidth).toBeLessThanOrEqual(menu.clientWidth);
+        } else {
+          expect(style('.admin-mobile-tools').display).toBe('none');
+          expect(style('.backoffice-layout').display).toBe('grid');
+        }
+      } finally {
+        fixture.destroy();
+        frame.remove();
+      }
+    });
+  }
 
   it('copies the full invitation URL and reports success', async () => {
     const app = TestBed.createComponent(AppComponent).componentInstance;
