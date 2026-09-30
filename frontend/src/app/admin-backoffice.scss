@@ -439,6 +439,7 @@
 
 @media (max-width: 760px), (max-width: 1000px) and (max-height: 500px) {
   .admin-backoffice {
+    .admin-overview-responded { order: -1; }
     .admin-desktop-actions, .admin-desktop-stats { display: none; }
     .admin-mobile-tools { display: block; border-top: 1px solid #e9e0ed; margin-top: .4rem; padding-top: .5rem; }
     .admin-mobile-section-label { margin: .6rem .25rem; font-size: .7rem; color: #7b657e; font-weight: 800; }

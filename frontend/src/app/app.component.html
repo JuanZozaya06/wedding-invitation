@@ -271,7 +271,7 @@
             </dialog>
           }
           @if (invitationEditor; as editor) {
-            <dialog id="invitation-editor-dialog" class="invitation-modal" aria-labelledby="invitation-editor-title"
+            <dialog #invitationEditorDialog id="invitation-editor-dialog" class="invitation-modal" aria-labelledby="invitation-editor-title"
               (cancel)="$event.preventDefault(); closeInvitationEditor()">
             <form class="admin-panel invitation-editor" (ngSubmit)="saveInvitationEditor()">
               <div class="invitation-modal-header">
@@ -356,7 +356,7 @@
 
           @if (activeAdminTab === "overview") {
             <section class="admin-panels">
-              <article class="admin-panel">
+              <article class="admin-panel admin-overview-opened">
                 <div class="admin-panel-header">
                   <div>
                     <p class="eyebrow">Aperturas recientes</p>
@@ -391,7 +391,7 @@
                 }
               </article>
 
-              <article class="admin-panel">
+              <article class="admin-panel admin-overview-responded">
                 <div class="admin-panel-header">
                   <div>
                     <p class="eyebrow">Respuestas recientes</p>

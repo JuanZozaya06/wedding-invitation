@@ -106,7 +106,7 @@ describe('AppComponent', () => {
   });
 
   for (const [width, height] of [[320, 640], [360, 780], [390, 844], [430, 932], [844, 390], [1440, 900]]) {
-    it(`keeps the list scrollable and places admin tools correctly at ${width}x${height}`, () => {
+    it(`keeps the list scrollable and places admin tools correctly at ${width}x${height}`, async () => {
       const fixture = TestBed.createComponent(AppComponent);
       const app = fixture.componentInstance;
       Object.defineProperty(app, 'isAdminRoute', { value: true });
@@ -149,6 +149,22 @@ describe('AppComponent', () => {
           expect(style('.admin-mobile-tools').display).toBe('none');
           expect(style('.backoffice-layout').display).toBe('grid');
         }
+        spyOn(crypto, 'randomUUID').and.throwError('Unavailable in this browser');
+        root.querySelector<HTMLButtonElement>(`${mobile ? '.admin-mobile-tools' : '.admin-desktop-actions'} .primary-button`)!.click();
+        fixture.detectChanges();
+        await fixture.whenStable();
+        const dialog = root.querySelector<HTMLDialogElement>('#invitation-editor-dialog')!;
+        expect(dialog.open).toBeTrue();
+        expect(dialog.matches(':modal')).toBeTrue();
+        expect(app.invitationEditor!.guests.length).toBe(1);
+        expect(app.adminMenuOpen).toBeFalse();
+        expect(dialog.getBoundingClientRect().width).toBeLessThanOrEqual(width);
+        expect(dialog.getBoundingClientRect().height).toBeLessThanOrEqual(height);
+        dialog.close();
+        app.invitationEditor = null;
+        app.activeAdminTab = 'overview';
+        fixture.detectChanges();
+        expect(style('.admin-overview-responded').order).toBe(mobile ? '-1' : '0');
       } finally {
         fixture.destroy();
         frame.remove();

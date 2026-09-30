@@ -110,6 +110,16 @@ type JourneySceneElements = {
   styleUrls: ['./app.component.scss', './admin-backoffice.scss'],
 })
 export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('invitationEditorDialog')
+  set invitationEditorDialog(dialog: ElementRef<HTMLDialogElement> | undefined) {
+    if (!dialog) return;
+    queueMicrotask(() => {
+      const element = dialog.nativeElement;
+      if (!element.isConnected || !this.invitationEditor) return;
+      if (!element.open) element.showModal();
+      element.querySelector<HTMLInputElement>('#invitation-display-name')?.focus();
+    });
+  }
   private readonly githubPagesBaseSegment = 'wedding-invitation';
   private readonly backgroundAudioSrc = 'assets/audio/invitacion.mp3';
   @ViewChild('journeySection') private journeySection?: ElementRef<HTMLElement>;
@@ -248,11 +258,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           rsvpStatus: 'pending', respondedAt: null, responseEditCount: 0, updatedAt: null,
         };
     if (!invitation) this.addEditorGuest();
-    setTimeout(() => {
-      const dialog = this.document.getElementById('invitation-editor-dialog') as HTMLDialogElement | null;
-      if (dialog && !dialog.open) dialog.showModal();
-      this.document.getElementById('invitation-display-name')?.focus();
-    });
   }
 
   closeInvitationEditor(): void {
@@ -263,7 +268,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   addEditorGuest(): void {
     this.invitationEditor?.guests.push({
-      id: crypto.randomUUID(), name: '', gender: null,
+      id: `guest-${Array.from(crypto.getRandomValues(new Uint8Array(16)),
+        (value) => value.toString(16).padStart(2, '0')).join('')}`, name: '', gender: null,
       role: this.invitationEditor.guests.length ? 'guest' : 'primary',
       attending: false, isChild: false, isAbroad: false,
     });
