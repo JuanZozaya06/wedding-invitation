@@ -1,3 +1,4 @@
+import { PhotosComponent } from './components/photos/photos.component';
 import {
   AfterViewInit,
   Component,
@@ -51,7 +52,7 @@ type AdminConfirmedGuest = {
   rsvpStatus: string;
 };
 
-type AdminTab = 'overview' | 'invitations' | 'confirmed' | 'messages' | 'songs' | 'notes';
+type AdminTab = 'photos' | 'overview' | 'invitations' | 'confirmed' | 'messages' | 'songs' | 'notes';
 type InvitationFilter =
   | 'all'
   | 'opened'
@@ -72,6 +73,7 @@ type AdminTextEntry = {
 type RouteResolution =
   | { kind: 'admin'; segment: 'admin' }
   | { kind: 'civil'; segment: 'civil' }
+  | { kind: 'photos'; segment: 'fotos' }
   | { kind: 'invitation'; segment: string }
   | {
       kind: 'not-found';
@@ -105,6 +107,7 @@ type JourneySceneElements = {
     FormsModule,
     PolaroidComponent,
     CivilInvitationComponent,
+    PhotosComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss', './admin-backoffice.scss'],
@@ -166,6 +169,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly route = this.resolveRoute();
   readonly routeSegment = this.route.segment;
+  readonly isPhotosRoute = this.route.kind === 'photos';
   readonly isAdminRoute = this.route.kind === 'admin';
   readonly isCivilRoute = this.route.kind === 'civil';
   readonly isNotFoundRoute = this.route.kind === 'not-found';
@@ -462,7 +466,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     this.registerDevSeed();
 
-    if (this.isAdminRoute || this.isCivilRoute) {
+    if (this.isAdminRoute || this.isCivilRoute || this.isPhotosRoute) {
       this.isLoadingInvitation = false;
       return;
     }
@@ -1379,6 +1383,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         reason: 'invalid-route',
       };
     }
+
+    if (normalizedSegments[0] === 'fotos') return { kind: 'photos', segment: 'fotos' };
 
     if (normalizedSegments[0] === 'admin') {
       return {

@@ -131,7 +131,7 @@
     background: transparent;
     box-shadow: none;
   }
-  .admin-dashboard > :not(.admin-panels) {
+  .admin-dashboard > :not(.admin-panels):not(.admin-photo-panel) {
     flex-shrink: 0;
   }
   .admin-panels {
@@ -618,3 +618,18 @@
 @media (max-width: 1000px) and (max-height: 500px) {
   .admin-backoffice .admin-toolbar { display: none; }
 }
+
+// Photo gallery shares the dashboard height without clipping its content.
+.admin-backoffice .admin-photo-panel {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #c6a5da transparent;
+  margin-top: 12px;
+}
+.admin-backoffice .admin-photo-panel:focus-visible { outline: 2px solid #a789b7; outline-offset: -2px; }

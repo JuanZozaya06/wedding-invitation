@@ -1,4 +1,6 @@
-@if (showNotFoundState) {
+@if (isPhotosRoute) {
+  <app-photos />
+} @else if (showNotFoundState) {
   <main class="not-found-shell">
     <section class="not-found-card">
       <p class="eyebrow">Gabriela &amp; Juan</p>
@@ -165,6 +167,9 @@
             >
               <svg class="admin-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11a8 8 0 0 1-8 8H7l-4 3V5a2 2 0 0 1 2-2h8a8 8 0 0 1 8 8Z"/><path d="M7 8h9M7 12h6"/></svg><span>Mensajes</span>
             </button>
+            <button type="button" [class.is-active]="activeAdminTab === 'photos'"
+              [attr.aria-current]="activeAdminTab === 'photos' ? 'page' : null"
+              (click)="setAdminTab('photos')"><svg class="admin-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m3 16 5-4 4 3 4-5 5 6"/></svg><span>Fotos</span></button>
             <button type="button" [class.is-active]="activeAdminTab === 'songs'"
               [attr.aria-current]="activeAdminTab === 'songs' ? 'page' : null"
               (click)="setAdminTab('songs')"><svg class="admin-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13M9 9l11-2"/><ellipse cx="6" cy="18" rx="3" ry="3"/><ellipse cx="17" cy="16" rx="3" ry="3"/></svg><span>Recomendaciones</span></button>
@@ -184,11 +189,11 @@
           <div class="admin-toolbar">
             <div>
               <p class="eyebrow">Panel privado · Gabriela &amp; Juan</p>
-              <h1>{{ { overview: 'Resumen de la boda', invitations: 'Invitaciones', confirmed: 'Invitados confirmados', messages: 'Mensajes', songs: 'Recomendaciones musicales', notes: 'Notas y restricciones' }[activeAdminTab] }}</h1>
-              <p class="backoffice-subtitle">{{ { overview: 'Toda la actividad de tus invitados, en un solo lugar.', invitations: 'Organiza los grupos y comparte su invitación.', confirmed: 'Las personas que nos acompañarán en este día.', messages: 'Sus palabras para la celebración.', songs: 'La música que quieren compartir con nosotros.', notes: 'Comentarios y necesidades de nuestros invitados.' }[activeAdminTab] }}</p>
+              <h1>{{ { photos: 'Fotos de la boda', overview: 'Resumen de la boda', invitations: 'Invitaciones', confirmed: 'Invitados confirmados', messages: 'Mensajes', songs: 'Recomendaciones musicales', notes: 'Notas y restricciones' }[activeAdminTab] }}</h1>
+              <p class="backoffice-subtitle">{{ { photos: 'Los recuerdos compartidos por nuestros invitados.', overview: 'Toda la actividad de tus invitados, en un solo lugar.', invitations: 'Organiza los grupos y comparte su invitación.', confirmed: 'Las personas que nos acompañarán en este día.', messages: 'Sus palabras para la celebración.', songs: 'La música que quieren compartir con nosotros.', notes: 'Comentarios y necesidades de nuestros invitados.' }[activeAdminTab] }}</p>
             </div>
 
-            <div class="admin-desktop-actions"><ng-container *ngTemplateOutlet="adminActions" /></div>
+            @if (activeAdminTab !== 'photos') { <div class="admin-desktop-actions"><ng-container *ngTemplateOutlet="adminActions" /></div> }
           </div>
 
           @if (invitationEditorSuccess) {
@@ -338,7 +343,7 @@
             <p class="admin-error">{{ adminKeyError }}</p>
           }
 
-          <div class="admin-desktop-stats"><ng-container *ngTemplateOutlet="adminCounts" /></div>
+          @if (activeAdminTab !== 'photos') { <div class="admin-desktop-stats"><ng-container *ngTemplateOutlet="adminCounts" /></div> }
 
           <section class="admin-filters">
             <label class="admin-search">
@@ -347,13 +352,18 @@
                 name="adminSearchTerm"
                 type="text"
                 [(ngModel)]="adminSearchTerm"
-                placeholder="Grupo, token o invitado"
+                [placeholder]="activeAdminTab === 'photos' ? 'Nombre, mensaje o archivo' : 'Grupo, token o invitado'"
               />
             </label>
           </section>
 
 
 
+          @if (activeAdminTab === "photos") {
+            <section class="admin-photo-panel" aria-label="Fotos recibidas" tabindex="0">
+              <app-photos [admin]="true" [adminKey]="adminKey" [searchTerm]="adminSearchTerm" />
+            </section>
+          }
           @if (activeAdminTab === "overview") {
             <section class="admin-panels">
               <article class="admin-panel admin-overview-opened">
@@ -1279,6 +1289,8 @@
         </div>
         <p class="eyebrow">Fin del cap&iacute;tulo</p>
         <h2>Gracias por ser parte de nuestra historia</h2>
+        <a class="primary-button" href="fotos">Comparte tus fotos</a>
+
         <p class="final-fairytale-copy">Y fueron felices para siempre...</p>
         <img
           class="final-image"

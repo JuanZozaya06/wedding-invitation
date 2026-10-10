@@ -1,0 +1,89 @@
+@if (admin) {
+  <section class="album" aria-label="Galería de fotos">
+    <div class="album-toolbar">
+      <p role="status">{{ filteredItems.length }} {{ filteredItems.length === 1 ? 'foto' : 'fotos' }}@if (demo && searchTerm.trim()) { de {{ items.length }} } <span class="demo-tag">{{ demo ? 'Prueba local' : available ? 'Álbum privado' : 'Sin conectar' }}</span></p>
+      @if (available) { <button class="album-refresh" type="button" (click)="refresh()" [disabled]="loading">{{ loading ? 'Cargando…' : 'Actualizar fotos' }}</button> }
+    </div>
+    @if (error) { <p class="error" role="alert">{{ error }}</p> }
+    @if (loading && !items.length) {
+      <p class="album-empty" role="status">Cargando fotos…</p>
+    } @else if (filteredItems.length) {
+      <div class="album-grid">
+        @for (item of filteredItems; track item.id) {
+          <article class="album-card">
+            <button type="button" class="album-thumbnail" [disabled]="!item.url && item.preview" (click)="selected = item" [attr.aria-label]="'Ver foto de ' + (item.name || 'Un invitado')">
+              @if (item.preview && item.url) { <img [src]="item.url" [alt]="item.file.name" loading="lazy" (error)="item.preview = false" /> }
+              @else { <span class="unavailable">{{ item.preview ? 'Cargando foto…' : 'Vista previa no disponible' }}<br />{{ item.file.name }}</span> }
+            </button>
+            <div class="album-caption">
+              <strong>{{ item.name || 'Un invitado' }}</strong>
+              @if (item.message) { <p>{{ item.message }}</p> }
+              @if (item.createdAt) { <time [attr.datetime]="item.createdAt">{{ formatDate(item.createdAt) }}</time> }
+              <a [href]="item.url || '#'" [download]="item.file.name" (click)="download(item, $event)" [attr.aria-label]="'Descargar ' + item.file.name">{{ downloading === item.id ? 'Descargando…' : 'Descargar original' }}</a>
+            </div>
+          </article>
+        }
+      </div>
+    } @else if (searchTerm.trim() && (items.length || available)) {
+      <p class="album-empty" role="status">No hay fotos que coincidan con «{{ searchTerm }}».</p>
+    } @else {
+      <p class="album-empty">{{ connecting ? 'Conectando con el álbum…' : demo ? 'Todavía no hay fotos de prueba en este navegador.' : available ? 'Todavía no han compartido fotos.' : 'La recepción de fotos aún no está conectada.' }}</p>
+    }
+    @if (!demo && nextCursor) { <button class="album-refresh" type="button" [disabled]="loading" (click)="refresh(true)">{{ loading ? 'Cargando…' : 'Cargar más fotos' }}</button> }
+  </section>
+  @if (selected; as item) {
+    <dialog #photoDialog class="photo-dialog" aria-label="Detalle de foto" (cancel)="$event.preventDefault(); selected = null" (click)="$event.target === $event.currentTarget && (selected = null)">
+      <button type="button" class="dialog-close" aria-label="Cerrar foto" (click)="selected = null">×</button>
+      @if (item.preview) { <img class="full-photo" [src]="item.url" [alt]="item.file.name" (error)="item.preview = false" /> }
+      @else { <p class="unavailable">Este formato no tiene vista previa. Puedes descargar el original.</p> }
+      <div class="album-caption">
+        <strong>{{ item.name || 'Un invitado' }}</strong>
+        @if (item.message) { <p>{{ item.message }}</p> }
+        @if (item.createdAt) { <time [attr.datetime]="item.createdAt">{{ formatDate(item.createdAt) }}</time> }
+        <a [href]="item.url || '#'" [download]="item.file.name" (click)="download(item, $event)">{{ downloading === item.id ? 'Descargando…' : 'Descargar original' }}</a>
+      </div>
+    </dialog>
+  }
+} @else {
+<main class="photo-shell">
+  <header><a class="monogram" href="./" aria-label="Gabriela y Juan">G<span>&</span>J</a><span class="header-note">Un día para recordar</span></header>
+  <section class="intro"><p class="eyebrow">Los recuerdos también los haces tú</p>
+    <h1>Tu mirada, nuestra historia.</h1>
+    <p>Las risas, los abrazos y ese instante que solo tú viste. Comparte tus fotos con nosotros.</p>
+    <span class="signature">Con amor, Gabriela & Juan</span>
+  </section>
+  @if (demo || !available) { <p class="notice" role="status">{{ connecting ? 'Preparando el álbum…' : demo ? 'Modo de prueba · Las fotos se guardan solo en este navegador. No se envían a Drive y no se comparten entre dispositivos.' : 'Estamos preparando nuestro álbum. Intenta nuevamente más tarde.' }}</p> }
+  @if (!admin) {
+    <section class="upload-card">
+      <div class="camera" aria-hidden="true">✧</div><h2>Guarda aquí ese momento</h2><p>Originales, espontáneas, inolvidables.</p>
+      <label class="pick" [class.disabled]="busy || !available">Elegir mis fotos<input type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple [disabled]="busy || !available" (change)="select($event)" /></label>
+      <small>Hasta 20 fotos · 20 MB por foto · Sin crear una cuenta</small>
+    </section>
+  }
+  @if (items.length) {
+    <section class="selection"><div class="section-title"><h2>Tus recuerdos</h2><span>{{ items.length }} fotos</span></div>
+      <div class="photo-grid">@for (item of items; track item.id) {
+        <article class="photo"><div class="frame">@if (item.preview) { <img [src]="item.url" [alt]="item.file.name" loading="lazy" (error)="item.preview = false" /> } @else { <span class="unavailable">Original disponible<br />{{ item.file.name }}</span> }
+          @if (!admin && !busy && item.state !== 'done') { <button class="remove" (click)="remove(item)" [attr.aria-label]="'Quitar ' + item.file.name">×</button> }
+        </div>
+        <span class="photo-status" aria-live="polite">{{ item.state === 'done' ? (demo ? 'Guardada en este navegador ✓' : 'Foto compartida ✓') : item.state === 'error' ? 'Error · Reintentar' : item.state === 'saving' ? (item.progress >= 90 ? 'Guardando foto…' : 'Subiendo… ' + item.progress + '%') : item.file.name }}</span>
+        </article>
+      }</div>
+    </section>
+    @if (!admin) {
+      <section class="details"><h2>Una firma para tus recuerdos</h2><p>Estos detalles acompañarán todas las fotos de esta tanda.</p>
+        <label>Tu nombre <span>(opcional)</span><input maxlength="100" autocomplete="name" [(ngModel)]="name" [disabled]="busy || !!remoteBatch || !pending" placeholder="¿Quién estuvo detrás de la cámara?" /></label>
+        <label>Unas palabras para nosotros <span>(opcional)</span><textarea maxlength="1000" rows="3" [(ngModel)]="message" [disabled]="busy || !!remoteBatch || !pending" placeholder="Un deseo, una anécdota, un poquito de cariño…"></textarea></label>
+        @if (pending) {
+          <button class="submit" [disabled]="busy" (click)="send()">{{ busy ? (demo ? 'Guardando fotos de prueba…' : 'Compartiendo fotos…') : (demo ? 'Guardar tanda de prueba' : 'Compartir mis fotos') }}</button>
+          @if (remoteBatch && !busy) { <button class="album-refresh" type="button" (click)="reset()">Comenzar otra tanda</button> }
+        }
+        @else { <div class="thanks" role="status"><h3>¡Gracias por compartir tu mirada!</h3><p>{{ demo ? 'La tanda de prueba está guardada en este navegador.' : 'Tus fotos ya están en nuestro álbum privado.' }}</p><button class="submit" (click)="reset()">Elegir más fotos</button></div> }
+      </section>
+    }
+  }
+  @if (error) { <p class="error" role="alert">{{ error }}</p> }
+  <footer>Un instante tuyo. Un recuerdo para siempre.<span>G & J</span></footer>
+</main>
+
+}

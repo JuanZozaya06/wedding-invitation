@@ -1,0 +1,77 @@
+ :host{display:block;color:#493d53;font-family:inherit}
+.photo-shell{min-height:100vh;background:radial-gradient(ellipse at 10% 20%,#eae2f2 0,transparent 45%),radial-gradient(ellipse at 100% 70%,#eee8db 0,transparent 50%),#fcfaf6;padding:24px max(20px,calc((100vw - 840px)/2));box-sizing:border-box}
+header{display:flex;justify-content:space-between;align-items:center}
+.monogram{font-family:Georgia,serif;font-size:32px;text-decoration:none;color:#725484;letter-spacing:-3px}
+.monogram span{font-style:italic;font-size:24px;padding:0 4px}
+.header-note{font-size:11px;text-transform:uppercase;letter-spacing:2px}
+.intro{text-align:center;max-width:580px;margin:64px auto 32px}
+.eyebrow{text-transform:uppercase;font-size:10px;letter-spacing:3px;color:#82658b}
+h1{font-family:Georgia,serif;font-weight:400;font-size:clamp(42px,7vw,64px);line-height:1.08;margin:20px 0}
+p{line-height:1.7}
+.intro>p:not(.eyebrow){max-width:420px;margin:22px auto;color:#766c7c}
+.signature{display:block;font-family:Georgia,serif;font-style:italic;color:#82658b;margin:24px}
+.notice{font-size:12px;text-align:center;background:#eee7f3;border:1px solid #dfd3e8;padding:12px 18px;border-radius:12px;line-height:1.5}
+.upload-card{text-align:center;background:#ffffffb5;border:1px solid #ded3e3;border-radius:24px;padding:34px 20px;margin:24px 0;box-shadow:0 12px 40px #6b4b7d08}
+.camera{font-size:42px;color:#a285b0}
+h2{font-family:Georgia,serif;font-weight:400;font-size:25px;margin:12px 0}
+.upload-card p,.details p{font-size:14px;color:#766c7c}
+.pick,.submit{display:block;box-sizing:border-box;background:#78588b;color:white;border:0;border-radius:12px;padding:17px 24px;font:inherit;font-weight:600;cursor:pointer;text-align:center;margin:22px auto 14px;max-width:360px;width:100%;position:relative}
+.pick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.pick:focus-within,button:focus-visible,a:focus-visible{outline:3px solid #b69ac9;outline-offset:4px}
+.disabled,button:disabled{opacity:.55;cursor:not-allowed}
+small{font-size:11px;color:#877b8d}
+.section-title{display:flex;justify-content:space-between;align-items:center}
+.section-title span{font-size:12px}
+.photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.photo{background:white;padding:9px 9px 15px;border-radius:5px;box-shadow:0 4px 15px #53415d0b;min-width:0}
+.frame{aspect-ratio:1;position:relative;background:#eee8f1;display:grid;place-items:center;overflow:hidden}
+.frame img{width:100%;height:100%;object-fit:cover}
+.remove{position:absolute;right:4px;top:4px;width:44px;height:44px;border-radius:50%;border:0;background:#fffef4e8;font-size:25px;color:#493d53;cursor:pointer}
+.photo-status{display:block;font-size:10px;margin-top:10px;overflow-wrap:anywhere}
+.unavailable{text-align:center;font-size:11px;overflow-wrap:anywhere;padding:8px}
+.details{margin:32px 0;padding:24px;background:#ffffff80;border-radius:20px}
+.details label{display:block;font-size:13px;margin-top:22px}
+.details label span{color:#918496;font-size:11px}
+.details input,.details textarea{display:block;box-sizing:border-box;width:100%;margin-top:9px;border:1px solid #dfd4e4;background:#fffdfb;border-radius:10px;padding:14px;font:inherit;color:inherit}
+.details input:focus,.details textarea:focus{outline:2px solid #a789b7}
+.thanks{text-align:center}
+.error{color:#923e48;background:#fff0ee;padding:16px;border-radius:12px}
+footer{text-align:center;font-family:Georgia,serif;font-style:italic;font-size:13px;color:#918496;padding:42px 0 16px}
+footer span{display:block;letter-spacing:5px;margin-top:20px;font-style:normal}
+.photo blockquote{margin:8px 0;font-size:12px;overflow-wrap:anywhere}
+.photo a{font-size:12px;color:#78588b}
+.photo p{font-size:13px;margin:8px 0}
+.admin-view{min-height:0;border-radius:20px;padding:24px}
+.admin-view .intro{margin-top:24px}
+@media(max-width:540px){.photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.intro{margin-top:48px}
+.header-note{font-size:9px;letter-spacing:1px}
+.details{padding:20px 16px}
+.photo-shell{padding-left:18px;padding-right:18px}
+}
+
+.album { padding: 0 2px 12px; }
+.album-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.album-toolbar p { margin: 0; font-size: 13px; }
+.demo-tag { display: inline-block; margin-left: 8px; color: #78588b; background: #eee7f3; border-radius: 6px; padding: 3px 7px; font-size: 11px; }
+.album-refresh { min-height: 44px; border: 1px solid #dfcce9; border-radius: 8px; background: #fffdfb; color: #724798; font-size: 13px; padding: 8px 12px; cursor: pointer; }
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 16px; align-items: start; }
+.album-card { min-width: 0; border: 1px solid #e9e0ed; border-radius: 12px; background: #fff; overflow: hidden; }
+.album-thumbnail { display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3; border: 0; padding: 0; background: #eee8f1; cursor: zoom-in; }
+.album-thumbnail img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.album-caption { padding: 12px; overflow-wrap: anywhere; }
+.album-caption strong { display: block; font-size: 14px; }
+.album-caption p { font-size: 13px; line-height: 1.5; margin: 6px 0; white-space: pre-wrap; }
+.album-caption time { display: block; color: #766c7c; font-size: 11px; margin-top: 6px; }
+.album-caption a { display: inline-flex; align-items: center; min-height: 44px; color: #724798; font-size: 13px; }
+.album-empty { padding: 24px 16px; background: #fff; border: 1px solid #e9e0ed; border-radius: 12px; font-size: 14px; text-align: center; }
+.photo-dialog { width: min(900px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); border: 1px solid #dfcce9; border-radius: 16px; padding: 52px 16px 16px; color: inherit; background: #fffdfb; overflow-y: auto; overscroll-behavior: contain; }
+.photo-dialog::backdrop { background: #211629b3; }
+.dialog-close { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #eee7f3; color: #493d53; font-size: 28px; cursor: pointer; }
+.full-photo { display: block; width: 100%; max-height: 65dvh; object-fit: contain; background: #eee8f1; }
+@media (max-width: 540px) {
+  .album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .album-caption { padding: 10px; }
+  .photo-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); padding: 52px 8px 8px; }
+}
+@media (max-width: 359px) { .album-grid { grid-template-columns: 1fr; } }

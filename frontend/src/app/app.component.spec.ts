@@ -35,8 +35,8 @@ describe('AppComponent', () => {
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelector('.backoffice-sidebar')).not.toBeNull();
     const buttons = element.querySelectorAll<HTMLButtonElement>('.backoffice-nav > button');
-    expect(buttons.length).toBe(6);
-    expect(element.querySelectorAll('.admin-nav-icon').length).toBe(6);
+    expect(buttons.length).toBe(7);
+    expect(element.querySelectorAll('.admin-nav-icon').length).toBe(7);
     const menuToggle = element.querySelector<HTMLButtonElement>('#admin-menu-toggle')!;
     menuToggle.click();
     fixture.detectChanges();

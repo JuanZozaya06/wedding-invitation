@@ -40,3 +40,6 @@ typings/
 # System files
 .DS_Store
 Thumbs.db
+
+# Backend maintained in its own repository: JuanZozaya06/wedding-backend
+/backend/
