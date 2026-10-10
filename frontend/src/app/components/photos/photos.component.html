@@ -65,10 +65,14 @@
   @if (step === 'select') {
     <section class="upload-card step-card">
       <div class="camera" aria-hidden="true">✧</div><h2 #stepTitle tabindex="-1">Elige tus recuerdos</h2><p>Originales, espontáneas, inolvidables.</p>
-      <label class="pick" [class.pick-secondary]="items.length > 0" [class.disabled]="busy || !available">{{ items.length ? '+ Agregar más fotos' : 'Elegir mis fotos' }}<input type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple [disabled]="busy || !available" (change)="select($event)" /></label>
-      <small>Hasta 20 fotos · 20 MB por foto · Sin crear una cuenta</small>
+      @if (!items.length) {
+        <label class="pick" [class.disabled]="busy || !available">Elegir mis fotos<input type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple [disabled]="busy || !available" (change)="select($event)" /></label>
+      }
+      <small class="upload-limits">Hasta 20 fotos · 20 MB por foto · Sin crear una cuenta</small>
       @if (items.length) {
-        <div class="selection"><div class="section-title"><h3>Tus recuerdos</h3><span>{{ items.length }} {{ items.length === 1 ? 'foto' : 'fotos' }}</span></div>
+        <div class="selection"><div class="section-title"><div class="selection-summary"><h3>Tus recuerdos</h3><span>{{ items.length }} {{ items.length === 1 ? 'foto' : 'fotos' }}</span></div>
+          <label class="pick pick-secondary">+ Agregar fotos<input type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple (change)="select($event)" /></label>
+        </div>
           <ng-container *ngTemplateOutlet="selectedPhotos" />
         </div>
       }

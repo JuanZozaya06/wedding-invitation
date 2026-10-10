@@ -62,7 +62,7 @@ describe('Real photo flow', () => {
     const files = new DataTransfer(); files.items.add(new File(['photo'], 'recuerdo.jpg', { type: 'image/jpeg' }));
     const input = root.querySelector<HTMLInputElement>('input[type=file]')!;
     input.files = files.files; input.dispatchEvent(new Event('change')); fixture.detectChanges();
-    expect(root.querySelector('.pick-secondary')!.textContent).toContain('Agregar más fotos');
+    expect(root.querySelector('.section-title .pick-secondary')!.textContent).toContain('Agregar fotos');
     root.querySelector<HTMLButtonElement>('.submit')!.click(); fixture.detectChanges(); await fixture.whenStable();
     expect(component.step).toBe('details');
     expect(root.querySelector('input[type=file]')).toBeNull();
