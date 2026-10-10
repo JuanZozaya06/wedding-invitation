@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PhotoDemoService } from '../../services/photo-demo.service';
@@ -31,6 +31,13 @@ export class PhotosComponent implements OnInit, OnDestroy {
   private focusStep = false;
   get stepNumber(): number { return this.step === 'select' ? 1 : this.step === 'details' ? 2 : 3; }
   get sharedCount(): number { return this.items.filter(item => item.state === 'done').length; }
+
+  @HostListener('window:beforeunload', ['$event'])
+  protectUpload(event: BeforeUnloadEvent): void {
+    if (!this.busy) return;
+    event.preventDefault();
+    event.returnValue = '';
+  }
 
   @ViewChild('stepTitle')
   set stepTitle(title: ElementRef<HTMLElement> | undefined) {

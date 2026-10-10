@@ -90,6 +90,36 @@ describe('Real photo flow', () => {
     fixture.destroy();
   });
 
+  it('shows actual upload progress and protects the page only while a file is uploading', async () => {
+    const fixture = TestBed.createComponent(PhotosComponent);
+    fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const files = new DataTransfer(); files.items.add(new File(['photo'], 'recuerdo.jpg', { type: 'image/jpeg' }));
+    const input = fixture.nativeElement.querySelector('input[type=file]') as HTMLInputElement;
+    input.files = files.files; input.dispatchEvent(new Event('change'));
+    let reportProgress!: (value: number) => void;
+    let rejectUpload!: (reason: Error) => void;
+    api.upload.and.callFake((_batch: unknown, _id: string, _file: File, progress: (value: number) => void) => {
+      reportProgress = progress;
+      return new Promise<void>((_resolve, reject) => { rejectUpload = reject; });
+    });
+    const sending = component.send(); await Promise.resolve();
+    reportProgress(55); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('progress').value).toBe(55);
+    expect(fixture.nativeElement.textContent).toContain('Mantén esta página abierta');
+    expect(fixture.nativeElement.textContent).toContain('Subiendo… 55%');
+    const leaving = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
+    component.protectUpload(leaving); expect(leaving.defaultPrevented).toBeTrue();
+    reportProgress(90); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Guardando foto…');
+    rejectUpload(new Error('Sin conexión')); await sending; fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('progress.failed')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.upload-notice')).toBeNull();
+    const afterUpload = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
+    component.protectUpload(afterUpload); expect(afterUpload.defaultPrevented).toBeFalse();
+    fixture.destroy();
+  });
+
   it('disables selection when the backend is unavailable', async () => {
     api.initialize.and.resolveTo(false);
     const fixture = TestBed.createComponent(PhotosComponent);

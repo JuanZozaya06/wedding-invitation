@@ -31,6 +31,11 @@ small{font-size:11px;color:#877b8d}
 .frame img{width:100%;height:100%;object-fit:cover}
 .remove{position:absolute;right:4px;top:4px;width:44px;height:44px;border-radius:50%;border:0;background:#fffef4e8;font-size:25px;color:#493d53;cursor:pointer}
 .photo-status{display:block;font-size:10px;margin-top:10px;overflow-wrap:anywhere}
+.photo-progress{display:block;width:100%;height:6px;margin-top:10px;border:0;border-radius:99px;overflow:hidden;appearance:none;background:#eee7f3;accent-color:#78588b;color:#78588b}
+.photo-progress::-webkit-progress-bar{background:#eee7f3;border-radius:99px}.photo-progress::-webkit-progress-value{background:#78588b;border-radius:99px;transition:width .2s ease}.photo-progress::-moz-progress-bar{background:#78588b;border-radius:99px}
+.photo-progress.complete{accent-color:#52745a;color:#52745a}.photo-progress.complete::-webkit-progress-value{background:#52745a}.photo-progress.complete::-moz-progress-bar{background:#52745a}
+.photo-progress.failed{accent-color:#923e48;color:#923e48}.photo-progress.failed::-webkit-progress-value{background:#923e48}.photo-progress.failed::-moz-progress-bar{background:#923e48}
+.upload-notice{background:#f4eef7;border:1px solid #dfd4e4;border-radius:12px;padding:14px 16px;font-size:13px;color:#68467e}.upload-notice strong,.upload-notice span{display:block}.upload-notice span{margin-top:4px}
 .unavailable{text-align:center;font-size:11px;overflow-wrap:anywhere;padding:8px}
 .details{margin:32px 0;padding:24px;background:#ffffff80;border-radius:20px}
 .details label{display:block;font-size:13px;margin-top:22px}

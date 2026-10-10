@@ -89,6 +89,7 @@
     <section class="review step-card" [attr.aria-busy]="busy">
       <p class="eyebrow">Paso 3 de 3</p><h2 #stepTitle tabindex="-1">Todo listo para compartir</h2><p class="step-description">{{ items.length }} {{ items.length === 1 ? 'recuerdo para nuestro álbum' : 'recuerdos para nuestro álbum' }}.</p>
       <div class="review-signature"><strong>{{ name.trim() || 'Un invitado' }}</strong>@if (message.trim()) { <p>{{ message.trim() }}</p> } @else { <p class="no-message">Sin mensaje</p> }</div>
+      @if (busy) { <p class="upload-notice" role="status"><strong>{{ sharedCount }} de {{ items.length }} {{ items.length === 1 ? 'foto guardada' : 'fotos guardadas' }}</strong><span>Mantén esta página abierta hasta que termine la subida.</span></p> }
       <ng-container *ngTemplateOutlet="selectedPhotos" />
       @if (error) { <p class="error" role="alert">{{ error }}</p> }
       <div class="step-actions"><button type="button" class="submit" [disabled]="busy || !pending" (click)="send()">{{ busy ? (demo ? 'Guardando fotos de prueba…' : 'Compartiendo fotos…') : sharedCount || remoteBatch ? 'Reintentar fotos pendientes' : demo ? 'Guardar tanda de prueba' : 'Confirmar y compartir' }}</button>
@@ -109,7 +110,8 @@
         <article class="photo"><div class="frame">@if (item.preview) { <img [src]="item.url" [alt]="item.file.name" loading="lazy" (error)="item.preview = false" /> } @else { <span class="unavailable">Original disponible<br />{{ item.file.name }}</span> }
           @if (step === 'select') { <button type="button" class="remove" (click)="remove(item)" [attr.aria-label]="'Quitar ' + item.file.name">×</button> }
         </div>
-        <span class="photo-status" aria-live="polite">{{ item.state === 'done' ? (demo ? 'Guardada en este navegador ✓' : 'Foto compartida ✓') : item.state === 'error' ? 'Error · Reintentar' : item.state === 'saving' ? (item.progress >= 90 ? 'Guardando foto…' : 'Subiendo… ' + item.progress + '%') : item.file.name }}</span>
+        @if (step === 'review') { <progress class="photo-progress" [class.complete]="item.state === 'done'" [class.failed]="item.state === 'error'" max="100" [value]="item.progress" [attr.aria-label]="'Progreso de ' + item.file.name"></progress> }
+        <span class="photo-status" aria-live="polite">{{ item.state === 'done' ? (demo ? 'Guardada en este navegador ✓' : 'Foto compartida ✓') : item.state === 'error' ? 'Error · Reintentar' : item.state === 'saving' ? (item.progress >= 90 ? 'Guardando foto…' : 'Subiendo… ' + item.progress + '%') : step === 'review' ? 'Pendiente' : item.file.name }}</span>
         </article>
     }</div>
   </ng-template>
