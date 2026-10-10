@@ -18,14 +18,14 @@ export class PhotoApiService {
   initialize(): Promise<boolean> {
     return this.initialization ??= (async () => {
       if (this.demo) return true;
-      if (isDevMode() && ['127.0.0.1', 'localhost'].includes(location.hostname)) {
+      const config = await fetch(`${document.baseURI}photos-config.json`, { cache: 'no-store' });
+      const value = config.ok ? (await config.json()).apiBaseUrl : '';
+      if (typeof value === 'string' && value.startsWith('https://')) {
+        this.base = value.replace(/\/$/, '');
+      } else if (isDevMode() && ['127.0.0.1', 'localhost'].includes(location.hostname) && !value) {
         this.base = 'http://127.0.0.1:8000';
       } else {
-        const config = await fetch(`${document.baseURI}photos-config.json`, { cache: 'no-store' });
-        if (!config.ok) return false;
-        const value = (await config.json()).apiBaseUrl;
-        if (typeof value !== 'string' || !value.startsWith('https://')) return false;
-        this.base = value.replace(/\/$/, '');
+        return false;
       }
       const health = await this.request('/health');
       return health.uploads_enabled === true;

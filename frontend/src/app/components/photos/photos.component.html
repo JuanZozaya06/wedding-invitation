@@ -45,45 +45,70 @@
     </dialog>
   }
 } @else {
-<main class="photo-shell">
+<main class="photo-shell" [class.photo-shell-compact]="step !== 'select'">
   <header><a class="monogram" href="./" aria-label="Gabriela y Juan">G<span>&</span>J</a><span class="header-note">Un día para recordar</span></header>
+  @if (step === 'select') {
   <section class="intro"><p class="eyebrow">Los recuerdos también los haces tú</p>
     <h1>Tu mirada, nuestra historia.</h1>
     <p>Las risas, los abrazos y ese instante que solo tú viste. Comparte tus fotos con nosotros.</p>
     <span class="signature">Con amor, Gabriela & Juan</span>
   </section>
+  }
   @if (demo || !available) { <p class="notice" role="status">{{ connecting ? 'Preparando el álbum…' : demo ? 'Modo de prueba · Las fotos se guardan solo en este navegador. No se envían a Drive y no se comparten entre dispositivos.' : 'Estamos preparando nuestro álbum. Intenta nuevamente más tarde.' }}</p> }
-  @if (!admin) {
-    <section class="upload-card">
-      <div class="camera" aria-hidden="true">✧</div><h2>Guarda aquí ese momento</h2><p>Originales, espontáneas, inolvidables.</p>
+  @if (step !== 'done') {
+    <ol class="photo-steps" aria-label="Pasos para compartir fotos">
+      <li [class.current]="stepNumber === 1" [class.completed]="stepNumber > 1" [attr.aria-current]="stepNumber === 1 ? 'step' : null"><span>1</span>Fotos</li>
+      <li [class.current]="stepNumber === 2" [class.completed]="stepNumber > 2" [attr.aria-current]="stepNumber === 2 ? 'step' : null"><span>2</span>Tu firma</li>
+      <li [class.current]="stepNumber === 3" [attr.aria-current]="stepNumber === 3 ? 'step' : null"><span>3</span>Confirmar</li>
+    </ol>
+  }
+  @if (step === 'select') {
+    <section class="upload-card step-card">
+      <div class="camera" aria-hidden="true">✧</div><h2 #stepTitle tabindex="-1">Elige tus recuerdos</h2><p>Originales, espontáneas, inolvidables.</p>
       <label class="pick" [class.disabled]="busy || !available">Elegir mis fotos<input type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple [disabled]="busy || !available" (change)="select($event)" /></label>
       <small>Hasta 20 fotos · 20 MB por foto · Sin crear una cuenta</small>
+      @if (items.length) {
+        <div class="selection"><div class="section-title"><h3>Tus recuerdos</h3><span>{{ items.length }} {{ items.length === 1 ? 'foto' : 'fotos' }}</span></div>
+          <ng-container *ngTemplateOutlet="selectedPhotos" />
+        </div>
+      }
+      <button type="button" class="submit" [disabled]="!items.length || !available" (click)="goToStep('details')">Continuar</button>
+    </section>
+  } @else if (step === 'details') {
+    <section class="details step-card">
+      <p class="eyebrow">Paso 2 de 3</p><h2 #stepTitle tabindex="-1">Una firma para tus recuerdos</h2><p>Tu nombre y mensaje acompañarán las {{ items.length === 1 ? 'foto que elegiste' : items.length + ' fotos que elegiste' }}.</p>
+      <label>Tu nombre <span>(opcional)</span><input maxlength="100" autocomplete="name" [(ngModel)]="name" placeholder="¿Quién estuvo detrás de la cámara?" /></label>
+      <label>Unas palabras para nosotros <span>(opcional)</span><textarea maxlength="1000" rows="4" [(ngModel)]="message" placeholder="Un deseo, una anécdota, un poquito de cariño…"></textarea></label>
+      <div class="step-actions"><button type="button" class="submit" (click)="goToStep('review')">Revisar mis fotos</button><button type="button" class="step-back" (click)="goToStep('select')">Volver a las fotos</button></div>
+    </section>
+  } @else if (step === 'review') {
+    <section class="review step-card" [attr.aria-busy]="busy">
+      <p class="eyebrow">Paso 3 de 3</p><h2 #stepTitle tabindex="-1">Todo listo para compartir</h2><p class="step-description">{{ items.length }} {{ items.length === 1 ? 'recuerdo para nuestro álbum' : 'recuerdos para nuestro álbum' }}.</p>
+      <div class="review-signature"><strong>{{ name.trim() || 'Un invitado' }}</strong>@if (message.trim()) { <p>{{ message.trim() }}</p> } @else { <p class="no-message">Sin mensaje</p> }</div>
+      <ng-container *ngTemplateOutlet="selectedPhotos" />
+      @if (error) { <p class="error" role="alert">{{ error }}</p> }
+      <div class="step-actions"><button type="button" class="submit" [disabled]="busy || !pending" (click)="send()">{{ busy ? (demo ? 'Guardando fotos de prueba…' : 'Compartiendo fotos…') : sharedCount || remoteBatch ? 'Reintentar fotos pendientes' : demo ? 'Guardar tanda de prueba' : 'Confirmar y compartir' }}</button>
+        @if (!remoteBatch) { <button type="button" class="step-back" [disabled]="busy" (click)="goToStep('details')">Editar nombre y mensaje</button> }
+        @else if (!busy) { <button type="button" class="step-back" (click)="reset()">Comenzar otra tanda</button> }
+      </div>
+    </section>
+  } @else {
+    <section class="thanks step-card" role="status">
+      <span class="thanks-mark" aria-hidden="true">✓</span><h2 #stepTitle tabindex="-1">¡Gracias por compartir tu mirada!</h2><p>{{ demo ? 'Tus recuerdos están guardados en este navegador.' : 'Tus recuerdos ya están en nuestro álbum privado.' }}</p><span class="signature">Con amor, Gabriela & Juan</span><button type="button" class="add-more" (click)="reset()">+ Agregar más fotos</button>
     </section>
   }
-  @if (items.length) {
-    <section class="selection"><div class="section-title"><h2>Tus recuerdos</h2><span>{{ items.length }} fotos</span></div>
-      <div class="photo-grid">@for (item of items; track item.id) {
+  @if (error && step !== 'review') { <p class="error" role="alert">{{ error }}</p> }
+  <footer>Un instante tuyo. Un recuerdo para siempre.<span>G & J</span></footer>
+
+  <ng-template #selectedPhotos>
+    <div class="photo-grid" [class.review-grid]="step === 'review'">@for (item of items; track item.id) {
         <article class="photo"><div class="frame">@if (item.preview) { <img [src]="item.url" [alt]="item.file.name" loading="lazy" (error)="item.preview = false" /> } @else { <span class="unavailable">Original disponible<br />{{ item.file.name }}</span> }
-          @if (!admin && !busy && item.state !== 'done') { <button class="remove" (click)="remove(item)" [attr.aria-label]="'Quitar ' + item.file.name">×</button> }
+          @if (step === 'select') { <button type="button" class="remove" (click)="remove(item)" [attr.aria-label]="'Quitar ' + item.file.name">×</button> }
         </div>
         <span class="photo-status" aria-live="polite">{{ item.state === 'done' ? (demo ? 'Guardada en este navegador ✓' : 'Foto compartida ✓') : item.state === 'error' ? 'Error · Reintentar' : item.state === 'saving' ? (item.progress >= 90 ? 'Guardando foto…' : 'Subiendo… ' + item.progress + '%') : item.file.name }}</span>
         </article>
-      }</div>
-    </section>
-    @if (!admin) {
-      <section class="details"><h2>Una firma para tus recuerdos</h2><p>Estos detalles acompañarán todas las fotos de esta tanda.</p>
-        <label>Tu nombre <span>(opcional)</span><input maxlength="100" autocomplete="name" [(ngModel)]="name" [disabled]="busy || !!remoteBatch || !pending" placeholder="¿Quién estuvo detrás de la cámara?" /></label>
-        <label>Unas palabras para nosotros <span>(opcional)</span><textarea maxlength="1000" rows="3" [(ngModel)]="message" [disabled]="busy || !!remoteBatch || !pending" placeholder="Un deseo, una anécdota, un poquito de cariño…"></textarea></label>
-        @if (pending) {
-          <button class="submit" [disabled]="busy" (click)="send()">{{ busy ? (demo ? 'Guardando fotos de prueba…' : 'Compartiendo fotos…') : (demo ? 'Guardar tanda de prueba' : 'Compartir mis fotos') }}</button>
-          @if (remoteBatch && !busy) { <button class="album-refresh" type="button" (click)="reset()">Comenzar otra tanda</button> }
-        }
-        @else { <div class="thanks" role="status"><h3>¡Gracias por compartir tu mirada!</h3><p>{{ demo ? 'La tanda de prueba está guardada en este navegador.' : 'Tus fotos ya están en nuestro álbum privado.' }}</p><button class="submit" (click)="reset()">Elegir más fotos</button></div> }
-      </section>
-    }
-  }
-  @if (error) { <p class="error" role="alert">{{ error }}</p> }
-  <footer>Un instante tuyo. Un recuerdo para siempre.<span>G & J</span></footer>
+    }</div>
+  </ng-template>
 </main>
 
 }

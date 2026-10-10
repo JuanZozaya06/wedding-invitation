@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { PhotoDemoService } from '../../services/photo-demo.service';
 import { PhotoApiService, UploadBatch } from '../../services/photo-api.service';
 type PhotoItem = { id: string; file: File; url: string; name: string; message: string; progress: number; state: 'ready' | 'saving' | 'done' | 'error'; preview: boolean; createdAt?: string; };
+type PhotoStep = 'select' | 'details' | 'review' | 'done';
 @Component({ selector: 'app-photos', standalone: true, imports: [CommonModule, FormsModule], templateUrl: './photos.component.html', styleUrls: ['./photos.component.scss'] })
 export class PhotosComponent implements OnInit, OnDestroy {
   @Input() admin = false;
@@ -26,6 +27,29 @@ export class PhotosComponent implements OnInit, OnDestroy {
   private generation = 0;
   selected: PhotoItem | null = null;
   private destroyed = false;
+  step: PhotoStep = 'select';
+  private focusStep = false;
+  get stepNumber(): number { return this.step === 'select' ? 1 : this.step === 'details' ? 2 : 3; }
+  get sharedCount(): number { return this.items.filter(item => item.state === 'done').length; }
+
+  @ViewChild('stepTitle')
+  set stepTitle(title: ElementRef<HTMLElement> | undefined) {
+    if (!title || !this.focusStep) return;
+    this.focusStep = false;
+    queueMicrotask(() => {
+      if (!this.destroyed && title.nativeElement.isConnected) {
+        title.nativeElement.focus({ preventScroll: true });
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    });
+  }
+
+  goToStep(step: 'select' | 'details' | 'review'): void {
+    if (this.busy || this.remoteBatch || (step !== 'select' && (!this.items.length || !this.available))) return;
+    this.error = '';
+    this.focusStep = true;
+    this.step = step;
+  }
 
   @ViewChild('photoDialog')
   set photoDialog(dialog: ElementRef<HTMLDialogElement> | undefined) {
@@ -126,6 +150,7 @@ export class PhotosComponent implements OnInit, OnDestroy {
   remove(item: PhotoItem): void { URL.revokeObjectURL(item.url); this.items = this.items.filter(p => p !== item); }
   async send(): Promise<void> {
     if (!this.available || this.busy || !this.pending) return;
+    this.step = 'review';
     this.busy = true; this.error = '';
     try {
       if (!this.demo && !this.remoteBatch) this.remoteBatch = await this.api.createBatch(this.name.trim(), this.message.trim());
@@ -139,8 +164,11 @@ export class PhotosComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'No pudimos preparar la tanda. Intenta nuevamente.';
-    } finally { this.busy = false; }
+    } finally {
+      this.busy = false;
+      if (!this.pending) { this.focusStep = true; this.step = 'done'; }
+    }
   }
-  reset(): void { this.items.forEach(p => URL.revokeObjectURL(p.url)); this.items = []; this.batchId = crypto.randomUUID(); this.remoteBatch = null; this.message = ''; this.error = ''; }
+  reset(): void { this.items.forEach(p => URL.revokeObjectURL(p.url)); this.items = []; this.batchId = crypto.randomUUID(); this.remoteBatch = null; this.message = ''; this.error = ''; this.focusStep = true; this.step = 'select'; }
   ngOnDestroy(): void { this.destroyed = true; clearTimeout(this.searchTimer); this.items.forEach(p => URL.revokeObjectURL(p.url)); }
 }
