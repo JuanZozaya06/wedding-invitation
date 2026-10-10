@@ -65,18 +65,18 @@
   @if (step === 'select') {
     <section class="upload-card step-card">
       <div class="camera" aria-hidden="true">✧</div><h2 #stepTitle tabindex="-1">Elige tus recuerdos</h2><p>Originales, espontáneas, inolvidables.</p>
-      <label class="pick" [class.disabled]="busy || !available">Elegir mis fotos<input type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple [disabled]="busy || !available" (change)="select($event)" /></label>
+      <label class="pick" [class.pick-secondary]="items.length > 0" [class.disabled]="busy || !available">{{ items.length ? '+ Agregar más fotos' : 'Elegir mis fotos' }}<input type="file" accept="image/jpeg,image/png,image/webp,.heic,.heif" multiple [disabled]="busy || !available" (change)="select($event)" /></label>
       <small>Hasta 20 fotos · 20 MB por foto · Sin crear una cuenta</small>
       @if (items.length) {
         <div class="selection"><div class="section-title"><h3>Tus recuerdos</h3><span>{{ items.length }} {{ items.length === 1 ? 'foto' : 'fotos' }}</span></div>
           <ng-container *ngTemplateOutlet="selectedPhotos" />
         </div>
       }
-      <button type="button" class="submit" [disabled]="!items.length || !available" (click)="goToStep('details')">Continuar</button>
+      @if (items.length) { <button type="button" class="submit" [disabled]="!available" (click)="goToStep('details')">Continuar</button> }
     </section>
   } @else if (step === 'details') {
     <section class="details step-card">
-      <p class="eyebrow">Paso 2 de 3</p><h2 #stepTitle tabindex="-1">Una firma para tus recuerdos</h2><p>Tu nombre y mensaje acompañarán las {{ items.length === 1 ? 'foto que elegiste' : items.length + ' fotos que elegiste' }}.</p>
+      <p class="eyebrow">Paso 2 de 3</p><h2 #stepTitle tabindex="-1">Una firma para tus recuerdos</h2><p>Tu nombre y mensaje acompañarán {{ items.length === 1 ? 'la foto que elegiste' : 'las ' + items.length + ' fotos que elegiste' }}.</p>
       <label>Tu nombre <span>(opcional)</span><input maxlength="100" autocomplete="name" [(ngModel)]="name" placeholder="¿Quién estuvo detrás de la cámara?" /></label>
       <label>Unas palabras para nosotros <span>(opcional)</span><textarea maxlength="1000" rows="4" [(ngModel)]="message" placeholder="Un deseo, una anécdota, un poquito de cariño…"></textarea></label>
       <div class="step-actions"><button type="button" class="submit" (click)="goToStep('review')">Revisar mis fotos</button><button type="button" class="step-back" (click)="goToStep('select')">Volver a las fotos</button></div>
