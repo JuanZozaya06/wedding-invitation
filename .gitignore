@@ -43,3 +43,12 @@ Thumbs.db
 
 # Backend maintained in its own repository: JuanZozaya06/wedding-backend
 /backend/
+
+# Commercial backend maintained in JuanZozaya06/wedding-backend-comercial
+/backend-comercial/
+
+# Private connection details and credential backups (local only)
+/.credenciales/
+
+# Local screenshots and verification artifacts
+/output/

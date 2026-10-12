@@ -41,6 +41,10 @@ jobs:
         working-directory: frontend
         run: npm run build -- --base-href=/
 
+      - name: Test Angular app
+        working-directory: frontend
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
       - name: Add SPA fallback
         run: cp frontend/dist/frontend/browser/index.html frontend/dist/frontend/browser/404.html
 

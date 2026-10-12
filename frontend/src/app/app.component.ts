@@ -1,3 +1,4 @@
+import { ApiError, CommercialApiService, WeddingDetails } from './services/commercial-api.service';
 import { PhotosComponent } from './components/photos/photos.component';
 import {
   AfterViewInit,
@@ -12,7 +13,6 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { buildRsvpDraft, createDemoInvitation } from './data/demo-invitation';
-import { isFirebaseConfigured } from './firebase/firebase.config';
 import {
   Guest,
   GuestWish,
@@ -26,10 +26,6 @@ import {
 import { PolaroidComponent } from './components/polaroid/polaroid.component';
 import { AttendanceStatusComponent } from './components/attendance-status/attendance-status.component';
 import { CivilInvitationComponent } from './components/civil-invitation/civil-invitation.component';
-
-type SeedWindow = Window & {
-  seedDemoInvitation?: () => Promise<void>;
-};
 
 type AdminStats = {
   invitations: number;
@@ -73,7 +69,7 @@ type AdminTextEntry = {
 type RouteResolution =
   | { kind: 'admin'; segment: 'admin' }
   | { kind: 'civil'; segment: 'civil' }
-  | { kind: 'photos'; segment: 'fotos' }
+  | { kind: 'photos'; segment: string }
   | { kind: 'invitation'; segment: string }
   | {
       kind: 'not-found';
@@ -133,6 +129,16 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly invitationService = inject(InvitationService);
+  readonly commercialApi = inject(CommercialApiService);
+  readonly commercial = this.commercialApi.enabled;
+  readonly weddingCode = this.commercialApi.weddingCode;
+  wedding: WeddingDetails | null = null;
+  get coupleNames(): string { return this.wedding ? `${this.wedding.partnerOne} & ${this.wedding.partnerTwo}` : this.commercial ? 'Nuestra boda' : 'Gabriela & Juan'; }
+  get monogram(): string { return this.wedding ? `${this.wedding.partnerOne[0]}&${this.wedding.partnerTwo[0]}` : this.commercial ? '♡' : 'G&J'; }
+  get weddingDate(): string {
+    const date = this.wedding?.events.find(e => e.kind === 'ceremony')?.startsAt;
+    return date ? new Intl.DateTimeFormat('es', { day: 'numeric', month: 'long', year: 'numeric', timeZone: this.wedding!.timezone }).format(new Date(date)) : this.commercial ? '' : '28 de noviembre de 2026';
+  }
   private readonly characterTransitionWindow = 0.02;
   private readonly celebrationTransitionWindow = 0.03;
   private reduceMotion = false;
@@ -170,6 +176,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly route = this.resolveRoute();
   readonly routeSegment = this.route.segment;
   readonly isPhotosRoute = this.route.kind === 'photos';
+  get photosUrl(): string { return this.commercialApi.invitationUrl(this.invitation.token) + '?fotos=1'; }
   readonly isAdminRoute = this.route.kind === 'admin';
   readonly isCivilRoute = this.route.kind === 'civil';
   readonly isNotFoundRoute = this.route.kind === 'not-found';
@@ -204,7 +211,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   wishSubmitted = false;
   isLoadingInvitation = true;
   invitationError = '';
-  readonly firebaseReady = isFirebaseConfigured();
 
   rsvp: RsvpDraft = buildRsvpDraft(this.invitation);
 
@@ -214,6 +220,10 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   };
 
   adminKey = '';
+  rsvpSaving = false;
+  wishSaving = false;
+  rsvpError = '';
+  wishError = '';
   invitationEditor: Invitation | null = null;
   invitationDetail: Invitation | null = null;
 
@@ -293,7 +303,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   adminInvitationUrl(token: string): string {
-    return new URL(encodeURIComponent(token), this.document.baseURI).href;
+    return this.commercial ? this.commercialApi.invitationUrl(token) : new URL(encodeURIComponent(token), this.document.baseURI).href;
   }
 
   removeEditorGuest(id: string): void {
@@ -323,18 +333,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.activeAdminTab = 'invitations';
       await this.refreshAdminDashboard();
     } catch (error) {
-      const code = typeof error === 'object' && error !== null && 'code' in error
-        ? String(error.code).replace(/^firestore\//, '') : '';
-      if (code === 'permission-denied') {
-        this.invitationEditorError = this.creatingInvitation
-          ? 'Firestore denegó el acceso para crear la invitación. Revisa los permisos de lectura y creación de la colección.'
-          : 'Firestore denegó el acceso para editar la invitación. Revisa los permisos de lectura y actualización de la colección.';
-      } else if (code === 'unavailable' || code === 'deadline-exceeded') {
-        this.invitationEditorError = 'No pudimos conectar con Firestore. Tus datos siguen aquí; vuelve a intentar guardar.';
-      } else {
-        this.invitationEditorError = error instanceof Error && !code
-          ? error.message : `No pudimos guardar la invitación${code ? ' (' + code + ')' : ''}. Tus datos siguen aquí; vuelve a intentarlo.`;
-      }
+      this.invitationEditorError = error instanceof Error ? error.message : 'No pudimos guardar. Tus datos siguen aquí; intenta nuevamente.';
+      if (error instanceof ApiError && error.status === 401) this.adminAccessGranted = false;
     } finally {
       this.invitationSaving = false;
     }
@@ -447,7 +447,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         : '';
       const search = window.location.search;
       window.location.assign(
-        `${prefix}/${encodeURIComponent(invitationCode)}${search}`,
+        this.commercial ? this.commercialApi.invitationUrl(invitationCode) : `${prefix}/${encodeURIComponent(invitationCode)}${search}`,
       );
     } catch (error) {
       if (error instanceof InvitationNotFoundError) {
@@ -464,7 +464,18 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-    this.registerDevSeed();
+    if (this.commercial && this.isAdminRoute) {
+      this.isLoadingInvitation = false;
+      this.adminLoading = true;
+      try {
+        this.applyWedding(await this.commercialApi.restore());
+        this.adminAccessGranted = true;
+        await this.refreshAdminDashboard();
+      } catch (error) {
+        if (!(error instanceof ApiError && error.status === 401)) this.adminKeyError = error instanceof Error ? error.message : 'No pudimos restaurar la sesión.';
+      } finally { this.adminLoading = false; }
+      return;
+    }
 
     if (this.isAdminRoute || this.isCivilRoute || this.isPhotosRoute) {
       this.isLoadingInvitation = false;
@@ -498,7 +509,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
       this.invitation.openedAt ?? new Date().toISOString();
     window.scrollTo({ top: openingScrollY, behavior: 'auto' });
 
-    void this.invitationService.markInvitationOpened(this.invitation.token);
+    void this.invitationService.markInvitationOpened(this.invitation.token).catch(() => { /* Opening remains available during transient telemetry failures. */ });
     void this.tryStartBackgroundMusic();
 
     this.afterLayoutSettles(() => {
@@ -779,28 +790,50 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async submitRsvp(): Promise<void> {
-    await this.invitationService.saveRsvp(this.invitation.token, this.rsvp);
-    this.submitted = true;
-    console.table({
-      token: this.invitation.token,
-      status: this.rsvp.status,
-      confirmedCount: this.confirmedGuests.length,
-      attendeeNames: this.confirmedGuests.map((guest) => guest.name).join(', '),
-      notes: this.rsvp.notes,
-    });
+    if (this.rsvpSaving) return;
+    this.rsvpSaving = true;
+    this.rsvpError = '';
+    this.submitted = false;
+    try { await this.invitationService.saveRsvp(this.invitation.token, this.rsvp); this.submitted = true; }
+    catch (error) { this.rsvpError = error instanceof Error ? error.message : 'No pudimos guardar la respuesta.'; }
+    finally { this.rsvpSaving = false; }
   }
 
   async submitWish(): Promise<void> {
-    await this.invitationService.saveGuestWish(
-      this.invitation.token,
-      this.guestWish,
-    );
-    this.wishSubmitted = true;
-    console.table({
-      token: this.invitation.token,
-      message: this.guestWish.message,
-      song: this.guestWish.song,
-    });
+    if (this.wishSaving) return;
+    this.wishSaving = true;
+    this.wishError = '';
+    this.wishSubmitted = false;
+    try { await this.invitationService.saveGuestWish(this.invitation.token, this.guestWish); this.wishSubmitted = true; }
+    catch (error) { this.wishError = error instanceof Error ? error.message : 'No pudimos guardar el detalle.'; }
+    finally { this.wishSaving = false; }
+  }
+
+  async logoutAdmin(): Promise<void> {
+    this.adminLoading = true;
+    try {
+      await this.commercialApi.logout();
+      this.adminAccessGranted = false;
+      this.adminInvitations = [];
+      this.adminConfirmedGuests = [];
+      this.adminMessages = []; this.adminSongs = []; this.adminNotes = [];
+      this.closeInvitationDetail();
+      this.closeInvitationEditor();
+    } catch (error) { this.adminKeyError = error instanceof Error ? error.message : 'No pudimos cerrar sesión.'; }
+    finally { this.adminLoading = false; }
+  }
+
+  private applyWedding(wedding: WeddingDetails): void {
+    this.wedding = wedding;
+    this.document.title = wedding.partnerOne + ' y ' + wedding.partnerTwo;
+    for (const [kind, card] of [['ceremony', this.ceremony], ['celebration', this.party]] as const) {
+      const event = wedding.events.find(e => e.kind === kind);
+      if (!event) { card.name = ''; card.address = ''; card.time = ''; continue; }
+      card.name = event.venue || event.name;
+      card.address = event.address;
+      card.time = event.startsAt ? new Intl.DateTimeFormat('es', { hour: 'numeric', minute: '2-digit', timeZone: wedding.timezone }).format(new Date(event.startsAt)) : '';
+      card.embedUrl = this.trustedMap(event.venue + ' ' + event.address);
+    }
   }
 
   async unlockAdmin(): Promise<void> {
@@ -808,27 +841,16 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.adminLoading = true;
 
     try {
-      const masterKeyHash =
-        await this.invitationService.getAdminMasterKeyHash();
-
-      if (!masterKeyHash) {
-        this.adminKeyError =
-          'No encontramos admin/config en Firestore o no tiene masterKeyHash.';
+      if (this.commercial) {
+        this.applyWedding(await this.commercialApi.login(this.adminKey));
+        this.adminKey = '';
+        this.adminAccessGranted = true;
+        await this.refreshAdminDashboard();
         return;
       }
-
-      const enteredHash = await this.hashValue(this.adminKey.trim());
-
-      if (enteredHash !== masterKeyHash) {
-        this.adminKeyError = 'La clave maestra no coincide.';
-        return;
-      }
-
-      this.adminAccessGranted = true;
-      await this.refreshAdminDashboard();
     } catch (error) {
-      this.adminKeyError =
-        'No pudimos cargar el panel admin. Revisa la configuracion o las reglas de Firestore.';
+      this.adminKeyError = error instanceof Error ? error.message : 'No pudimos iniciar sesión.';
+      if (this.commercial) this.adminKey = '';
       console.error(error);
     } finally {
       this.adminLoading = false;
@@ -904,8 +926,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         confirmed: this.adminConfirmedGuests.length,
       };
     } catch (error) {
-      this.adminKeyError =
-        'No pudimos leer la colecci\u00f3n de invitaciones. Si usas frontend web, Firestore debe permitir list.';
+      this.adminKeyError = error instanceof Error ? error.message : 'No pudimos cargar las invitaciones.';
+      if (this.commercial && error instanceof ApiError && error.status === 401) { this.adminAccessGranted = false; this.adminInvitations = []; }
       console.error(error);
     } finally {
       this.adminLoading = false;
@@ -1292,63 +1314,31 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
-  private registerDevSeed(): void {
-    const seedWindow = window as SeedWindow;
-
-    seedWindow.seedDemoInvitation = async () => {
-      if (!this.invitationService.isRemoteEnabled()) {
-        console.warn('Firebase no est\u00e1 configurado todav\u00eda.');
-        return;
-      }
-
-      const demoInvitation = createDemoInvitation('demo-cuento');
-      await this.invitationService.upsertInvitation(demoInvitation);
-      console.info('Se creo o actualizo invitations/demo-cuento en Firestore.');
-    };
-  }
-
   private async loadInvitation(): Promise<void> {
     const token = this.readToken();
 
     try {
-      this.invitation =
-        await this.invitationService.getInvitationByToken(token);
+      this.invitation = await this.invitationService.getInvitationByToken(token);
+      if (this.commercial) this.applyWedding(await this.commercialApi.publicWedding(token));
       this.rsvp = buildRsvpDraft(this.invitation);
       this.guestWish = {
         message: this.invitation.message,
         song: this.invitation.song,
       };
 
-      if (!this.invitationService.isRemoteEnabled()) {
-        this.invitationError =
-          'Firebase todav\u00eda no est\u00e1 configurado. Se est\u00e1 mostrando la invitaci\u00f3n demo.';
-      }
     } catch (error) {
       if (error instanceof InvitationNotFoundError) {
         this.applyInvitationNotFoundState(token);
         return;
       }
 
-      this.invitation = createDemoInvitation(token);
-      this.rsvp = buildRsvpDraft(this.invitation);
-      this.guestWish = {
-        message: this.invitation.message,
-        song: this.invitation.song,
-      };
-      this.invitationError =
-        'No pudimos cargar la invitaci\u00f3n desde Firebase. Se dej\u00f3 activo el modo demo.';
-      console.error(error);
+      this.missingInvitation = true;
+      this.notFoundTitle = 'No pudimos cargar la invitación';
+      this.notFoundMessage = error instanceof Error ? error.message : 'Intenta nuevamente en unos segundos.';
+      this.invitationAccessCode = token;
     } finally {
       this.isLoadingInvitation = false;
     }
-  }
-
-  private async hashValue(value: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const buffer = await crypto.subtle.digest('SHA-256', encoder.encode(value));
-    return Array.from(new Uint8Array(buffer))
-      .map((byte) => byte.toString(16).padStart(2, '0'))
-      .join('');
   }
 
   private readToken(): string {
@@ -1358,52 +1348,12 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private resolveRoute(): RouteResolution {
-    const segments = window.location.pathname
-      .split('/')
-      .map((segment) => segment.trim())
-      .filter((segment) => segment.length > 0);
-
-    const normalizedSegments =
-      segments[0] === this.githubPagesBaseSegment
-        ? segments.slice(1)
-        : segments;
-
-    if (normalizedSegments.length === 0) {
-      return {
-        kind: 'not-found',
-        segment: '',
-        reason: 'missing-token',
-      };
-    }
-
-    if (normalizedSegments.length > 1) {
-      return {
-        kind: 'not-found',
-        segment: '',
-        reason: 'invalid-route',
-      };
-    }
-
-    if (normalizedSegments[0] === 'fotos') return { kind: 'photos', segment: 'fotos' };
-
-    if (normalizedSegments[0] === 'admin') {
-      return {
-        kind: 'admin',
-        segment: 'admin',
-      };
-    }
-
-    if (normalizedSegments[0] === 'civil') {
-      return {
-        kind: 'civil',
-        segment: 'civil',
-      };
-    }
-
-    return {
-      kind: 'invitation',
-      segment: normalizedSegments[0] ?? '',
-    };
+    const context = this.commercialApi.context;
+    if (!context) return { kind: 'not-found', segment: '', reason: 'invalid-route' };
+    if (!context.segment) return { kind: 'not-found', segment: '', reason: 'missing-token' };
+    if (context.segment === 'admin') return { kind: 'admin', segment: 'admin' };
+    return new URLSearchParams(window.location.search).get('fotos') === '1'
+      ? { kind: 'photos', segment: context.segment } : { kind: 'invitation', segment: context.segment };
   }
 
   private applyRouteNotFoundState(): void {
@@ -1440,7 +1390,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const baseIndex = segments.indexOf(this.githubPagesBaseSegment);
     const codeSegment =
-      baseIndex >= 0 ? segments[baseIndex + 1] : segments[segments.length - 1];
+      segments[segments.length - 1];
 
     return codeSegment && codeSegment !== 'admin'
       ? decodeURIComponent(codeSegment)

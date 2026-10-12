@@ -1,12 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { InvitationService } from './services/invitation.service';
+import { CommercialApiService, ApiError } from './services/commercial-api.service';
+import { PhotoApiService } from './services/photo-api.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
     }).compileComponents();
+    spyOn(TestBed.inject(CommercialApiService), 'restore').and.rejectWith(new ApiError(401, 'Inicia sesión.'));
   });
 
   it('should create the app', () => {
@@ -66,6 +69,29 @@ describe('AppComponent', () => {
     app.closeInvitationDetail();
     fixture.detectChanges();
     expect(element.querySelector('.invitation-detail-modal')).toBeNull();
+  });
+
+  it('opens the connected photo panel using the existing admin session', async () => {
+    const photoApi = TestBed.inject(PhotoApiService);
+    spyOn(photoApi, 'initialize').and.resolveTo(true);
+    spyOn(photoApi, 'list').and.resolveTo({ photos: [], nextCursor: null });
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    Object.defineProperty(app, 'isAdminRoute', { value: true });
+    spyOnProperty(app, 'showNotFoundState', 'get').and.returnValue(false);
+    spyOn(app, 'ngOnInit');
+    spyOn(app, 'ngAfterViewInit');
+    app.adminAccessGranted = true;
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    const photos = Array.from(root.querySelectorAll<HTMLButtonElement>('.backoffice-nav > button')).find(button => button.textContent?.trim() === 'Fotos')!;
+    photos.click();
+    fixture.detectChanges();
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(root.querySelector('.admin-photo-panel')?.textContent).toContain('Todavía no han compartido fotos.');
+    expect(root.querySelector('app-photos')).not.toBeNull();
+    expect(photoApi.list).toHaveBeenCalledWith(null, '');
+    expect(app.adminAccessGranted).toBeTrue();
   });
 
   it('sorts messages and songs newest first, keeps missing dates last and preserves searching', () => {
@@ -235,7 +261,7 @@ describe('AppComponent', () => {
     app.openInvitationEditor();
     app.invitationEditor!.displayName = 'Nathalia';
     await app.saveInvitationEditor();
-    expect(app.invitationEditorError).toContain('Firestore denegó el acceso para crear');
+    expect(app.invitationEditorError).toContain('Missing permissions');
     expect(app.invitationEditor!.displayName).toBe('Nathalia');
     expect(app.invitationSaving).toBeFalse();
   });

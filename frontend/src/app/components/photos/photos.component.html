@@ -1,7 +1,7 @@
 @if (admin) {
   <section class="album" aria-label="Galería de fotos">
     <div class="album-toolbar">
-      <p role="status">{{ filteredItems.length }} {{ filteredItems.length === 1 ? 'foto' : 'fotos' }}@if (demo && searchTerm.trim()) { de {{ items.length }} } <span class="demo-tag">{{ demo ? 'Prueba local' : available ? 'Álbum privado' : 'Sin conectar' }}</span></p>
+      <p role="status">{{ filteredItems.length }} {{ filteredItems.length === 1 ? 'foto' : 'fotos' }}@if (demo && searchTerm.trim()) { de {{ items.length }} } <span class="demo-tag">{{ demo ? 'Prueba local' : available ? albumLabel : 'Sin conectar' }}</span></p>
       @if (available) { <button class="album-refresh" type="button" (click)="refresh()" [disabled]="loading">{{ loading ? 'Cargando…' : 'Actualizar fotos' }}</button> }
     </div>
     @if (error) { <p class="error" role="alert">{{ error }}</p> }
@@ -46,12 +46,12 @@
   }
 } @else {
 <main class="photo-shell" [class.photo-shell-compact]="step !== 'select'">
-  <header><a class="monogram" href="./" aria-label="Gabriela y Juan">G<span>&</span>J</a><span class="header-note">Un día para recordar</span></header>
+  <header><a class="monogram" [href]="invitationUrl" [attr.aria-label]="coupleNames">{{ monogram }}</a><span class="header-note">Un día para recordar</span></header>
   @if (step === 'select') {
   <section class="intro"><p class="eyebrow">Los recuerdos también los haces tú</p>
     <h1>Tu mirada, nuestra historia.</h1>
     <p>Las risas, los abrazos y ese instante que solo tú viste. Comparte tus fotos con nosotros.</p>
-    <span class="signature">Con amor, Gabriela & Juan</span>
+    <span class="signature">Con amor, {{ coupleNames }}</span>
   </section>
   }
   @if (demo || !available) { <p class="notice" role="status">{{ connecting ? 'Preparando el álbum…' : demo ? 'Modo de prueba · Las fotos se guardan solo en este navegador. No se envían a Drive y no se comparten entre dispositivos.' : 'Estamos preparando nuestro álbum. Intenta nuevamente más tarde.' }}</p> }
@@ -99,11 +99,11 @@
     </section>
   } @else {
     <section class="thanks step-card" role="status">
-      <span class="thanks-mark" aria-hidden="true">✓</span><h2 #stepTitle tabindex="-1">¡Gracias por compartir tu mirada!</h2><p>{{ demo ? 'Tus recuerdos están guardados en este navegador.' : 'Tus recuerdos ya están en nuestro álbum privado.' }}</p><span class="signature">Con amor, Gabriela & Juan</span><button type="button" class="add-more" (click)="reset()">+ Agregar más fotos</button>
+      <span class="thanks-mark" aria-hidden="true">✓</span><h2 #stepTitle tabindex="-1">¡Gracias por compartir tu mirada!</h2><p>{{ demo ? 'Tus recuerdos están guardados en este navegador.' : 'Tus recuerdos ya están en nuestro álbum privado.' }}</p><span class="signature">Con amor, {{ coupleNames }}</span><button type="button" class="add-more" (click)="reset()">+ Agregar más fotos</button>
     </section>
   }
   @if (error && step !== 'review') { <p class="error" role="alert">{{ error }}</p> }
-  <footer>Un instante tuyo. Un recuerdo para siempre.<span>G & J</span></footer>
+  <footer>Un instante tuyo. Un recuerdo para siempre.<span>{{ monogram }}</span></footer>
 
   <ng-template #selectedPhotos>
     <div class="photo-grid" [class.review-grid]="step === 'review'">@for (item of items; track item.id) {

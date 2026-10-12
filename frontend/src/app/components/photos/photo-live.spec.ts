@@ -130,12 +130,12 @@ describe('Real photo flow', () => {
     fixture.destroy();
   });
 
-  it('authenticates admin on the server and sends searches beyond the loaded page', fakeAsync(() => {
+  it('uses the admin session without asking for a second password and searches beyond the loaded page', fakeAsync(() => {
     const fixture = TestBed.createComponent(PhotosComponent);
     const component = fixture.componentInstance;
-    component.admin = true; component.adminKey = 'owner-password';
+    component.admin = true;
     fixture.detectChanges(); flushMicrotasks(); fixture.detectChanges();
-    expect(api.authenticate).toHaveBeenCalledWith('owner-password');
+    expect(api.authenticate).not.toHaveBeenCalled();
     expect(api.list).toHaveBeenCalledWith(null, '');
     component.searchTerm = 'María'; component.searchTerm = 'alegría';
     tick(350); flushMicrotasks();

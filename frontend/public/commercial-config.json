@@ -1,0 +1,6 @@
+{
+  "apiBaseUrl": "https://api.labodadelsiglo.app",
+  "adminApiBaseUrl": "https://api.labodadelsiglo.app",
+  "localAdminApiBaseUrl": "/api",
+  "weddingCode": "gabriela-y-juan"
+}

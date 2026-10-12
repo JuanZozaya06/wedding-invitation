@@ -8,7 +8,6 @@ type PhotoStep = 'select' | 'details' | 'review' | 'done';
 @Component({ selector: 'app-photos', standalone: true, imports: [CommonModule, FormsModule], templateUrl: './photos.component.html', styleUrls: ['./photos.component.scss'] })
 export class PhotosComponent implements OnInit, OnDestroy {
   @Input() admin = false;
-  @Input() adminKey = '';
   private query = '';
   private initialized = false;
   private searchTimer?: ReturnType<typeof setTimeout>;
@@ -77,6 +76,16 @@ export class PhotosComponent implements OnInit, OnDestroy {
     return value ? new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '';
   }
   private readonly api = inject(PhotoApiService);
+  get coupleNames(): string {
+    const details = this.api.details;
+    return details ? `${details.partnerOne} & ${details.partnerTwo}` : this.demo ? 'Gabriela & Juan' : 'Nuestra boda';
+  }
+  get monogram(): string {
+    const details = this.api.details;
+    return details ? `${details.partnerOne[0]}&${details.partnerTwo[0]}` : this.demo ? 'G&J' : '♡';
+  }
+  get invitationUrl(): string { return this.api.invitationUrl || './'; }
+  get albumLabel(): string { return this.api.details?.storage === 'drive' ? 'Google Drive · Álbum privado' : 'Álbum privado'; }
   readonly demo = this.api.demo;
   private readonly store = inject(PhotoDemoService);
   items: PhotoItem[] = []; name = ''; message = ''; error = ''; busy = false;
@@ -96,7 +105,6 @@ export class PhotosComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
     try {
-      if (!this.demo) await this.api.authenticate(this.adminKey.trim());
       const result = this.demo ? null : await this.api.list(append ? this.nextCursor : null, this.searchTerm.trim());
       const records = this.demo ? await this.store.list() : [];
       if (this.destroyed || generation !== this.generation) return;
@@ -134,7 +142,6 @@ export class PhotosComponent implements OnInit, OnDestroy {
     if (this.downloading) return;
     this.downloading = item.id;
     try {
-      await this.api.authenticate(this.adminKey.trim());
       const url = URL.createObjectURL(await this.api.image(item.id, true));
       const link = document.createElement('a'); link.href = url; link.download = item.file.name; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
