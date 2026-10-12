@@ -3,6 +3,36 @@ import { AppComponent } from './app.component';
 import { InvitationService } from './services/invitation.service';
 import { CommercialApiService, ApiError } from './services/commercial-api.service';
 import { PhotoApiService } from './services/photo-api.service';
+import { CivilInvitationComponent } from './components/civil-invitation/civil-invitation.component';
+
+describe('Ruta de la invitación civil', () => {
+  let originalUrl: string;
+  beforeEach(async () => {
+    originalUrl = window.location.href;
+    await TestBed.configureTestingModule({ imports: [AppComponent] }).compileComponents();
+    // La carga y reproducción de medios tienen sus propias pruebas en el componente civil.
+    spyOn(CivilInvitationComponent.prototype, 'ngAfterViewInit');
+  });
+  afterEach(() => window.history.replaceState(null, '', originalUrl));
+
+  for (const path of ['/civil', '/civil/', '/wedding-invitation/civil', '/civil?fotos=1']) {
+    it(`abre el civil en ${path} sin consultar un token ni el álbum`, async () => {
+      window.history.replaceState(null, '', path);
+      const request = spyOn(TestBed.inject(CommercialApiService), 'request');
+      const read = spyOn(TestBed.inject(InvitationService), 'getInvitationByToken');
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+      const root: HTMLElement = fixture.nativeElement;
+      expect(root.querySelector('app-civil-invitation .civil-shell')).not.toBeNull();
+      expect(root.querySelector('.event-kind')?.textContent?.trim()).toBe('Boda civil');
+      expect(root.querySelector('.not-found-form')).toBeNull();
+      expect(root.querySelector('app-photos')).toBeNull();
+      expect(fixture.componentInstance.isLoadingInvitation).toBeFalse();
+      expect(read).not.toHaveBeenCalled();
+      expect(request).not.toHaveBeenCalled();
+    });
+  }
+});
 
 describe('Uploader público de la boda', () => {
   let originalUrl: string;
