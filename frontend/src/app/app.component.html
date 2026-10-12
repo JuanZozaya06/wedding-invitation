@@ -199,7 +199,7 @@
               <p class="backoffice-subtitle">{{ { photos: 'Los recuerdos compartidos por nuestros invitados.', overview: 'Toda la actividad de tus invitados, en un solo lugar.', invitations: 'Organiza los grupos y comparte su invitación.', confirmed: 'Las personas que nos acompañarán en este día.', messages: 'Sus palabras para la celebración.', songs: 'La música que quieren compartir con nosotros.', notes: 'Comentarios y necesidades de nuestros invitados.' }[activeAdminTab] }}</p>
             </div>
 
-            @if (activeAdminTab !== 'photos') { <div class="admin-desktop-actions"><ng-container *ngTemplateOutlet="adminActions" /></div> }
+            <div class="admin-desktop-actions"><ng-container *ngTemplateOutlet="adminActions" /></div>
           </div>
 
           @if (invitationEditorSuccess) {

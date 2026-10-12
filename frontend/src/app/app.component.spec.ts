@@ -120,6 +120,17 @@ describe('AppComponent', () => {
     expect(root.querySelector('app-photos')).not.toBeNull();
     expect(photoApi.list).toHaveBeenCalledWith(null, '');
     expect(app.adminAccessGranted).toBeTrue();
+    const actions = root.querySelector('.admin-desktop-actions')!;
+    expect(actions).not.toBeNull();
+    expect(actions.textContent).toContain('Nueva invitación');
+    expect(actions.textContent).toContain('Cerrar sesión');
+    expect(actions.textContent).toContain('Actualizar datos');
+    actions.querySelector<HTMLButtonElement>('.primary-button')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(root.querySelector<HTMLDialogElement>('#invitation-editor-dialog')?.open).toBeTrue();
+    expect(app.activeAdminTab).toBe('photos');
+    root.querySelector<HTMLDialogElement>('#invitation-editor-dialog')!.close();
   });
 
   it('sorts messages and songs newest first, keeps missing dates last and preserves searching', () => {
