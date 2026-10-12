@@ -1,0 +1,174 @@
+<section
+  class="album"
+  aria-label="Galería de fotos"
+  [attr.aria-busy]="connecting || loading"
+>
+  <div class="album-toolbar">
+    <p role="status">
+      @if (connecting) {
+        Conectando con el álbum…
+      } @else if (loading) {
+        Cargando fotos…
+      } @else if (available && !error) {
+        {{ filteredItems.length }}
+        {{ filteredItems.length === 1 ? "foto" : "fotos" }}
+        @if (demo && searchTerm.trim()) {
+          de {{ items.length }}
+        }
+      }
+      <span class="demo-tag">{{
+        demo
+          ? "Prueba local"
+          : connecting
+            ? "Álbum privado"
+            : available
+              ? albumLabel
+              : "Sin conectar"
+      }}</span>
+    </p>
+    @if (available) {
+      <button
+        class="album-refresh"
+        type="button"
+        (click)="refresh()"
+        [disabled]="loading"
+      >
+        {{ loading ? "Cargando…" : "Actualizar fotos" }}
+      </button>
+    }
+  </div>
+  @if (error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+  @if (connecting) {
+    <p class="album-empty" role="status">Conectando con el álbum…</p>
+  } @else if (loading && !filteredItems.length) {
+    <p class="album-empty" role="status">Cargando fotos…</p>
+  } @else if (filteredItems.length) {
+    <div class="album-grid">
+      @for (item of filteredItems; track item.id) {
+        <article class="album-card">
+          <button
+            type="button"
+            class="album-thumbnail"
+            [disabled]="!item.url && item.preview"
+            (click)="selected = item"
+            [attr.aria-label]="'Ver foto de ' + (item.name || 'Un invitado')"
+          >
+            @if (item.preview && item.url) {
+              <img
+                [src]="item.url"
+                [alt]="item.file.name"
+                loading="lazy"
+                (error)="item.preview = false"
+              />
+            } @else {
+              <span class="unavailable"
+                >{{
+                  item.preview
+                    ? "Cargando foto…"
+                    : "Vista previa no disponible"
+                }}<br />{{ item.file.name }}</span
+              >
+            }
+          </button>
+          <div class="album-caption">
+            <strong>{{ item.name || "Un invitado" }}</strong>
+            @if (item.message) {
+              <p>{{ item.message }}</p>
+            }
+            @if (item.createdAt) {
+              <time [attr.datetime]="item.createdAt">{{
+                formatDate(item.createdAt)
+              }}</time>
+            }
+            <a
+              [href]="item.url || '#'"
+              [download]="item.file.name"
+              (click)="download(item, $event)"
+              [attr.aria-label]="'Descargar ' + item.file.name"
+              >{{
+                downloading === item.id ? "Descargando…" : "Descargar original"
+              }}</a
+            >
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (!error && searchTerm.trim() && (items.length || available)) {
+    <p class="album-empty" role="status">
+      No hay fotos que coincidan con «{{ searchTerm }}».
+    </p>
+  } @else if (!error) {
+    <p class="album-empty">
+      {{
+        connecting
+          ? "Conectando con el álbum…"
+          : demo
+            ? "Todavía no hay fotos de prueba en este navegador."
+            : available
+              ? "Todavía no han compartido fotos."
+              : "La recepción de fotos aún no está conectada."
+      }}
+    </p>
+  }
+  @if (!demo && nextCursor) {
+    <button
+      class="album-refresh"
+      type="button"
+      [disabled]="loading"
+      (click)="refresh(true)"
+    >
+      {{ loading ? "Cargando…" : "Cargar más fotos" }}
+    </button>
+  }
+</section>
+@if (selected; as item) {
+  <dialog
+    #photoDialog
+    class="photo-dialog"
+    aria-label="Detalle de foto"
+    (cancel)="$event.preventDefault(); selected = null"
+    (click)="$event.target === $event.currentTarget && (selected = null)"
+  >
+    <button
+      type="button"
+      class="dialog-close"
+      aria-label="Cerrar foto"
+      (click)="selected = null"
+    >
+      ×
+    </button>
+    @if (item.preview) {
+      <img
+        class="full-photo"
+        [src]="item.url"
+        [alt]="item.file.name"
+        (error)="item.preview = false"
+      />
+    } @else {
+      <p class="unavailable">
+        Este formato no tiene vista previa. Puedes descargar el original.
+      </p>
+    }
+    <div class="album-caption">
+      <strong>{{ item.name || "Un invitado" }}</strong>
+      @if (item.message) {
+        <p>{{ item.message }}</p>
+      }
+      @if (item.createdAt) {
+        <time [attr.datetime]="item.createdAt">{{
+          formatDate(item.createdAt)
+        }}</time>
+      }
+      <a
+        [href]="item.url || '#'"
+        [download]="item.file.name"
+        (click)="download(item, $event)"
+        >{{
+          downloading === item.id ? "Descargando…" : "Descargar original"
+        }}</a
+      >
+    </div>
+  </dialog>
+}

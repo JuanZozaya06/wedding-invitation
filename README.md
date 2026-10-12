@@ -4,8 +4,13 @@ Invitación web privada para la boda de Gabriela y Juan, con Angular, backend Py
 
 Producción: [invitación](https://labodadelsiglo.app/) y [administración](https://labodadelsiglo.app/admin).
 API: `https://api.labodadelsiglo.app`. El frontend se despliega desde `main` en GitHub Pages y el backend desde `main` en su repositorio independiente.
-Consulta [frontend/README.md](frontend/README.md) y [backend-comercial/README.md](backend-comercial/README.md) para la operación actual.
+Consulta [frontend/README.md](frontend/README.md) y [backend/README.md](backend/README.md) para la operación actual.
 Las conexiones y contraseñas están en `.credenciales/CREDENCIALES.md`, excluido de Git.
+
+El backend activo está en `backend/`, como repositorio Git independiente. Su
+repositorio remoto sigue siendo `JuanZozaya06/wedding-backend-comercial`; el cambio
+de nombre local no cambia los despliegues de Railway. El antiguo backend de fotos
+se conserva fuera del proyecto, en `%LOCALAPPDATA%/WeddingComercial/archives/backend-legacy-2026-10-12/`.
 
 ## Estado actual
 
@@ -31,10 +36,12 @@ Las conexiones y contraseñas están en `.credenciales/CREDENCIALES.md`, excluid
 |   |   |-- assets/characters/        # Sprites e imagenes usadas por la app
 |   |   `-- assets/audio/             # MP3 opcional de fondo
 |   |-- src/app/
-|   |   |-- app.component.*           # UI principal
-|   |   |-- services/                 # API comercial y lógica de datos
-|   |   |-- models/                   # Tipos de invitacion / RSVP
-|   |   `-- data/                     # Demo data
+|   |   |-- app.component.*           # Contenedor de Angular Router
+|   |   |-- app.routes.ts             # Rutas y carga por funcionalidad
+|   |   |-- core/                     # HTTP, sesión y guards
+|   |   |-- features/                 # Invitación, admin, fotos, civil y not-found
+|   |   |-- shared/                   # Componentes y estilos reutilizables
+|   |   `-- testing/                  # Datos ficticios solo para pruebas
 |   `-- FIREBASE_SETUP.md             # Guia operativa para Firebase
 |-- templates/                        # Plantillas Excel base
 |-- AGENTS.md                         # Contexto operativo del proyecto
@@ -61,6 +68,7 @@ URLs utiles:
 
 - Invitación existente: `http://127.0.0.1:4200/{token}`
 - Admin: `http://127.0.0.1:4200/admin`
+- Galería privada del admin: `http://127.0.0.1:4200/admin/media`.
 - Compartir fotos: `http://127.0.0.1:4200/upload`, sin código de invitación.
 
 ## Build

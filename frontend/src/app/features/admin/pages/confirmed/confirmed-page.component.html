@@ -1,0 +1,60 @@
+<section
+  [attr.aria-busy]="vm.adminLoading"
+  class="admin-panels admin-panels-single"
+>
+  <article class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="eyebrow">Confirmados</p>
+        <h3>Listado de quienes van</h3>
+      </div>
+      @if (vm.adminDataLoaded && !vm.adminKeyError && !vm.adminLoading) {
+        <span>{{ vm.filteredAdminConfirmedGuests.length }} personas</span>
+      }
+    </div>
+
+    @if (vm.adminLoading) {
+      <p class="admin-empty admin-loading" role="status">
+        Cargando invitados confirmados…
+      </p>
+    } @else if (
+      vm.adminDataLoaded &&
+      !vm.adminKeyError &&
+      vm.filteredAdminConfirmedGuests.length === 0
+    ) {
+      <p class="admin-empty">
+        No hay invitados confirmados que coincidan con la búsqueda.
+      </p>
+    } @else {
+      <div class="admin-list">
+        @for (
+          guest of vm.filteredAdminConfirmedGuests;
+          track guest.token + guest.guestName
+        ) {
+          <article class="admin-list-item">
+            <div>
+              <strong>{{ guest.guestName }}</strong>
+              <p>
+                {{ guest.displayName }}
+              </p>
+            </div>
+            <div class="admin-badges">
+              <app-attendance-status status="accepted" /><span>{{
+                guest.role
+              }}</span>
+              @if (guest.isChild) {
+                <span>Ni&ntilde;o</span>
+              }
+              @if (guest.isAbroad) {
+                <span>Exterior</span>
+              }
+              @if (guest.openedInvitation) {
+                <span>Abierta</span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </article>
+</section>

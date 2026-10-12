@@ -1,0 +1,52 @@
+@use "../../shared/styles/forms";
+@include forms.controls;
+
+.not-found-shell {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(255, 248, 232, 0.94),
+      transparent 20rem
+    ),
+    linear-gradient(180deg, #edf4ff 0%, #efe2f6 100%);
+}
+
+.not-found-card {
+  width: min(36rem, 100%);
+  padding: clamp(1.75rem, 5vw, 3rem);
+  border: 1px solid rgba(92, 57, 103, 0.16);
+  border-radius: 0.85rem;
+  background: rgba(255, 251, 244, 0.9);
+  box-shadow: 0 1.5rem 3rem rgba(74, 48, 83, 0.14);
+  text-align: center;
+}
+
+.not-found-card h1 {
+  margin-bottom: 0.75rem;
+  font-size: clamp(2.1rem, 6vw, 3.8rem);
+  line-height: 1;
+}
+
+.not-found-card > p {
+  max-width: 30rem;
+  margin: 0 auto;
+  font-size: 1.05rem;
+}
+
+.not-found-form {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 24rem;
+  margin: clamp(1.4rem, 4vw, 2rem) auto 0;
+  text-align: left;
+}
+
+.not-found-form .primary-button {
+  width: 100%;
+  margin-top: 0.2rem;
+}

@@ -1,0 +1,221 @@
+<section class="admin-filters admin-filters-compact">
+  <div class="admin-filter-pills">
+    <button
+      type="button"
+      [class.is-active]="vm.activeInvitationFilter === 'all'"
+      (click)="vm.setInvitationFilter('all')"
+    >
+      Todas
+    </button>
+    <button
+      type="button"
+      [class.is-active]="vm.activeInvitationFilter === 'opened'"
+      (click)="vm.setInvitationFilter('opened')"
+    >
+      Abiertas
+    </button>
+    <button
+      type="button"
+      [class.is-active]="vm.activeInvitationFilter === 'unopened'"
+      (click)="vm.setInvitationFilter('unopened')"
+    >
+      No abiertas
+    </button>
+    <button
+      type="button"
+      [class.is-active]="vm.activeInvitationFilter === 'responded'"
+      (click)="vm.setInvitationFilter('responded')"
+    >
+      Respondidas
+    </button>
+    <button
+      type="button"
+      [class.is-active]="vm.activeInvitationFilter === 'pending'"
+      (click)="vm.setInvitationFilter('pending')"
+    >
+      Pendientes
+    </button>
+    <button
+      type="button"
+      [class.is-active]="vm.activeInvitationFilter === 'with-children'"
+      (click)="vm.setInvitationFilter('with-children')"
+    >
+      Con ni&ntilde;os
+    </button>
+    <button
+      type="button"
+      [class.is-active]="vm.activeInvitationFilter === 'abroad'"
+      (click)="vm.setInvitationFilter('abroad')"
+    >
+      Exterior
+    </button>
+  </div>
+</section>
+<section
+  [attr.aria-busy]="vm.adminLoading"
+  class="admin-panels admin-panels-single"
+>
+  <article class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="eyebrow">Invitaciones</p>
+        <h3>Detalle por grupo</h3>
+      </div>
+      @if (vm.adminDataLoaded && !vm.adminKeyError && !vm.adminLoading) {
+        <span>{{ vm.filteredAdminInvitations.length }} grupos</span>
+      }
+    </div>
+
+    @if (vm.adminLoading) {
+      <p class="admin-empty admin-loading" role="status">
+        Cargando invitaciones…
+      </p>
+    } @else if (
+      vm.adminDataLoaded &&
+      !vm.adminKeyError &&
+      vm.filteredAdminInvitations.length === 0
+    ) {
+      <p class="admin-empty">
+        No hay invitaciones que coincidan con esa búsqueda.
+      </p>
+    } @else {
+      <div class="admin-groups-grid">
+        @for (
+          invitation of vm.filteredAdminInvitations;
+          track invitation.token
+        ) {
+          <article class="admin-group-card">
+            <div class="admin-group-head">
+              <div>
+                <div class="admin-group-name">
+                  <button
+                    type="button"
+                    class="invitation-detail-name"
+                    (click)="vm.openInvitationDetail(invitation)"
+                  >
+                    {{ invitation.displayName }}
+                  </button>
+                  <div class="admin-group-actions">
+                    <button
+                      class="admin-edit-button"
+                      type="button"
+                      (click)="vm.openInvitationEditor(invitation)"
+                      [disabled]="vm.invitationSaving || !!vm.invitationEditor"
+                      title="Editar invitación"
+                      [attr.aria-label]="
+                        'Editar invitación de ' + invitation.displayName
+                      "
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="m16 3 5 5-13 13H3v-5L16 3ZM13 6l5 5" />
+                      </svg>
+                    </button>
+                    <a
+                      class="admin-open-link"
+                      [href]="vm.adminInvitationUrl(invitation.token)"
+                      target="_blank"
+                      rel="noopener"
+                      title="Abrir invitación en otra pestaña"
+                      [attr.aria-label]="
+                        'Abrir invitación de ' +
+                        invitation.displayName +
+                        ' en otra pestaña'
+                      "
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path
+                          d="M14 3h7v7M21 3l-11 11M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"
+                        />
+                      </svg>
+                    </a>
+                    <button
+                      class="admin-edit-button"
+                      type="button"
+                      (click)="vm.copyInvitationLink(invitation.token)"
+                      title="Compartir: copiar enlace"
+                      [attr.aria-label]="
+                        'Copiar enlace de la invitación de ' +
+                        invitation.displayName
+                      "
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="invitation-detail-button"
+                      (click)="vm.openInvitationDetail(invitation)"
+                    >
+                      Ver detalle
+                    </button>
+                  </div>
+                </div>
+                <p class="admin-group-code">
+                  Código <code>{{ invitation.token }}</code> ·
+                  {{ invitation.guests.length }}
+                  {{
+                    invitation.guests.length === 1 ? "invitado" : "invitados"
+                  }}
+                </p>
+                <span class="admin-share-status" role="status">{{
+                  vm.invitationShareToken === invitation.token
+                    ? vm.invitationShareMessage
+                    : ""
+                }}</span>
+              </div>
+              <div class="admin-badges">
+                <app-attendance-status [status]="invitation.rsvpStatus" />
+                @if (invitation.openedInvitation) {
+                  <span>Abierta</span>
+                }
+                @if (invitation.hasChildren) {
+                  <span>Con ni&ntilde;os</span>
+                }
+                @if (invitation.hasAbroadGuests) {
+                  <span>Exterior</span>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </article>
+</section>

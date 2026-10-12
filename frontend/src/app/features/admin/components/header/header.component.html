@@ -1,0 +1,33 @@
+<div class="admin-toolbar">
+  <div>
+    <p class="eyebrow">Panel privado · {{ vm.coupleNames }}</p>
+    <h1>
+      {{
+        {
+          media: "Fotos de la boda",
+          overview: "Resumen de la boda",
+          invitations: "Invitaciones",
+          confirmed: "Invitados confirmados",
+          messages: "Mensajes",
+          songs: "Recomendaciones musicales",
+          notes: "Notas y restricciones",
+        }[vm.activeAdminTab]
+      }}
+    </h1>
+    <p class="backoffice-subtitle">
+      {{
+        {
+          media: "Los recuerdos compartidos por nuestros invitados.",
+          overview: "Toda la actividad de tus invitados, en un solo lugar.",
+          invitations: "Organiza los grupos y comparte su invitación.",
+          confirmed: "Las personas que nos acompañarán en este día.",
+          messages: "Sus palabras para la celebración.",
+          songs: "La música que quieren compartir con nosotros.",
+          notes: "Comentarios y necesidades de nuestros invitados.",
+        }[vm.activeAdminTab]
+      }}
+    </p>
+  </div>
+
+  <div class="admin-desktop-actions"><app-admin-actions /></div>
+</div>

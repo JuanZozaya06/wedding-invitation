@@ -8,7 +8,7 @@ Build a private, animated wedding invitation for Gabriela and Juan as an Angular
 
 The project is also the first deployment of a commercial system for multiple weddings. Each wedding has its own administrator, invitations, events, configuration and private album. Zozi will adapt the Angular design for each client. The SQL structure supports multiple weddings; automated onboarding and complete theme customization are still pending.
 
-The invitation is private and is loaded directly from a tokenized URL at `/:token` in local dev and production custom domain. The legacy GitHub Pages project URL remains `/wedding-invitation/:token` only as a fallback while the route parser still supports it.
+The invitation is private and is loaded directly from a tokenized URL at `/:token` in local dev and production custom domain. Angular Router also supports the legacy GitHub Pages project URL `/wedding-invitation/:token`.
 
 ## Critical Data Boundaries
 
@@ -17,20 +17,21 @@ The invitation is private and is loaded directly from a tokenized URL at `/:toke
 - MySQL is now the live data source. Zozi permits SQL changes and tests, but use the local SQL database, rollback transactions and disposable test records to avoid changing real guests' attendance accidentally.
 - The local Angular configuration talks to the production Railway API by default. Starting Angular locally does **not** isolate its data.
 - Legacy Firestore scripts such as reset, seed and invitation/Drive imports must not be run. The explicitly named read-only export scripts are migration tools, not normal application operations.
-- Keep the legacy `backend/` and its existing Drive photos intact. The commercial backend uses the current Drive folders; do not delete, move, recreate or overwrite existing photos while testing.
+- The active commercial backend now lives in `backend/`. The legacy photo backend was archived outside this workspace at `%LOCALAPPDATA%/WeddingComercial/archives/backend-legacy-2026-10-12/`; preserve that archive. The commercial backend uses the existing Drive folders; do not delete, move, recreate or overwrite existing photos while testing.
 - Do not print credentials, raw Railway variable/configuration dumps, tokens, session cookies or private invitation datasets in tool output. Capture sensitive responses privately and output only required non-secret fields.
 
 ## Production and Repositories
 
 - Frontend repository: `https://github.com/JuanZozaya06/wedding-invitation`.
 - Commercial backend repository: `https://github.com/JuanZozaya06/wedding-backend-comercial`.
-- `backend-comercial/` is a separate Git repository, ignored by the frontend repository. Commit and inspect each repository separately; do not add it as frontend source or a submodule.
+- `backend/` is a separate Git repository, ignored by the frontend repository. Commit and inspect each repository separately; do not add it as frontend source or a submodule.
 - Current working branch in both repositories: `feature/refactor-for-comercial`. Work there unless Zozi requests otherwise.
+- **Do not merge into, commit on, or push to `main` in either repository without Zozi's explicit authorization for that publication.** Previous publication approvals do not authorize future releases. Implement and validate changes on the working branch, then wait for authorization before updating `main`.
 - Frontend production: `https://labodadelsiglo.app/`; admin: `https://labodadelsiglo.app/admin`.
 - API production: `https://api.labodadelsiglo.app`; health: `/health`; fallback service domain: `https://wedding-api-production-3e17.up.railway.app`.
 - Railway project `wedding`, environment `production`, services `wedding-api` and `MySQL`. Zozi explicitly retired the separate `boda-fotos` project's `fotos-api` service on October 11, 2026 (Caracas): its deployment was removed and its repository source disconnected to prevent automatic redeployment. The service configuration, legacy code, Firestore and Drive files were preserved. Do not restart it unless requested.
 - Pushes to frontend `main` run the Angular build and headless tests before GitHub Pages deployment. Pushes to backend `main` trigger Railway deployment and `python -m alembic upgrade head` before server startup.
-- Backend deployment uses `Dockerfile`, `requirements-lock.txt` and Railway service settings. `backend-comercial/railway-service.json` is a non-secret settings snapshot; there is no active `railway.toml`.
+- Backend deployment uses `Dockerfile`, `requirements-lock.txt` and Railway service settings. `backend/railway-service.json` is a non-secret settings snapshot; there is no active `railway.toml`.
 - DNS is managed by Cloudflare. The apex and `www` retain GitHub Pages records. `api` points to the Railway-provided CNAME with a `_railway-verify.api` TXT record. Use current Railway domain status for authoritative DNS targets, not guessed values.
 - Frontend and API use HTTPS on the same site. Keep Secure/HttpOnly/SameSite=Strict cookies and explicit CORS origins; do not weaken cookie security to work around deployment problems.
 
@@ -38,7 +39,7 @@ The invitation is private and is loaded directly from a tokenized URL at `/:toke
 
 - Workspace root: `C:\Users\Zozi\Documents\Projects\wedding-invitation`
 - Frontend app: `C:\Users\Zozi\Documents\Projects\wedding-invitation\frontend`
-- Commercial backend: `C:\Users\Zozi\Documents\Projects\wedding-invitation\backend-comercial`
+- Commercial backend: `C:\Users\Zozi\Documents\Projects\wedding-invitation\backend`
 - Framework: Angular 18 standalone app
 - Styling: SCSS
 - Data layer: Python FastAPI + SQLAlchemy + MySQL 8.4; schema migrations use Alembic.
@@ -48,19 +49,23 @@ The invitation is private and is loaded directly from a tokenized URL at `/:toke
   - `frontend/src/app/app.component.ts`
   - `frontend/src/app/app.component.html`
   - `frontend/src/app/app.component.scss`
-  - `frontend/src/app/services/invitation.service.ts`
-  - `frontend/src/app/services/commercial-api.service.ts`
-  - `frontend/src/app/services/photo-api.service.ts`
-  - `frontend/src/app/models/commercial-route.ts`
-  - `frontend/src/app/models/invitation.model.ts`
-  - `frontend/src/app/data/demo-invitation.ts`
+  - `frontend/src/app/app.routes.ts`
+  - `frontend/src/app/core/auth/`
+  - `frontend/src/app/core/http/commercial-api.service.ts`
+  - `frontend/src/app/core/routing/`
+  - `frontend/src/app/features/invitation/`
+  - `frontend/src/app/features/admin/`
+  - `frontend/src/app/features/photos/`
+  - `frontend/src/app/features/civil/`
+  - `frontend/src/app/features/not-found/`
+  - `frontend/src/app/shared/`
   - `frontend/public/commercial-config.json`
   - `frontend/proxy.conf.json`
   - `frontend/src/styles.scss`
-  - `backend-comercial/app/main.py`
-  - `backend-comercial/app/core/`
-  - `backend-comercial/app/modules/`
-  - `backend-comercial/migrations/versions/`
+  - `backend/app/main.py`
+  - `backend/app/core/`
+  - `backend/app/modules/`
+  - `backend/migrations/versions/`
 
 ## Commands
 
@@ -73,14 +78,14 @@ Run commands from `C:\Users\Zozi\Documents\Projects\wedding-invitation\frontend`
 
 `admin:hash`, `report`, `reset:demo`, `import:invitations`, `import:drive` and `import:drive:reset` are legacy Firebase utilities, not commercial backend commands. Do not run them to operate this system.
 
-Run Python commands from `backend-comercial` so its Windows `sitecustomize.py` workaround is loaded:
+Run Python commands from `backend` so its Windows `sitecustomize.py` workaround is loaded:
 
 - Install pinned dependencies: `.venv/Scripts/python -m pip install -r requirements-lock.txt`
 - Local schema migrations: `.venv/Scripts/python -m alembic upgrade head`
 - Check model/schema consistency: `.venv/Scripts/python -m alembic check`
 - Backend tests: `.venv/Scripts/python -m unittest discover -s tests -v`
 - Optional local API: `.venv/Scripts/python -m uvicorn app.main:app --host 127.0.0.1 --port 8001 --no-access-log`
-- Local MySQL start/stop scripts: `backend-comercial/scripts/start-mysql.ps1` and `stop-mysql.ps1`, invoked from the workspace root.
+- Local MySQL start/stop scripts: `backend/scripts/start-mysql.ps1` and `stop-mysql.ps1`, invoked from the workspace root.
 
 Angular normally needs no local Python server. `commercial-config.json` selects `gabriela-y-juan` internally, uses the custom API domain for public requests and production admin calls, and selects `localAdminApiBaseUrl=/api` only on loopback. The Angular dev proxy forwards `/api` to the same Railway service. For deliberately local backend development, explicitly redirect the relevant endpoints before interacting with forms.
 
@@ -106,12 +111,13 @@ Node currently reports an Angular support warning because the local Node version
 - Spanish only.
 - Must work well on mid-range mobile phones.
 - `/civil` opens the separate civil invitation directly, including `/civil/` and the legacy `/wedding-invitation/civil` path. Reserve this route before invitation-token resolution; do not load SQL invitation or album data for it.
+- Do not place a photo-sharing button or link inside the invitation. Zozi explicitly removed the unsolicited "Comparte tus fotos" CTA; the uploader remains accessible separately at `/upload`.
 
 ## Animation Architecture
 
 The horizontal scene is scroll-driven with a lightweight custom scroll/timeline system. GSAP is installed, but the current implementation is not relying on ScrollTrigger.
 
-Important current behavior in `app.component.ts`:
+Important current behavior in `features/invitation/components/journey/journey.component.ts`:
 
 - `distance()` is calculated from the `.ballroom` landmark, not total track width, so the horizontal scroll ends at celebration.
 - `travelEnd = 0.84` means the track completes movement at 84% of the timeline.
@@ -207,6 +213,18 @@ Each guest currently contains:
 
 ## Frontend Personalization
 
+### Angular architecture
+
+- `AppComponent` contains only `router-outlet`; declare navigation in `app.routes.ts` and lazy feature routes. Do not reintroduce pathname parsing or page conditionals in the root component.
+- Features encapsulate pages/components, models, services/state and styles. `core/` owns HTTP, session handling and routing infrastructure; `shared/` owns reusable UI and media helpers. This follows Angular's component/service model rather than adding artificial server-style controllers.
+- `InvitationState` is scoped to the invitation page; RSVP and optional wishes remain separate forms. `JourneyComponent` owns scroll listeners, layout measurements and animation cleanup. Changing a token must reset the envelope and ignore older asynchronous loads.
+- `AdminStore` is scoped to the admin routes. A persistent `AdminLayoutComponent` shares header, actions, sidebar, stats and invitation dialogs across child pages, including `/admin/media`. Visit-only authentication lives in `AdminSessionService`; route guards supplement server authorization.
+- Admin sections have real routes: `/admin`, `/admin/invitations`, `/admin/confirmed`, `/admin/messages`, `/admin/songs`, `/admin/notes`; `/admin/login` accepts only the password. `/admin/media` is the authenticated private gallery. `/fotos` and `/admin/fotos` are retired and must not resolve to an uploader or invitation.
+- `/upload` is a separate public component, with no invitation code or admin session requirement. Gallery and uploader explicitly select their API mode; do not infer permissions from the current URL inside the photo service.
+- Keep feature styles scoped. Shared form styles are a Sass mixin, included inside each feature's scope. The invitation's legacy cross-component styles and admin layout styles use explicit host selectors.
+- Test fixtures live in `src/app/testing/`; production starts with an empty invitation and never falls back to sample guests. Routing/state tests mock every API call.
+- Videos are deferred at Zozi's request: this refactor preserves the photo uploader's current image-only validation.
+
 The public invitation already personalizes parts of the copy from invitation data.
 
 Current derived behaviors:
@@ -249,7 +267,8 @@ The dashboard at `/admin` uses backend authentication and SQL permissions per we
 Current behavior:
 
 - Login shows only a password. `POST /auth/login` sends `{ wedding_code, password }`; the backend resolves the assigned administrator in MySQL. Do not add a username field or expose SQL users to clients.
-- Administrator passwords use Argon2id. Sessions last 8 hours; session secrets are hashed in SQL. The browser receives an HttpOnly/Secure/SameSite=Strict cookie.
+- Administrator passwords use Argon2id. SQL sessions have an absolute 8-hour limit; session secrets are hashed in SQL. The browser receives an HttpOnly/Secure/SameSite=Strict session cookie with no Max-Age or Expires.
+- Zozi does not want remembered admin access. Keep authenticated frontend state only in memory for the current SPA visit. Reloading, reopening the site or opening a new tab must ask for the password again, even if the browser retained its session cookie. Do not automatically restore access through `/auth/me` or browser storage. Navigating between admin sections within the same visit keeps access.
 - Admin requests send cookies and `X-CSRF-Token` for mutations. Public requests omit cookies. Keep origin checks, rate limits, audit records and wedding authorization on the backend.
 - Exactly one administrator is assigned per wedding. Use `app.commands.create_admin` to provision/reset access; the API supports `/auth/password` and revokes sessions after password changes. A customer-facing password/reset UI is still pending.
 - It shows:
@@ -262,6 +281,10 @@ Current behavior:
   - private photo gallery with search, thumbnail previews and original downloads
 - It supports search by group, token, or guest.
 - Invitation-level filters live only in the `Invitaciones` tab so the UX stays focused.
+- The overview has no search field. On mobile, recent responses and openings use two activity tabs, with responses selected initially; desktop keeps both activity panels.
+- Admin data views must show a loading status while requests are pending. Only show empty-state messages and counts after a successful load; errors must not appear as empty results. This includes statistics, recent activity, lists and the photo gallery.
+- Keep the desktop sidebar fixed at 220px across desktop breakpoints. The mobile admin fills the viewport without outer padding or rounded layout/sidebar corners; preserve internal spacing for controls.
+- Zozi removed the "Cerrar sesión" button from both desktop and mobile admin actions. Do not reintroduce it without a request.
 
 ## Excel / Import Direction
 
@@ -301,7 +324,7 @@ Recommended row-level columns include:
 - Cutover completed October 11, 2026 (Caracas): 119 invitations and 222 guests were verified field-by-field against a fresh read-only Firestore snapshot; one invitation's activity delta was reconciled. These are historical verification counts, not fixed future totals.
 - The legacy photo catalog was empty at cutover. Do not confuse an empty SQL gallery with a disconnected Drive account.
 - SQL is the live source after cutover. There is no ongoing Firestore synchronization; old cached clients may still write to the old system. Future reconciliation must preserve newer SQL responses and start with a backup and comparison.
-- Firestore read-only exporters live in `backend-comercial/scripts/`. The photo exporter needs the previous backend's Python environment with Firebase Admin installed; the commercial API does not depend on Firebase Admin.
+- Firestore read-only exporters live in `backend/scripts/`. The photo exporter needs the archived legacy backend's Python environment with Firebase Admin installed, and its `--from-backend` argument must point to `%LOCALAPPDATA%/WeddingComercial/archives/backend-legacy-2026-10-12/`, never the active `backend/`. The commercial API does not depend on Firebase Admin.
 - `app.modules.imports.service` validates a Firestore snapshot, applies only with `--apply`, and refuses overwriting a populated wedding. `app.commands.sql_snapshot` copies durable SQL data to an empty destination and excludes sessions, rate limits and audits. Neither command is a safe automatic replacement for reconciliation or a full production restore.
 - Missing/invalid invitations display an error or not-found screen. Do not restore silent demo fallbacks or `window.seedDemoInvitation()`.
 
@@ -310,7 +333,7 @@ Recommended row-level columns include:
 - Keep Python MVC organized by functionality under `app/modules/auth`, `weddings`, `invitations`, `albums` and `imports`.
 - Controllers handle HTTP contracts; services contain business rules and SQL access; models define persistence; schemas/views define validation and serialization. Shared security/database/HTTP behavior belongs in `app/core/`.
 - Invitation/RSVP endpoints are scoped under `/public/weddings/{slug}/invitations/{token}`; admin endpoints under `/admin/weddings/{slug}` require a session and authorized membership. Never trust the frontend wedding setting as an authorization check.
-- Photo-sharing URL: `/upload`, opening the existing three-step uploader directly without an invitation-code screen. Uploads belong to the wedding album, independently of invitations. `/fotos` and `/{token}?fotos=1` remain compatible aliases. Public album details and batch creation use `/public/weddings/{slug}/album` and `/public/weddings/{slug}/photo-batches`; new batches leave the optional legacy `invitation_id` empty. Do not add a code/login requirement to the uploader.
+- Photo-sharing URL: `/upload`, opening the existing three-step uploader directly without an invitation-code screen. Uploads belong to the wedding album, independently of invitations. `/{token}?fotos=1` remains a compatible public alias. The authenticated admin gallery lives at `/admin/media`. Zozi retired `/fotos`; do not restore it as an uploader alias or private route. Public album details and batch creation use `/public/weddings/{slug}/album` and `/public/weddings/{slug}/photo-batches`; new batches leave the optional legacy `invitation_id` empty. Do not add a code/login requirement to the uploader.
 - Guests receive a 24-hour bearer credential limited to a photo batch and wedding; they can upload without an account and cannot browse the private album.
 - Current wedding storage is Google Drive with existing original/thumbnail folders. OAuth uses `drive.file`; encrypted credentials and the encryption key are configured separately in Railway variables. Never log them or expose Drive storage keys to clients.
 - New albums default to local storage isolated by wedding. Railway uses `PHOTO_STORAGE_DIR=/data/photos` on a persistent volume. Do not switch storage for a nonempty album.
@@ -329,7 +352,7 @@ Important behavior:
 - Build command uses `--base-href=/` for the custom domain.
 - Configure `labodadelsiglo.app` in GitHub `Settings -> Pages -> Custom domain`. `frontend/public/CNAME` can mirror that decision inside the repo, but the GitHub Pages setting is the source of truth when deploying via Actions.
 - A `404.html` fallback is copied so token/admin deep links work on reload.
-- Route parsing in the app must support both direct custom-domain paths and the legacy `/wedding-invitation` base segment.
+- Angular Router must support both direct custom-domain paths and the legacy `/wedding-invitation` base segment, including trailing slashes.
 
 ## Performance And Accessibility
 

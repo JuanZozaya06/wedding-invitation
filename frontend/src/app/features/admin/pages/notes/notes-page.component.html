@@ -1,0 +1,46 @@
+<section
+  [attr.aria-busy]="vm.adminLoading"
+  class="admin-panels admin-panels-single"
+>
+  <article class="admin-panel">
+    <div class="admin-panel-header">
+      <div>
+        <p class="eyebrow">Notas</p>
+        <h3>Notas y restricciones por grupo</h3>
+      </div>
+      @if (vm.adminDataLoaded && !vm.adminKeyError && !vm.adminLoading) {
+        <span>{{ vm.filteredAdminNotes.length }} registros</span>
+      }
+    </div>
+
+    @if (vm.adminLoading) {
+      <p class="admin-empty admin-loading" role="status">
+        Cargando notas y restricciones…
+      </p>
+    } @else if (
+      vm.adminDataLoaded &&
+      !vm.adminKeyError &&
+      vm.filteredAdminNotes.length === 0
+    ) {
+      <p class="admin-empty">No hay notas que coincidan con la búsqueda.</p>
+    } @else {
+      <div class="admin-list">
+        @for (entry of vm.filteredAdminNotes; track entry.token) {
+          <article class="admin-list-item admin-list-item-stacked">
+            <div>
+              <div class="admin-entry-heading">
+                <strong>{{ entry.displayName }}</strong>
+                <app-attendance-status [status]="entry.rsvpStatus" />
+              </div>
+              <p>Token: {{ entry.token }}</p>
+              <p>Actualizado: {{ vm.formatAdminDate(entry.updatedAt) }}</p>
+            </div>
+            <blockquote class="admin-text-block">
+              {{ entry.value }}
+            </blockquote>
+          </article>
+        }
+      </div>
+    }
+  </article>
+</section>

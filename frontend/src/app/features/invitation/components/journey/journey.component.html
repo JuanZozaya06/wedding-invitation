@@ -1,0 +1,155 @@
+<section class="journey-section" #journeySection>
+  <div class="journey-viewport">
+    <img
+      class="journey-sun"
+      src="assets/characters/sun.png"
+      alt=""
+      aria-hidden="true"
+    />
+    <img
+      class="journey-cloud journey-cloud-one"
+      src="assets/characters/cloud-big.png"
+      alt=""
+      aria-hidden="true"
+    />
+    <img
+      class="journey-cloud journey-cloud-two"
+      src="assets/characters/cloud-small.png"
+      alt=""
+      aria-hidden="true"
+    />
+    <img
+      class="journey-cloud journey-cloud-three"
+      src="assets/characters/cloud-small-2.png"
+      alt=""
+      aria-hidden="true"
+    />
+    <img
+      class="journey-cloud journey-cloud-four"
+      src="assets/characters/cloud-small-3.png"
+      alt=""
+      aria-hidden="true"
+    />
+
+    <div class="journey-track" #journeyTrack>
+      <div class="layer sky"></div>
+      <div class="layer avila-backdrop" aria-hidden="true">
+        <img class="avila-image" src="assets/characters/avila.png" alt="" />
+      </div>
+      <div class="layer hills far"></div>
+      <div class="layer hills near"></div>
+      <div class="layer trees"></div>
+      <div class="road"></div>
+
+      <div class="landmark church">
+        <article class="scene-card ceremony-card">
+          <p class="eyebrow">Cap&iacute;tulo II</p>
+          <h2>La ceremonia</h2>
+          <p>{{ ceremony.name }}</p>
+          <dl>
+            <div>
+              <dt>Direcci&oacute;n</dt>
+              <dd>{{ ceremony.address }}</dd>
+            </div>
+            <div>
+              <dt>Hora</dt>
+              <dd>{{ ceremony.time }}</dd>
+            </div>
+          </dl>
+        </article>
+        <img
+          class="church-illustration"
+          src="assets/characters/iglesia.png"
+          alt="Iglesia de la ceremonia"
+        />
+      </div>
+
+      <div class="landmark ballroom">
+        <article class="scene-card party-card">
+          <p class="eyebrow">Cap&iacute;tulo III</p>
+          <h2>La recepci&oacute;n</h2>
+          <p>{{ party.name }}</p>
+          <dl>
+            <div>
+              <dt>Direcci&oacute;n</dt>
+              <dd>{{ party.address }}</dd>
+            </div>
+            <div>
+              <dt>Hora</dt>
+              <dd>{{ party.time }}</dd>
+            </div>
+          </dl>
+        </article>
+        <img
+          class="party-illustration"
+          src="assets/characters/party.png"
+          alt="Celebraci&oacute;n de la recepci&oacute;n"
+        />
+      </div>
+    </div>
+
+    @if (useVideoAnimations) {
+      <video
+        class="journey-bride"
+        autoplay
+        loop
+        muted
+        playsinline
+        preload="metadata"
+        aria-label="Gabriela caminando hacia la iglesia"
+      >
+        <source [src]="journeyBrideVideoSrc" type="video/webm" />
+      </video>
+    } @else {
+      <img
+        class="journey-bride"
+        [src]="journeyBrideFallbackSrc"
+        alt="Gabriela caminando hacia la iglesia"
+      />
+    }
+
+    @if (showJourneyCar) {
+      @if (useVideoAnimations) {
+        <video
+          class="vintage-car"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Gabriela y Juan camino a la recepci&oacute;n"
+        >
+          <source [src]="journeyCarVideoSrc" type="video/webm" />
+        </video>
+      } @else {
+        <img
+          class="vintage-car"
+          [src]="journeyCarFallbackSrc"
+          alt="Gabriela y Juan camino a la recepci&oacute;n"
+        />
+      }
+    }
+
+    @if (showJourneyDancing) {
+      @if (useVideoAnimations) {
+        <video
+          class="journey-dancing"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="Gabriela y Juan bailando en la recepci&oacute;n"
+        >
+          <source [src]="journeyDancingVideoSrc" type="video/webm" />
+        </video>
+      } @else {
+        <img
+          class="journey-dancing"
+          [src]="journeyDancingFallbackSrc"
+          alt="Gabriela y Juan bailando en la recepci&oacute;n"
+        />
+      }
+    }
+  </div>
+</section>

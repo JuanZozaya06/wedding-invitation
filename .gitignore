@@ -41,11 +41,8 @@ typings/
 .DS_Store
 Thumbs.db
 
-# Backend maintained in its own repository: JuanZozaya06/wedding-backend
+# Active backend maintained in its own repository: JuanZozaya06/wedding-backend-comercial
 /backend/
-
-# Commercial backend maintained in JuanZozaya06/wedding-backend-comercial
-/backend-comercial/
 
 # Private connection details and credential backups (local only)
 /.credenciales/

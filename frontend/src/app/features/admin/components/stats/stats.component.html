@@ -1,0 +1,30 @@
+@if (vm.adminLoading) {
+  <p class="admin-empty admin-loading" role="status">Cargando estadísticas…</p>
+} @else if (vm.adminDataLoaded) {
+  <div class="admin-stats-grid">
+    <article>
+      <span>Invitaciones</span>
+      <strong>{{ vm.adminStats.invitations }}</strong>
+    </article>
+    <article>
+      <span>Abiertas</span>
+      <strong>{{ vm.adminStats.opened }}</strong>
+    </article>
+    <article>
+      <span>Respondidas</span>
+      <strong>{{ vm.adminStats.responded }}</strong>
+    </article>
+    <article>
+      <span>Pendientes</span>
+      <strong>{{ vm.adminStats.pending }}</strong>
+    </article>
+    <article>
+      <span>Invitados</span>
+      <strong>{{ vm.adminStats.guests }}</strong>
+    </article>
+    <article>
+      <span>Confirmados</span>
+      <strong>{{ vm.adminStats.confirmed }}</strong>
+    </article>
+  </div>
+}

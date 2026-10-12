@@ -1,0 +1,36 @@
+<main class="admin-shell admin-backoffice">
+  <section class="admin-hero">
+    <div class="backoffice-layout">
+      <app-admin-sidebar />
+      <section class="admin-dashboard">
+        <app-admin-header />
+        @if (vm.invitationEditorSuccess) {
+          <p role="status">{{ vm.invitationEditorSuccess }}</p>
+        }
+        <app-invitation-detail /><app-invitation-editor />
+        @if (vm.adminKeyError) {
+          <p class="admin-error" role="alert">{{ vm.adminKeyError }}</p>
+        }
+        @if (vm.activeAdminTab !== "media") {
+          <div class="admin-desktop-stats"><app-admin-stats /></div>
+        }
+        @if (vm.activeAdminTab !== "overview") {
+          <section class="admin-filters">
+            <label class="admin-search"
+              >Buscar<input
+                name="adminSearchTerm"
+                type="text"
+                [(ngModel)]="vm.adminSearchTerm"
+                [placeholder]="
+                  vm.activeAdminTab === 'media'
+                    ? 'Nombre, mensaje o archivo'
+                    : 'Grupo, token o invitado'
+                "
+            /></label>
+          </section>
+        }
+        <router-outlet />
+      </section>
+    </div>
+  </section>
+</main>

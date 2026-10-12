@@ -1,0 +1,18 @@
+<div class="admin-toolbar-actions">
+  <button
+    class="primary-button"
+    type="button"
+    (click)="vm.adminMenuOpen = false; vm.openInvitationEditor()"
+    [disabled]="vm.invitationSaving || !!vm.invitationEditor"
+  >
+    Nueva invitación
+  </button>
+  <button
+    class="secondary-button"
+    type="button"
+    [disabled]="vm.adminLoading"
+    (click)="vm.refreshAdminDashboard()"
+  >
+    {{ vm.adminLoading ? "Actualizando..." : "Actualizar datos" }}
+  </button>
+</div>
