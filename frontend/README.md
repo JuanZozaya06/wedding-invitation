@@ -10,6 +10,8 @@ Run everything from `C:\Users\Zozi\Documents\Projects\wedding-invitation\fronten
 - Open an existing invite: `http://127.0.0.1:4200/{token}`
 - Open admin: `http://127.0.0.1:4200/admin`
 - Build: `npm run build`
+- Headless tests: `npm test -- --watch=false --browsers=ChromeHeadless`
+- Generate a candidate token: `npm run token` (6 uppercase letters/digits; the API must check uniqueness within the wedding).
 
 Node `21.5.0` currently shows an Angular support warning locally. The app still builds, but production should use Node 20 LTS or 22+.
 
@@ -18,6 +20,7 @@ Node `21.5.0` currently shows an Angular support warning locally. The app still 
 - Public route: `/:token`
 - Legacy fallback route: `/wedding-invitation/:token`
 - Admin route: `/admin`
+- Photo uploader: `/upload`, directly opens the three steps without an invitation code. Uploads belong to the wedding album. `/fotos` and `/{token}?fotos=1` remain compatible aliases.
 - Standalone Angular app with SCSS
 - Invitation data, RSVP and admin authentication use the commercial Python API and MySQL on Railway.
 
@@ -28,9 +31,10 @@ Node `21.5.0` currently shows an Angular support warning locally. The app still 
 - `public/commercial-config.json` selects the wedding and API. It contains no passwords.
 - GitHub Pages deploys pushes to `main` after the Angular build and tests pass.
 - Local admin requests use `/api` through `proxy.conf.json`; the local Python server is unnecessary.
+- The local frontend uses the live Railway API by default. Use mocked tests or explicitly switch both API endpoints before testing local database changes through the UI.
 - Production uses credentialed CORS to the API subdomain on the same HTTPS site, preserving Secure/HttpOnly/SameSite=Strict cookies.
 - Private credentials and the Workbench connection are in `../.credenciales/`, excluded from Git.
-- Firestore and the legacy backend remain unchanged. The current application does not connect to them.
+- Firestore, legacy backend source and Drive files remain intact. The old Railway `fotos-api` deployment was removed at Zozi's request, and its repository source disconnected to prevent automatic redeployment. The current application uses the commercial API.
 
 ## Animation notes
 
@@ -56,7 +60,6 @@ Current animation media in `frontend/public/assets/characters`:
 ## Legacy Firebase helpers — do not use for the commercial application
 
 - Generate admin key hash: `npm run admin:hash -- mi-clave`
-- Generate token: `npm run token`
 - Reset demo invitations: `npm run reset:demo`
 - Report stats: `npm run report -- stats`
 - Report confirmed guests: `npm run report -- attending`

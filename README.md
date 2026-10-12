@@ -61,6 +61,7 @@ URLs utiles:
 
 - Invitación existente: `http://127.0.0.1:4200/{token}`
 - Admin: `http://127.0.0.1:4200/admin`
+- Compartir fotos: `http://127.0.0.1:4200/upload`, sin código de invitación.
 
 ## Build
 
@@ -214,13 +215,17 @@ Notas:
 - se genera `404.html` como fallback SPA
 - la app ya soporta tanto rutas directas del dominio propio como el prefijo legacy `/wedding-invitation`
 
-## Scripts utiles
+## Utilidad de tokens
+
+Desde `frontend`, `npm run token` genera un candidato de 6 caracteres. La API
+comprueba que no esté repetido dentro de la boda antes de crear la invitación.
+
+## Scripts históricos de Firestore (no ejecutar para la versión comercial)
 
 Desde `frontend`:
 
 ```bash
 npm run admin:hash -- mi-clave
-npm run token
 npm run report -- stats
 npm run report -- attending
 npm run reset:demo
@@ -229,5 +234,6 @@ npm run reset:demo
 ## Notas conocidas
 
 - `app.component.scss` supera el style budget y Angular muestra un warning en build.
-- El panel admin actual es practico, pero no es seguridad fuerte.
-- Para una version mas dura de seguridad, lo siguiente seria mover admin/reportes a Cloud Functions o a un backend real.
+- El panel actual usa autenticación en Python, permisos por boda en SQL, cookies seguras y CSRF.
+- El Angular local utiliza la API de producción por defecto. Las pruebas deben usar mocks, la base local o registros desechables.
+- Quedan pendientes el alta reutilizable de bodas, la personalización completa, la importación Excel a SQL y la verificación de respaldos automáticos/restauración.
