@@ -1,0 +1,50 @@
+<section class="wish-section">
+  <div class="wish-section-inner">
+    <div class="wish-polaroid">
+      <div class="wish-polaroid-inner">
+        <app-polaroid
+          imageUrl="assets/characters/paris.jpg"
+          alt="Gabriela y Juan en Paris"
+          caption="Paris, 2025"
+        />
+      </div>
+    </div>
+
+    <form class="wish-card" (ngSubmit)="vm.submitWish()">
+      <p class="eyebrow">Opcional</p>
+      <h2>{{ vm.wishTitle }}</h2>
+      <p>{{ vm.wishBodyCopy }}</p>
+
+      <label>
+        Mensaje para Gabriela y Juan
+        <textarea
+          name="guestMessage"
+          rows="4"
+          [(ngModel)]="vm.guestWish.message"
+          placeholder="Escriban algo bonito, un consejo o un deseo"
+        ></textarea>
+      </label>
+
+      <label>
+        Canci&oacute;n recomendada
+        <input
+          name="song"
+          type="text"
+          [(ngModel)]="vm.guestWish.song"
+          placeholder="Canci&oacute;n y artista"
+        />
+      </label>
+
+      <button class="secondary-button" type="submit" [disabled]="vm.wishSaving">
+        {{ vm.wishSaving ? "Guardando..." : "Enviar detalle" }}
+      </button>
+      @if (vm.wishError) {
+        <p class="form-error" role="alert">{{ vm.wishError }}</p>
+      }
+
+      @if (vm.wishSubmitted) {
+        <p class="saved-message">Detalle guardado.</p>
+      }
+    </form>
+  </div>
+</section>

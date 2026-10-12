@@ -1,0 +1,152 @@
+@if (vm.invitationDetail; as invitation) {
+  <dialog
+    #detailDialog
+    id="invitation-detail-dialog"
+    class="invitation-modal invitation-detail-modal"
+    aria-labelledby="invitation-detail-title"
+    (cancel)="$event.preventDefault(); vm.closeInvitationDetail()"
+  >
+    <div class="invitation-modal-header">
+      <h2 id="invitation-detail-title">{{ invitation.displayName }}</h2>
+      <button
+        class="admin-edit-button"
+        type="button"
+        aria-label="Cerrar detalle"
+        (click)="vm.closeInvitationDetail()"
+      >
+        ×
+      </button>
+    </div>
+    <p class="admin-group-code">
+      Código <code>{{ invitation.token }}</code> ·
+      {{ invitation.guestCount }} invitados
+    </p>
+    <div class="admin-badges detail-badges">
+      <app-attendance-status [status]="invitation.rsvpStatus" />
+      <span>{{ invitation.openedInvitation ? "Abierta" : "Sin abrir" }}</span>
+      <span>{{ invitation.hasChildren ? "Con niños" : "Sin niños" }}</span>
+      <span>{{
+        invitation.hasAbroadGuests
+          ? "Con viajeros del exterior"
+          : "Sin viajeros del exterior"
+      }}</span>
+    </div>
+    <div class="admin-group-body">
+      <section class="admin-group-section">
+        <h4>
+          Invitados
+          <span class="admin-guest-count">{{ invitation.guests.length }}</span>
+        </h4>
+        <ul class="admin-guest-list">
+          @for (guest of invitation.guests; track guest.id) {
+            <li>
+              <div>
+                <strong>{{ guest.name }}</strong>
+                <span class="admin-guest-role">{{
+                  {
+                    primary: "Principal",
+                    partner: "Pareja",
+                    child: "Hijo/a",
+                    guest: "Invitado",
+                  }[guest.role]
+                }}</span>
+                <span class="admin-guest-role"
+                  >{{
+                    guest.gender === "female"
+                      ? "Femenino"
+                      : guest.gender === "male"
+                        ? "Masculino"
+                        : guest.gender === "other"
+                          ? "Otro"
+                          : "Género sin especificar"
+                  }}
+                  · {{ guest.isChild ? "Niño/a" : "Adulto" }} ·
+                  {{
+                    guest.isAbroad
+                      ? "Viaja del exterior"
+                      : "No viaja del exterior"
+                  }}</span
+                >
+                <span class="admin-guest-role">ID: {{ guest.id }}</span>
+              </div>
+              <app-attendance-status
+                [status]="
+                  guest.attending
+                    ? 'accepted'
+                    : invitation.rsvpStatus === 'pending'
+                      ? 'pending'
+                      : 'declined'
+                "
+              />
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="admin-group-history">
+        <h4>Actividad de la invitación</h4>
+        <dl class="admin-meta-grid">
+          <div>
+            <dt>Primera apertura</dt>
+            <dd>{{ vm.formatAdminDate(invitation.openedAt) }}</dd>
+          </div>
+          <div>
+            <dt>Última apertura</dt>
+            <dd>
+              {{ vm.formatAdminDate(invitation.lastOpenedAt) }}
+            </dd>
+          </div>
+          <div>
+            <dt>Veces abierta</dt>
+            <dd>{{ invitation.openCount }}</dd>
+          </div>
+          <div>
+            <dt>Última respuesta</dt>
+            <dd>
+              {{ vm.formatAdminDate(invitation.respondedAt) }}
+            </dd>
+          </div>
+          <div>
+            <dt>Cambios</dt>
+            <dd>{{ invitation.responseEditCount }}</dd>
+          </div>
+          <div>
+            <dt>Última actualización</dt>
+            <dd>{{ vm.formatAdminDate(invitation.updatedAt) }}</dd>
+          </div>
+        </dl>
+      </section>
+    </div>
+
+    <section class="invitation-detail-text">
+      <h3>Mensaje</h3>
+      <p>{{ invitation.message || "Sin mensaje" }}</p>
+    </section>
+    <section class="invitation-detail-text">
+      <h3>Recomendación musical</h3>
+      <p>{{ invitation.song || "Sin recomendación musical" }}</p>
+    </section>
+    <section class="invitation-detail-text">
+      <h3>Notas y restricciones</h3>
+      <p>{{ invitation.notes || "Sin notas ni restricciones" }}</p>
+    </section>
+    <div class="detail-actions">
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="
+          vm.closeInvitationDetail(); vm.openInvitationEditor(invitation)
+        "
+      >
+        Editar invitación
+      </button>
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="vm.closeInvitationDetail()"
+      >
+        Cerrar
+      </button>
+    </div>
+  </dialog>
+}

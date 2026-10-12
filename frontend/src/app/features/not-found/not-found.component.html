@@ -1,0 +1,33 @@
+<main class="not-found-shell">
+  <section class="not-found-card">
+    <p class="eyebrow">{{ "Nuestra boda" }}</p>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+
+    <form class="not-found-form" (ngSubmit)="openInvitationByCode()">
+      <label>
+        C&oacute;digo de invitaci&oacute;n
+        <input
+          name="code"
+          type="text"
+          autocomplete="off"
+          [(ngModel)]="code"
+          [disabled]="busy"
+          placeholder="Escribe tu c&oacute;digo"
+        />
+      </label>
+
+      @if (error) {
+        <p class="form-error">{{ error }}</p>
+      }
+
+      <button class="primary-button" type="submit" [disabled]="busy">
+        @if (busy) {
+          Revisando c&oacute;digo...
+        } @else {
+          Entrar a la invitaci&oacute;n
+        }
+      </button>
+    </form>
+  </section>
+</main>

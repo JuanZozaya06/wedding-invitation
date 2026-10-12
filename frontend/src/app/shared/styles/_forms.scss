@@ -1,0 +1,122 @@
+@mixin controls {
+  h1,
+  h2,
+  h3,
+  p {
+    margin-top: 0;
+  }
+  h1,
+  h2,
+  h3 {
+    color: #51315e;
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    line-height: 1.03;
+  }
+  h1 {
+    margin-bottom: 1rem;
+    font-size: clamp(3rem, 7.2vw, 7.2rem);
+  }
+  h2 {
+    margin-bottom: 1rem;
+    font-size: clamp(2.25rem, 5vw, 4.6rem);
+  }
+  h3 {
+    margin-bottom: 0.65rem;
+    font-size: 1.35rem;
+  }
+  p {
+    color: #624d68;
+    font-size: clamp(1rem, 1.7vw, 1.2rem);
+    line-height: 1.7;
+  }
+  .form-error {
+    margin: 0;
+    color: #a33d5b;
+    font-size: 0.95rem;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.65rem;
+    color: #8c5fb7;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.25rem;
+    margin-top: 1.25rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #8c5fb7, #c58cce);
+    color: #fffaf7;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    padding: 0 1.35rem;
+    box-shadow: 0 1rem 2rem rgba(103, 71, 130, 0.22);
+    text-decoration: none;
+  }
+
+  .primary-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    margin-top: 1.25rem;
+    border: 1px solid rgba(140, 95, 183, 0.34);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.66);
+    color: #724798;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 900;
+    padding: 0 1.2rem;
+    text-decoration: none;
+  }
+
+  .secondary-button:hover {
+    background: rgba(140, 95, 183, 0.1);
+  }
+
+  label {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 1rem;
+    color: #51315e;
+    font-weight: 900;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    border: 1px solid rgba(92, 57, 103, 0.24);
+    border-radius: 0.45rem;
+    background: #fff;
+    color: #3e2d48;
+    font: inherit;
+    padding: 0.8rem 0.9rem;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .saved-message {
+    margin-top: 1rem;
+    color: #527b4e;
+    font-weight: 900;
+  }
+}

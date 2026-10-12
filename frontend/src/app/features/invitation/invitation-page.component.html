@@ -1,0 +1,281 @@
+@if (vm.missingInvitation) {
+  <app-not-found
+    [title]="vm.notFoundTitle"
+    [message]="vm.notFoundMessage"
+    [code]="vm.invitationAccessCode"
+  />
+} @else if (vm.isLoadingInvitation) {
+  <main class="not-found-shell">
+    <section class="not-found-card">
+      <p class="eyebrow">Nuestra boda</p>
+      <h1>Preparando invitación</h1>
+      <p>Estamos revisando el código para abrir la historia correcta.</p>
+    </section>
+  </main>
+} @else {
+  <main class="storybook-shell" [class.invitation-open]="vm.isOpen">
+    <audio
+      #backgroundAudio
+      [src]="backgroundMusicSrc"
+      loop
+      preload="auto"
+      (canplay)="onMusicCanPlay()"
+      (play)="onMusicPlay()"
+      (pause)="onMusicPause()"
+      (error)="onMusicError()"
+    ></audio>
+
+    @if (vm.isOpen && musicAvailable) {
+      <div
+        class="floating-audio-controls"
+        aria-label="Controles de m&uacute;sica"
+      >
+        <button
+          class="audio-control-button"
+          type="button"
+          [attr.aria-label]="musicToggleLabel"
+          [attr.title]="musicToggleLabel"
+          (click)="toggleMusicPlayback()"
+        >
+          <span aria-hidden="true">{{ musicPlaying ? "❚❚" : "♪" }}</span>
+        </button>
+      </div>
+    }
+
+    <section class="cover" aria-labelledby="cover-title">
+      <div class="sky-detail cloud-one"></div>
+      <div class="sky-detail cloud-two"></div>
+
+      <div class="envelope-stage">
+        <div class="envelope" aria-hidden="true">
+          <div class="envelope-back"></div>
+          <div class="letter-preview">
+            <span>Para</span>
+            <strong>{{ vm.invitation.displayName }}</strong>
+            <small>{{ vm.coupleNames }}</small>
+            <em>{{ vm.weddingDate }}</em>
+            <div class="parents-blessing">
+              <span>Con la bendici&oacute;n de Dios y de nuestros padres</span>
+              <div>
+                <p>Ayesa Palacios<br />Jes&uacute;s Landa</p>
+                <p>Virginia Cordido<br />Dionisio Zozaya</p>
+              </div>
+            </div>
+          </div>
+          <div class="envelope-front"></div>
+          <div class="envelope-flap"></div>
+          <div class="wax-seal">
+            <img src="assets/characters/GJ2-white-transparent.png" alt="" />
+          </div>
+        </div>
+        <p class="scroll-hint">
+          Desliza para recorrer esta historia interactiva.
+        </p>
+      </div>
+
+      <div class="cover-copy">
+        <p class="eyebrow">{{ vm.coverEyebrow }}</p>
+        <h1 id="cover-title">{{ vm.coupleNames }}</h1>
+        <p>{{ vm.invitationIntroCopy }}</p>
+        <button class="primary-button" type="button" (click)="openInvitation()">
+          Abrir invitaci&oacute;n
+        </button>
+      </div>
+    </section>
+
+    @if (vm.isOpen) {
+      <section class="parchment-section">
+        <article class="parchment">
+          <div class="scroll-cap top"></div>
+          <div class="parchment-content">
+            <p class="eyebrow">{{ vm.parchmentGreeting }}</p>
+            <h2>{{ vm.invitationHeadline }}</h2>
+            <p>{{ vm.invitationBodyCopy }}</p>
+            <dl class="date-grid">
+              <div>
+                <dt>Fecha</dt>
+                <dd>{{ vm.weddingDate }}</dd>
+              </div>
+              <div>
+                <dt>Ceremonia</dt>
+                <dd>{{ vm.ceremony.time }}</dd>
+              </div>
+              <div>
+                <dt>Recepci&oacute;n</dt>
+                <dd>{{ vm.party.time }}</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="scroll-cap bottom"></div>
+        </article>
+      </section>
+
+      <section class="story-bridge" aria-label="Transición del cuento">
+        <article class="story-bridge-banner">
+          <p>{{ vm.storyBridgeTitle }}</p>
+        </article>
+      </section>
+
+      <section class="couple-intro">
+        <div class="chapter-copy">
+          <p class="eyebrow">Cap&iacute;tulo I</p>
+          <h2>La princesa y el caballero</h2>
+          <p>
+            Ella llega con vestido de novia y brillo de cuento. &Eacute;l la
+            espera como caballero elegante, listo para seguir el camino juntos.
+          </p>
+        </div>
+
+        <div
+          class="portrait-scene"
+          aria-label="Ilustraci&oacute;n animada de los novios"
+        >
+          @if (useVideoAnimations) {
+            <video
+              class="portrait-scene-gif"
+              autoplay
+              loop
+              muted
+              playsinline
+              preload="metadata"
+              aria-label="Gabriela y Juan saludando"
+            >
+              <source [src]="introSceneVideoSrc" type="video/webm" />
+            </video>
+          } @else {
+            <img
+              class="portrait-scene-gif"
+              [src]="introSceneFallbackSrc"
+              alt="Gabriela y Juan saludando"
+            />
+          }
+        </div>
+      </section>
+
+      <app-journey [ceremony]="vm.ceremony" [party]="vm.party" />
+
+      <section class="schedule-summary-section">
+        <div class="chapter-copy">
+          <p class="eyebrow">Resumen del camino</p>
+          <h2>D&oacute;nde nos encontraremos</h2>
+          <p>{{ vm.scheduleSummaryCopy }}</p>
+        </div>
+
+        <div class="schedule-summary-grid">
+          <article>
+            <p class="eyebrow">Ceremonia</p>
+            <h3>{{ vm.ceremony.name }}</h3>
+            <dl>
+              <div>
+                <dt>Hora</dt>
+                <dd>{{ vm.ceremony.time }}</dd>
+              </div>
+              <div>
+                <dt>Direcci&oacute;n</dt>
+                <dd>{{ vm.ceremony.address }}</dd>
+              </div>
+            </dl>
+            <iframe
+              class="map-embed"
+              [src]="vm.ceremony.embedUrl"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Mapa de la ceremonia"
+            ></iframe>
+          </article>
+
+          <article>
+            <p class="eyebrow">Recepci&oacute;n</p>
+            <h3>{{ vm.party.name }}</h3>
+            <dl>
+              <div>
+                <dt>Hora</dt>
+                <dd>{{ vm.party.time }}</dd>
+              </div>
+              <div>
+                <dt>Direcci&oacute;n</dt>
+                <dd>{{ vm.party.address }}</dd>
+              </div>
+            </dl>
+            <iframe
+              class="map-embed"
+              [src]="vm.party.embedUrl"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Mapa de la recepci&oacute;n"
+            ></iframe>
+          </article>
+        </div>
+      </section>
+
+      <section class="details-section">
+        <div class="details-header">
+          <div class="chapter-copy">
+            <p class="eyebrow">Detalles del reino</p>
+            <h2>Para disfrutar la noche</h2>
+          </div>
+          <div class="details-polaroid">
+            <div class="details-polaroid-inner">
+              <app-polaroid
+                imageUrl="assets/characters/toledo.jpg"
+                alt="Gabriela y Juan en Toledo"
+                caption="Toledo, 2025"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <article class="detail-card detail-card-dress-code">
+            <span>*</span>
+            <h3>Vestimenta</h3>
+            <p>{{ vm.dressCodeCopy }}</p>
+            <div
+              class="reserved-colors"
+              aria-label="Colores reservados del evento"
+            >
+              <p>Colores reservados del evento</p>
+              <div class="reserved-colors-swatches" aria-hidden="true">
+                <span class="color-swatch color-swatch-lilac"></span>
+                <span class="color-swatch color-swatch-navy"></span>
+                <span class="color-swatch color-swatch-beige"></span>
+                <span class="color-swatch color-swatch-gold"></span>
+                <span class="color-swatch color-swatch-cream"></span>
+              </div>
+            </div>
+          </article>
+          <article>
+            <span>*</span>
+            <h3>Llegada</h3>
+            <p>{{ vm.arrivalCopy }}</p>
+          </article>
+          <article>
+            <span>*</span>
+            <h3>Regalos</h3>
+            <p>{{ vm.giftsCopy }}</p>
+          </article>
+        </div>
+      </section>
+
+      <app-wish-form />
+
+      <app-rsvp-form />
+
+      <section class="final-section">
+        <div class="final-sky">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <p class="eyebrow">Fin del cap&iacute;tulo</p>
+        <h2>Gracias por ser parte de nuestra historia</h2>
+
+        <p class="final-fairytale-copy">Y fueron felices para siempre...</p>
+        <img
+          class="final-image"
+          src="assets/characters/fin.png"
+          alt="Final del cuento de Gabriela y Juan"
+        />
+      </section>
+    }
+  </main>
+}

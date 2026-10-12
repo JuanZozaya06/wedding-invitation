@@ -1,0 +1,148 @@
+@if (vm.invitationEditor; as editor) {
+  <dialog
+    #invitationEditorDialog
+    id="invitation-editor-dialog"
+    class="invitation-modal"
+    aria-labelledby="invitation-editor-title"
+    (cancel)="$event.preventDefault(); vm.closeInvitationEditor()"
+  >
+    <form
+      class="admin-panel invitation-editor"
+      (ngSubmit)="vm.saveInvitationEditor()"
+    >
+      <div class="invitation-modal-header">
+        <h3 id="invitation-editor-title">
+          {{ vm.creatingInvitation ? "Nueva invitación" : "Editar invitación" }}
+        </h3>
+        <button
+          class="admin-edit-button"
+          type="button"
+          aria-label="Cerrar formulario"
+          title="Cerrar"
+          [disabled]="vm.invitationSaving"
+          (click)="vm.closeInvitationEditor()"
+        >
+          ×
+        </button>
+      </div>
+      <p>
+        {{
+          vm.creatingInvitation
+            ? "El enlace se genera automáticamente al crear el grupo."
+            : "El enlace, las respuestas y el historial se conservan. Si quitas a alguien, también se quitará su confirmación."
+        }}
+      </p>
+      <fieldset [disabled]="vm.invitationSaving">
+        <label
+          >Nombre del grupo
+          <input
+            id="invitation-display-name"
+            name="displayName"
+            [(ngModel)]="editor.displayName"
+            required
+            maxlength="150"
+            placeholder="Familia Pérez"
+          />
+        </label>
+        <p class="editor-token">Código: {{ editor.token }}</p>
+        @for (guest of editor.guests; track guest.id; let index = $index) {
+          <fieldset class="editor-guest">
+            <legend>Invitado {{ index + 1 }}</legend>
+            <div class="editor-fields">
+              <label
+                >Nombre
+                <input
+                  [name]="'name-' + guest.id"
+                  [(ngModel)]="guest.name"
+                  required
+                  maxlength="150"
+                />
+              </label>
+              <label
+                >Género para el saludo
+                <select
+                  [name]="'gender-' + guest.id"
+                  [(ngModel)]="guest.gender"
+                >
+                  <option [ngValue]="null">Sin especificar</option>
+                  <option value="female">Femenino</option>
+                  <option value="male">Masculino</option>
+                  <option value="other">Otro</option>
+                </select>
+              </label>
+              @if (guest.role !== "primary") {
+                <label
+                  >Relación
+                  <select [name]="'role-' + guest.id" [(ngModel)]="guest.role">
+                    <option value="guest">Invitado</option>
+                    <option value="partner">Pareja</option>
+                    <option value="child">Hijo/a</option>
+                  </select>
+                </label>
+              }
+            </div>
+            <div class="editor-options">
+              <label
+                ><input
+                  type="radio"
+                  name="primaryGuest"
+                  [value]="guest.id"
+                  [checked]="guest.role === 'primary'"
+                  (change)="vm.selectEditorPrimary(guest.id)"
+                />
+                Invitado principal</label
+              >
+              <label
+                ><input
+                  type="checkbox"
+                  [name]="'child-' + guest.id"
+                  [(ngModel)]="guest.isChild"
+                />
+                Niño/a</label
+              >
+              <label
+                ><input
+                  type="checkbox"
+                  [name]="'abroad-' + guest.id"
+                  [(ngModel)]="guest.isAbroad"
+                />
+                Viaja del exterior</label
+              >
+              <button
+                type="button"
+                class="secondary-button"
+                (click)="vm.removeEditorGuest(guest.id)"
+                [disabled]="editor.guests.length === 1"
+                [attr.aria-label]="'Quitar invitado ' + (index + 1)"
+              >
+                Quitar
+              </button>
+            </div>
+          </fieldset>
+        }
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="vm.addEditorGuest()"
+        >
+          Agregar invitado
+        </button>
+        @if (vm.invitationEditorError) {
+          <p class="admin-error" role="alert">{{ vm.invitationEditorError }}</p>
+        }
+        <div class="editor-actions">
+          <button type="submit" class="primary-button">
+            {{ vm.invitationSaving ? "Guardando..." : "Guardar invitación" }}
+          </button>
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="vm.closeInvitationEditor()"
+          >
+            Cancelar
+          </button>
+        </div>
+      </fieldset>
+    </form>
+  </dialog>
+}

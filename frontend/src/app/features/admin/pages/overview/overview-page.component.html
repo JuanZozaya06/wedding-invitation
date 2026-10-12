@@ -1,0 +1,130 @@
+<div
+  class="admin-activity-tabs"
+  role="tablist"
+  aria-label="Actividad reciente"
+  (keydown)="onActivityKeydown($event)"
+>
+  <button
+    type="button"
+    role="tab"
+    id="activity-tab-responded"
+    aria-controls="activity-responded"
+    [attr.aria-selected]="activeActivity === 'responded'"
+    [attr.tabindex]="activeActivity === 'responded' ? 0 : -1"
+    (click)="activeActivity = 'responded'"
+  >
+    Últimas respuestas
+  </button>
+  <button
+    type="button"
+    role="tab"
+    id="activity-tab-opened"
+    aria-controls="activity-opened"
+    [attr.aria-selected]="activeActivity === 'opened'"
+    [attr.tabindex]="activeActivity === 'opened' ? 0 : -1"
+    (click)="activeActivity = 'opened'"
+  >
+    Últimas visitas
+  </button>
+</div>
+<section
+  [attr.aria-busy]="vm.adminLoading"
+  class="admin-panels admin-overview-panels"
+>
+  <article
+    class="admin-panel admin-overview-opened"
+    id="activity-opened"
+    role="tabpanel"
+    aria-labelledby="activity-tab-opened"
+    [class.admin-activity-inactive]="activeActivity !== 'opened'"
+  >
+    <div class="admin-panel-header">
+      <div>
+        <p class="eyebrow">Aperturas recientes</p>
+        <h3>Últimos grupos que entraron</h3>
+      </div>
+      @if (vm.adminDataLoaded && !vm.adminKeyError && !vm.adminLoading) {
+        <span>{{ vm.recentOpenedInvitations.length }} grupos</span>
+      }
+    </div>
+
+    @if (vm.adminLoading) {
+      <p class="admin-empty admin-loading" role="status">
+        Cargando últimas visitas…
+      </p>
+    } @else if (
+      vm.adminDataLoaded &&
+      !vm.adminKeyError &&
+      vm.recentOpenedInvitations.length === 0
+    ) {
+      <p class="admin-empty">Aún no hay aperturas registradas.</p>
+    } @else {
+      <div class="admin-list">
+        @for (
+          invitation of vm.recentOpenedInvitations;
+          track invitation.token
+        ) {
+          <article class="admin-list-item">
+            <div>
+              <strong>{{ invitation.displayName }}</strong>
+              <p>Token: {{ invitation.token }}</p>
+            </div>
+            <div class="admin-badges">
+              <span>{{ vm.formatAdminDate(invitation.lastOpenedAt) }}</span>
+              <app-attendance-status [status]="invitation.rsvpStatus" />
+              <span>{{ invitation.openCount }} visitas</span>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </article>
+
+  <article
+    class="admin-panel admin-overview-responded"
+    id="activity-responded"
+    role="tabpanel"
+    aria-labelledby="activity-tab-responded"
+    [class.admin-activity-inactive]="activeActivity !== 'responded'"
+  >
+    <div class="admin-panel-header">
+      <div>
+        <p class="eyebrow">Respuestas recientes</p>
+        <h3>Últimos grupos que respondieron</h3>
+      </div>
+      @if (vm.adminDataLoaded && !vm.adminKeyError && !vm.adminLoading) {
+        <span>{{ vm.recentRespondedInvitations.length }} grupos</span>
+      }
+    </div>
+
+    @if (vm.adminLoading) {
+      <p class="admin-empty admin-loading" role="status">
+        Cargando últimas respuestas…
+      </p>
+    } @else if (
+      vm.adminDataLoaded &&
+      !vm.adminKeyError &&
+      vm.recentRespondedInvitations.length === 0
+    ) {
+      <p class="admin-empty">Aún no hay respuestas registradas.</p>
+    } @else {
+      <div class="admin-list">
+        @for (
+          invitation of vm.recentRespondedInvitations;
+          track invitation.token
+        ) {
+          <article class="admin-list-item">
+            <div>
+              <strong>{{ invitation.displayName }}</strong>
+              <p>Token: {{ invitation.token }}</p>
+            </div>
+            <div class="admin-badges">
+              <app-attendance-status [status]="invitation.rsvpStatus" />
+              <span>{{ vm.formatAdminDate(invitation.respondedAt) }}</span>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </article>
+</section>

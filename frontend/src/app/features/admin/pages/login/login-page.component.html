@@ -1,0 +1,34 @@
+<main class="admin-shell">
+  <section class="admin-hero">
+    <div class="admin-hero-copy">
+      <p class="eyebrow">Panel privado</p>
+      <h1>Admin de la boda</h1>
+      <p>
+        Aqu&iacute; pueden ver aperturas, respuestas y el estado general de los
+        invitados en una vista m&aacute;s clara para operar el evento.
+      </p>
+    </div>
+    <form class="admin-gate" (ngSubmit)="vm.unlockAdmin()">
+      <label>
+        Contraseña
+        <input
+          name="adminKey"
+          type="password"
+          [(ngModel)]="vm.adminKey"
+          autocomplete="current-password"
+          required
+          [disabled]="vm.adminLoading"
+          placeholder="Ingresa la contraseña"
+        />
+      </label>
+
+      <button class="primary-button" type="submit" [disabled]="vm.adminLoading">
+        {{ vm.adminLoading ? "Validando..." : "Entrar al panel" }}
+      </button>
+
+      @if (vm.adminKeyError) {
+        <p class="admin-error">{{ vm.adminKeyError }}</p>
+      }
+    </form>
+  </section>
+</main>

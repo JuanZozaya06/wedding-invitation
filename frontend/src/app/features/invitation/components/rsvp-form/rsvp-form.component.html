@@ -1,0 +1,74 @@
+<section class="rsvp-section">
+  <div class="rsvp-polaroid-stack" aria-hidden="true">
+    <div class="rsvp-polaroid rsvp-polaroid-back">
+      <div class="rsvp-polaroid-inner rsvp-polaroid-inner-back">
+        <app-polaroid
+          imageUrl="assets/characters/caracas.JPEG"
+          alt="Gabriela y Juan en Caracas"
+          caption="Caracas, 2023"
+        />
+      </div>
+    </div>
+    <div class="rsvp-polaroid rsvp-polaroid-front">
+      <div class="rsvp-polaroid-inner rsvp-polaroid-inner-front">
+        <app-polaroid
+          imageUrl="assets/characters/chichi.JPEG"
+          alt="Gabriela y Juan en Chichi"
+          caption="Chichi, 2025"
+        />
+      </div>
+    </div>
+  </div>
+
+  <form class="rsvp-card" (ngSubmit)="vm.submitRsvp()">
+    <p class="eyebrow">RSVP</p>
+    <h2>{{ vm.rsvpTitle }}</h2>
+    <p>{{ vm.rsvpBodyCopy }}</p>
+
+    <div class="guest-summary">
+      <strong>{{ vm.confirmedGuests.length }}</strong>
+      <span>{{ vm.guestSummaryCopy }}</span>
+    </div>
+
+    <div class="attendee-list" role="group" aria-label="Asistentes invitados">
+      @for (guest of vm.rsvp.guests; track guest.id) {
+        <label class="guest-check">
+          <input
+            [name]="'guest-' + guest.id"
+            type="checkbox"
+            [(ngModel)]="guest.attending"
+          />
+          <span>
+            <strong>{{ guest.name }}</strong>
+            <small>{{
+              guest.attending
+                ? "S&iacute; asistir&aacute;"
+                : "No asistir&aacute;"
+            }}</small>
+          </span>
+        </label>
+      }
+    </div>
+
+    <label>
+      Restricciones o notas
+      <textarea
+        name="notes"
+        rows="3"
+        [(ngModel)]="vm.rsvp.notes"
+        placeholder="Alergias, restricciones alimentarias o mensaje"
+      ></textarea>
+    </label>
+
+    <button class="primary-button" type="submit" [disabled]="vm.rsvpSaving">
+      {{ vm.rsvpSaving ? "Guardando..." : "Guardar respuesta" }}
+    </button>
+    @if (vm.rsvpError) {
+      <p class="form-error" role="alert">{{ vm.rsvpError }}</p>
+    }
+
+    @if (vm.submitted) {
+      <p class="saved-message">Respuesta guardada.</p>
+    }
+  </form>
+</section>
