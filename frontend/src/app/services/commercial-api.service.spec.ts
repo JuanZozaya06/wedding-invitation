@@ -54,4 +54,12 @@ describe('CommercialApiService', () => {
     expect(new URL(api.invitationUrl('ABC123')).pathname).toMatch(/\/ABC123$/);
     expect(api.invitationUrl('ABC123')).not.toContain('/gabriela-y-juan/');
   });
+
+  it('comparte un uploader por dominio sin códigos de boda ni de invitación', () => {
+    const api = new CommercialApiService();
+    const url = new URL(api.photoUploadUrl());
+    expect(url.pathname).toMatch(/\/upload$/);
+    expect(url.search).toBe('');
+    expect(api.photoPath()).toBe('/public/weddings/gabriela-y-juan');
+  });
 });

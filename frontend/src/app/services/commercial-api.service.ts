@@ -72,6 +72,8 @@ export class CommercialApiService {
     return `/public/weddings/${encodeURIComponent(this.weddingCode)}/invitations/${encodeURIComponent(token)}`;
   }
   adminPath() { return `/admin/weddings/${encodeURIComponent(this.weddingCode)}`; }
+  photoPath() { return `/public/weddings/${encodeURIComponent(this.weddingCode)}`; }
+  photoUploadUrl() { return new URL('upload', document.baseURI).href; }
   endpoint(path: string, administrative = false) { return (administrative ? this.adminBase : this.base) + path; }
 
   async login(password: string): Promise<WeddingDetails> {

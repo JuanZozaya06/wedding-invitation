@@ -24,18 +24,18 @@ describe('PhotoApiService', () => {
     expect(String(fetches.calls.mostRecent().args[0])).toContain('/admin/weddings/gabriela-y-juan/photos/photo-id/thumbnail');
   });
 
-  it('validates the invitation before enabling uploads and scopes batches to its wedding', async () => {
-    spyOnProperty(commercial, 'context', 'get').and.returnValue({ weddingCode: commercial.weddingCode, segment: 'ABC123' });
+  it('opens uploads without an invitation and scopes batches to the wedding', async () => {
+    spyOnProperty(commercial, 'context', 'get').and.returnValue({ weddingCode: commercial.weddingCode, segment: 'upload' });
     const requests = spyOn(commercial, 'request').and.resolveTo({ uploads_enabled: true });
     expect(await service.initialize()).toBeTrue();
-    expect(requests).toHaveBeenCalledWith(commercial.publicPath('ABC123') + '/album', 'GET', undefined, false);
+    expect(requests).toHaveBeenCalledWith(commercial.photoPath() + '/album', 'GET', undefined, false);
     await service.createBatch('María', '¡Felicidades!');
-    expect(requests).toHaveBeenCalledWith(commercial.publicPath('ABC123') + '/photo-batches', 'POST', { name: 'María', message: '¡Felicidades!' });
+    expect(requests).toHaveBeenCalledWith(commercial.photoPath() + '/photo-batches', 'POST', { name: 'María', message: '¡Felicidades!' });
   });
 
-  it('disables uploads when the invitation is invalid without consulting the legacy backend', async () => {
-    spyOnProperty(commercial, 'context', 'get').and.returnValue({ weddingCode: commercial.weddingCode, segment: 'WRONG1' });
-    spyOn(commercial, 'request').and.rejectWith(new Error('Invitación no encontrada.'));
+  it('disables uploads when the album is unavailable without consulting the legacy backend', async () => {
+    spyOnProperty(commercial, 'context', 'get').and.returnValue({ weddingCode: commercial.weddingCode, segment: 'upload' });
+    spyOn(commercial, 'request').and.rejectWith(new Error('Boda no encontrada.'));
     const fetches = spyOn(window, 'fetch');
     expect(await service.initialize()).toBeFalse();
     expect(fetches).not.toHaveBeenCalled();

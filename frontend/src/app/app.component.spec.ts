@@ -4,6 +4,34 @@ import { InvitationService } from './services/invitation.service';
 import { CommercialApiService, ApiError } from './services/commercial-api.service';
 import { PhotoApiService } from './services/photo-api.service';
 
+describe('Uploader público de la boda', () => {
+  let originalUrl: string;
+  beforeEach(async () => {
+    originalUrl = window.location.href;
+    await TestBed.configureTestingModule({ imports: [AppComponent] }).compileComponents();
+  });
+  afterEach(() => window.history.replaceState(null, '', originalUrl));
+
+  for (const path of ['/upload', '/fotos', '/wedding-invitation/upload', '/ABC123?fotos=1']) {
+    it(`abre directamente los tres pasos en ${path} sin pedir una invitación`, async () => {
+      window.history.replaceState(null, '', path);
+      const api = TestBed.inject(CommercialApiService);
+      const request = spyOn(api, 'request').and.resolveTo({ uploads_enabled: true, partnerOne: 'Gabriela', partnerTwo: 'Juan', storage: 'drive' });
+      const read = spyOn(TestBed.inject(InvitationService), 'getInvitationByToken');
+      const fixture = TestBed.createComponent(AppComponent);
+      fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+      const root: HTMLElement = fixture.nativeElement;
+      expect(root.querySelector('h1')?.textContent).toBe('Tu mirada, nuestra historia.');
+      expect(root.querySelectorAll('.photo-steps li').length).toBe(3);
+      expect(root.querySelector<HTMLInputElement>('input[type=file]')?.disabled).toBeFalse();
+      expect(root.querySelector('.not-found-form')).toBeNull();
+      expect(read).not.toHaveBeenCalled();
+      expect(request).toHaveBeenCalledOnceWith(api.photoPath() + '/album', 'GET', undefined, false);
+      expect(fixture.componentInstance.photosUrl).toBe(api.photoUploadUrl());
+    });
+  }
+});
+
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({

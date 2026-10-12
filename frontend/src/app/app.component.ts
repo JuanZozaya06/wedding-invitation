@@ -176,7 +176,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly route = this.resolveRoute();
   readonly routeSegment = this.route.segment;
   readonly isPhotosRoute = this.route.kind === 'photos';
-  get photosUrl(): string { return this.commercialApi.invitationUrl(this.invitation.token) + '?fotos=1'; }
+  get photosUrl(): string { return this.commercialApi.photoUploadUrl(); }
   readonly isAdminRoute = this.route.kind === 'admin';
   readonly isCivilRoute = this.route.kind === 'civil';
   readonly isNotFoundRoute = this.route.kind === 'not-found';
@@ -1352,6 +1352,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!context) return { kind: 'not-found', segment: '', reason: 'invalid-route' };
     if (!context.segment) return { kind: 'not-found', segment: '', reason: 'missing-token' };
     if (context.segment === 'admin') return { kind: 'admin', segment: 'admin' };
+    if (context.segment === 'upload' || context.segment === 'fotos') return { kind: 'photos', segment: context.segment };
     return new URLSearchParams(window.location.search).get('fotos') === '1'
       ? { kind: 'photos', segment: context.segment } : { kind: 'invitation', segment: context.segment };
   }

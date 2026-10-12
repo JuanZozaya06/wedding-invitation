@@ -15,20 +15,18 @@ export class PhotoApiService {
   private initialization?: Promise<boolean>;
   details?: AlbumDetails;
 
-  get invitationToken(): string { return this.api.context?.segment ?? ''; }
-  get invitationUrl(): string { return this.api.invitationUrl(this.invitationToken); }
+  get invitationUrl(): string { return new URL('.', document.baseURI).href; }
 
   initialize(): Promise<boolean> {
     return this.initialization ??= (async () => {
-      const admin = this.invitationToken === 'admin';
-      if (!this.invitationToken) return false;
-      this.details = await this.api.request<AlbumDetails>(admin ? this.api.adminPath() + '/album' : this.api.publicPath(this.invitationToken) + '/album', 'GET', undefined, admin);
+      const admin = this.api.context?.segment === 'admin';
+      this.details = await this.api.request<AlbumDetails>(admin ? this.api.adminPath() + '/album' : this.api.photoPath() + '/album', 'GET', undefined, admin);
       return admin || this.details.uploads_enabled;
     })().catch(() => false);
   }
 
   createBatch(name: string, message: string): Promise<UploadBatch> {
-    return this.api.request(this.api.publicPath(this.invitationToken) + '/photo-batches', 'POST', { name, message });
+    return this.api.request(this.api.photoPath() + '/photo-batches', 'POST', { name, message });
   }
 
   upload(batch: UploadBatch, id: string, file: File, progress: (value: number) => void): Promise<void> {
