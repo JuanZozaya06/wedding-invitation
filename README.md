@@ -1,12 +1,17 @@
 # Wedding Invitation
 
-Invitacion web privada para la boda de Gabriela & Juan. El proyecto esta hecho en Angular y hoy ya incluye experiencia narrativa, carga por token, Firebase, RSVP, panel admin ligero y despliegue en GitHub Pages con dominio propio.
+Invitación web privada para la boda de Gabriela y Juan, con Angular, backend Python y MySQL en Railway. Las invitaciones, RSVP, mensajes, canciones y fotos utilizan la API comercial; Firestore permanece intacto como sistema anterior.
+
+Producción: [invitación](https://labodadelsiglo.app/) y [administración](https://labodadelsiglo.app/admin).
+API: `https://api.labodadelsiglo.app`. El frontend se despliega desde `main` en GitHub Pages y el backend desde `main` en su repositorio independiente.
+Consulta [frontend/README.md](frontend/README.md) y [backend-comercial/README.md](backend-comercial/README.md) para la operación actual.
+Las conexiones y contraseñas están en `.credenciales/CREDENCIALES.md`, excluido de Git.
 
 ## Estado actual
 
 - Angular 18 standalone app.
 - Invitacion privada por token.
-- Pantalla `/admin` con clave maestra hasheada en Firestore.
+- Pantalla `/admin` con contraseña por boda, verificada por el backend contra un hash Argon2id en MySQL.
 - Pantalla 404 si el token no existe o la URL es invalida.
 - Sobre/carta inicial con apertura manual.
 - Recorrido horizontal con ceremonia y recepcion ancladas al paisaje.
@@ -27,7 +32,7 @@ Invitacion web privada para la boda de Gabriela & Juan. El proyecto esta hecho e
 |   |   `-- assets/audio/             # MP3 opcional de fondo
 |   |-- src/app/
 |   |   |-- app.component.*           # UI principal
-|   |   |-- services/                 # Firestore y logica de datos
+|   |   |-- services/                 # API comercial y lógica de datos
 |   |   |-- models/                   # Tipos de invitacion / RSVP
 |   |   `-- data/                     # Demo data
 |   `-- FIREBASE_SETUP.md             # Guia operativa para Firebase
@@ -54,7 +59,7 @@ npm start -- --host 127.0.0.1 --port 4200
 
 URLs utiles:
 
-- Invitacion demo: `http://127.0.0.1:4200/demo-cuento`
+- Invitación existente: `http://127.0.0.1:4200/{token}`
 - Admin: `http://127.0.0.1:4200/admin`
 
 ## Build
@@ -71,7 +76,9 @@ Salida:
 frontend/dist/frontend
 ```
 
-## Firebase
+## Firebase (documentación histórica)
+
+Las secciones de Firebase, importación y clave maestra que siguen describen el sistema anterior. Sus scripts no deben ejecutarse para operar la versión comercial. La aplicación actual usa SQL y no conecta a Firestore.
 
 La app ya esta preparada para leer y escribir en Firestore.
 

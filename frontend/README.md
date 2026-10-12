@@ -7,7 +7,7 @@ Angular 18 frontend for the private wedding invitation of Gabriela and Juan.
 Run everything from `C:\Users\Zozi\Documents\Projects\wedding-invitation\frontend`.
 
 - Start dev server: `npm start -- --host 127.0.0.1 --port 4200`
-- Open demo invite: `http://127.0.0.1:4200/demo-cuento`
+- Open an existing invite: `http://127.0.0.1:4200/{token}`
 - Open admin: `http://127.0.0.1:4200/admin`
 - Build: `npm run build`
 
@@ -19,7 +19,18 @@ Node `21.5.0` currently shows an Angular support warning locally. The app still 
 - Legacy fallback route: `/wedding-invitation/:token`
 - Admin route: `/admin`
 - Standalone Angular app with SCSS
-- Firestore-backed invitation data with demo fallback
+- Invitation data, RSVP and admin authentication use the commercial Python API and MySQL on Railway.
+
+## Production
+
+- Invitation and admin: `https://labodadelsiglo.app/{token}` and `/admin`.
+- API: `https://api.labodadelsiglo.app` (Railway, HTTPS).
+- `public/commercial-config.json` selects the wedding and API. It contains no passwords.
+- GitHub Pages deploys pushes to `main` after the Angular build and tests pass.
+- Local admin requests use `/api` through `proxy.conf.json`; the local Python server is unnecessary.
+- Production uses credentialed CORS to the API subdomain on the same HTTPS site, preserving Secure/HttpOnly/SameSite=Strict cookies.
+- Private credentials and the Workbench connection are in `../.credenciales/`, excluded from Git.
+- Firestore and the legacy backend remain unchanged. The current application does not connect to them.
 
 ## Animation notes
 
@@ -42,7 +53,7 @@ Current animation media in `frontend/public/assets/characters`:
 - `car.webm`
 - `dancing.webm`
 
-## Firebase helpers
+## Legacy Firebase helpers — do not use for the commercial application
 
 - Generate admin key hash: `npm run admin:hash -- mi-clave`
 - Generate token: `npm run token`
@@ -50,4 +61,4 @@ Current animation media in `frontend/public/assets/characters`:
 - Report stats: `npm run report -- stats`
 - Report confirmed guests: `npm run report -- attending`
 
-If Firebase is missing or a token is not found, the frontend can fall back to demo invitation data.
+These scripts belong to the previous deployment. Do not use them to operate the commercial application or modify the existing Firestore data. An unknown invitation now displays the not-found screen.
