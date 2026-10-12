@@ -1352,6 +1352,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!context) return { kind: 'not-found', segment: '', reason: 'invalid-route' };
     if (!context.segment) return { kind: 'not-found', segment: '', reason: 'missing-token' };
     if (context.segment === 'admin') return { kind: 'admin', segment: 'admin' };
+    if (context.segment === 'civil') return { kind: 'civil', segment: 'civil' };
     if (context.segment === 'upload' || context.segment === 'fotos') return { kind: 'photos', segment: context.segment };
     return new URLSearchParams(window.location.search).get('fotos') === '1'
       ? { kind: 'photos', segment: context.segment } : { kind: 'invitation', segment: context.segment };

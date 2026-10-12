@@ -105,6 +105,7 @@ Node currently reports an Angular support warning because the local Node version
 - Optional background music is implemented with a floating play/pause control. Preserve user interaction requirements for autoplay.
 - Spanish only.
 - Must work well on mid-range mobile phones.
+- `/civil` opens the separate civil invitation directly, including `/civil/` and the legacy `/wedding-invitation/civil` path. Reserve this route before invitation-token resolution; do not load SQL invitation or album data for it.
 
 ## Animation Architecture
 
