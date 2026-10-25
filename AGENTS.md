@@ -223,7 +223,8 @@ Each guest currently contains:
 - `/upload` is a separate public component, with no invitation code or admin session requirement. Gallery and uploader explicitly select their API mode; do not infer permissions from the current URL inside the photo service.
 - Keep feature styles scoped. Shared form styles are a Sass mixin, included inside each feature's scope. The invitation's legacy cross-component styles and admin layout styles use explicit host selectors.
 - Test fixtures live in `src/app/testing/`; production starts with an empty invitation and never falls back to sample guests. Routing/state tests mock every API call.
-- Videos are deferred at Zozi's request: this refactor preserves the photo uploader's current image-only validation.
+- Zozi authorized videos: the uploader accepts mixed photos and MP4/MOV/WebM videos. Keep the existing three steps and independent wedding-album ownership.
+- Guests will use mobile data at the wedding; no shared wedding Wi-Fi is planned. Prioritize slow/interrupted cellular connections and accurate retry messages.
 
 The public invitation already personalizes parts of the copy from invitation data.
 
@@ -337,10 +338,15 @@ Recommended row-level columns include:
 - Guests receive a 24-hour bearer credential limited to a photo batch and wedding; they can upload without an account and cannot browse the private album.
 - Current wedding storage is Google Drive with existing original/thumbnail folders. OAuth uses `drive.file`; encrypted credentials and the encryption key are configured separately in Railway variables. Never log them or expose Drive storage keys to clients.
 - New albums default to local storage isolated by wedding. Railway uses `PHOTO_STORAGE_DIR=/data/photos` on a persistent volume. Do not switch storage for a nonempty album.
-- Current limits: 20 photos/batch, 20 MB/file, 40 megapixels/image, 2000 photos and 5 GiB/album. SQL reservations and upload identifiers make retries idempotent. Preserve validation, quotas, per-photo progress and the page-exit guard during uploads.
+- Current limits: 20 mixed files/batch; photos up to 20 MiB/40 megapixels, videos up to 2 GiB/30 minutes/4K, and 2000 files/100 GB (decimal) per album. Drive free space remains authoritative. Migration `20261024_media_capacity` raises only the old default 5 GiB allowance; preserve custom quotas. SQL reservations and upload identifiers make retries idempotent. Preserve validation, quotas, per-photo progress and the page-exit guard during uploads.
+- Videos upload in resumable 8 MiB requests authorized by the 24-hour batch bearer. SQL reserves full file size plus a poster before accepting chunks. Retries within the current visit query the saved offset; never restart completed files or expose admin credentials to public uploads.
+- FFmpeg/FFprobe validate actual container, codec, duration, dimensions and a decodable frame; the Docker image installs FFmpeg. On Windows install Gyan.FFmpeg or set FFMPEG_BINARY/FFPROBE_BINARY. Preserve originals; only generate a JPEG poster, without transcoding the whole video.
+- Partial uploads use PHOTO_STORAGE_DIR/.uploads on the persistent volume; keep one service replica attached to that volume. The default in-progress allowance is 4 GiB across active batches (UPLOAD_TEMP_MAX_BYTES). Background Drive transfers stream data and renew their SQL lease; failed transfers retry with the same keys. Cancelling an unfinished selection requests cancellation of its partial uploads; receiving/failed uploads expire after 30 inactive minutes, and expired temporary files are reclaimed when a new batch starts. Never grant SQL DELETE to the API for cleanup: expired never-stored reservations become tombstones, and records with possible remote originals remain reserved/abandoned for maintenance.
+- Admin video playback is private and serves bounded HTTP byte ranges; original downloads stream. The grid fetches only JPEG posters. Use cookie credentials for the video element; unsupported device codecs show an original-download fallback. Never buffer multi-gigabyte files into API/client blobs.
 - Backend tests use MySQL transactions, temporary files and a mocked Drive adapter; do not upload probe files into the real wedding folders.
 - Last full verification at cutover: 52 Angular tests, 35 backend tests, successful build/CI, production invitation load, admin login/logout and private gallery. Actual Drive upload/download of a new photo was not exercised against the wedding folders. Run checks appropriate to subsequent changes rather than treating these counts as permanent.
 - Pending commercial work includes reusable wedding onboarding, Excel-to-SQL import, full theme configuration, customer password-management UI, and confirming automated backups plus restoration. Do not describe these as completed.
+- Media reliability review (October 24): automatic recovery after API restarts, browser-reload recovery, shared photo/video processing slots, temporary-reservation renewal/cleanup, adaptive retries and operational diagnostics remain pending. Existing retries work within the current visit; do not describe video uploads as hardened for wedding-day concurrency. Large real-phone uploads and real Drive end-to-end validation are still pending.
 
 ## GitHub Pages
 

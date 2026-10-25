@@ -232,10 +232,14 @@ small {
   overflow: hidden;
 }
 
-.frame img {
+.frame img,
+.frame video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.frame video {
+  object-fit: contain;
 }
 
 .remove {

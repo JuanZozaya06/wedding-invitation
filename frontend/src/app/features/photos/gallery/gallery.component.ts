@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { PhotoDemoService } from '../services/photo-demo.service';
 import { PhotoApiService } from '../services/photo-api.service';
 import { PhotoItem } from '../models/photo.model';
+import { isVideo, mediaCount } from '../models/media';
 @Component({
   selector: 'app-photo-gallery',
   standalone: true,
@@ -19,6 +20,16 @@ import { PhotoItem } from '../models/photo.model';
   styleUrl: './gallery.component.scss',
 })
 export class GalleryComponent implements OnInit, OnDestroy {
+  readonly isVideo = isVideo;
+  readonly mediaCount = mediaCount;
+  videoError = false;
+  originalUrl(item: PhotoItem, playback = false) {
+    return this.demo ? item.url : this.api.originalUrl(item.id, playback);
+  }
+  open(item: PhotoItem) {
+    this.videoError = false;
+    this.selected = item;
+  }
   private query = '';
 
   private initialized = false;
@@ -166,7 +177,7 @@ export class GalleryComponent implements OnInit, OnDestroy {
     } catch (error) {
       if (generation === this.generation)
         this.error = this.demo
-          ? 'No pudimos leer las fotos de prueba. Intenta actualizar de nuevo.'
+          ? 'No pudimos leer las fotos y los videos de prueba. Intenta actualizar de nuevo.'
           : error instanceof Error
             ? error.message
             : 'No pudimos leer el álbum. Intenta nuevamente.';
@@ -176,7 +187,7 @@ export class GalleryComponent implements OnInit, OnDestroy {
   }
 
   async download(item: PhotoItem, event: Event): Promise<void> {
-    if (this.demo) return;
+    if (this.demo || isVideo(item.file)) return;
     event.preventDefault();
     if (this.downloading) return;
     this.downloading = item.id;
@@ -191,7 +202,7 @@ export class GalleryComponent implements OnInit, OnDestroy {
       this.error =
         error instanceof Error
           ? error.message
-          : 'No pudimos descargar la foto.';
+          : 'No pudimos descargar el archivo.';
     } finally {
       this.downloading = '';
     }

@@ -12,6 +12,13 @@ import { FormsModule } from '@angular/forms';
 import { PhotoDemoService } from '../services/photo-demo.service';
 import { PhotoApiService, UploadBatch } from '../services/photo-api.service';
 import { PhotoItem, PhotoStep } from '../models/photo.model';
+import {
+  MEDIA_ACCEPT,
+  MAX_PHOTO_BYTES,
+  MAX_VIDEO_BYTES,
+  isVideo,
+  mediaCount,
+} from '../models/media';
 @Component({
   selector: 'app-photo-upload',
   standalone: true,
@@ -20,6 +27,11 @@ import { PhotoItem, PhotoStep } from '../models/photo.model';
   styleUrl: './upload.component.scss',
 })
 export class UploadComponent implements OnInit, OnDestroy {
+  readonly accept = MEDIA_ACCEPT;
+  readonly isVideo = isVideo;
+  get selectionLabel() {
+    return mediaCount(this.items);
+  }
   available = false;
 
   connecting = true;
@@ -116,20 +128,21 @@ export class UploadComponent implements OnInit, OnDestroy {
   }
 
   select(event: Event): void {
+    if (this.busy || this.remoteBatch || !this.available) return;
     const input = event.target as HTMLInputElement;
     this.error = '';
     for (const file of Array.from(input.files ?? [])) {
       if (this.items.length >= 20) {
-        this.error = 'Puedes compartir hasta 20 fotos por tanda.';
+        this.error = 'Puedes compartir hasta 20 fotos y videos por tanda.';
         break;
       }
       if (
-        !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name) ||
+        !/\.(jpe?g|png|webp|heic|heif|mp4|mov|webm)$/i.test(file.name) ||
         file.size === 0 ||
-        file.size > 20 * 1024 * 1024
+        file.size > (isVideo(file) ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES)
       ) {
         this.error =
-          'Elige fotos JPG, PNG, WebP o HEIC de hasta 20 MB cada una.';
+          'Elige fotos JPG, PNG, WebP o HEIC de hasta 20 MB, o videos MP4, MOV o WebM de hasta 2 GB y 30 minutos.';
         continue;
       }
       this.items.push({
@@ -147,6 +160,7 @@ export class UploadComponent implements OnInit, OnDestroy {
   }
 
   remove(item: PhotoItem): void {
+    if (this.busy || this.remoteBatch) return;
     URL.revokeObjectURL(item.url);
     this.items = this.items.filter((p) => p !== item);
   }
@@ -189,10 +203,10 @@ export class UploadComponent implements OnInit, OnDestroy {
         } catch (error) {
           item.state = 'error';
           this.error = this.demo
-            ? 'No pudimos guardar algunas fotos en este navegador. Puedes reintentar.'
+            ? 'No pudimos guardar algunos archivos en este navegador. Puedes reintentar.'
             : error instanceof Error
               ? error.message
-              : 'No pudimos subir algunas fotos. Puedes reintentar las pendientes.';
+              : 'No pudimos subir algunos archivos. Puedes reintentar las pendientes.';
         }
       }
     } catch (error) {
@@ -210,6 +224,8 @@ export class UploadComponent implements OnInit, OnDestroy {
   }
 
   reset(): void {
+    if (this.busy) return;
+    this.discardPending();
     this.items.forEach((p) => URL.revokeObjectURL(p.url));
     this.items = [];
     this.batchId = crypto.randomUUID();
@@ -224,7 +240,17 @@ export class UploadComponent implements OnInit, OnDestroy {
     if (!this.destroyed) this.connecting = false;
   }
   ngOnDestroy() {
+    if (!this.busy) this.discardPending();
     this.destroyed = true;
     this.items.forEach((p) => URL.revokeObjectURL(p.url));
+  }
+  private discardPending(): void {
+    if (this.remoteBatch)
+      void this.api.discardUploads(
+        this.remoteBatch,
+        this.items
+          .filter((item) => item.state !== 'done' && isVideo(item.file))
+          .map((item) => item.id),
+      );
   }
 }

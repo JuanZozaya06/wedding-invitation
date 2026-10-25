@@ -98,6 +98,63 @@ describe('Photo administration', () => {
     fixture.destroy();
   });
 
+  it('loads only the video poster for the grid and uses private playback on demand', async () => {
+    const image = jasmine
+      .createSpy()
+      .and.resolveTo(new Blob(['poster'], { type: 'image/jpeg' }));
+    TestBed.overrideProvider(PhotoApiService, {
+      useValue: {
+        demo: false,
+        initialize: () => Promise.resolve(true),
+        image,
+        list: () =>
+          Promise.resolve({
+            photos: [
+              {
+                id: 'clip',
+                batchId: 'batch',
+                fileName: 'baile.mp4',
+                mimeType: 'video/mp4',
+                size: 250000000,
+                name: 'María',
+                message: '',
+                createdAt: '2026-10-24T00:00:00Z',
+              },
+            ],
+            nextCursor: null,
+          }),
+        originalUrl: (_id: string, playback: boolean) =>
+          playback ? '/fixture-video/playback' : '/fixture-video/original',
+      },
+    });
+    const fixture = TestBed.createComponent(GalleryComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.querySelector('video')).toBeNull();
+    expect(image).toHaveBeenCalledOnceWith('clip');
+    root.querySelector<HTMLButtonElement>('.album-thumbnail')!.click();
+    fixture.detectChanges();
+    const video = root.querySelector<HTMLVideoElement>('video')!;
+    expect(video.controls).toBeTrue();
+    expect(video.autoplay).toBeFalse();
+    expect(video.getAttribute('crossorigin')).toBe('use-credentials');
+    expect(video.getAttribute('src')).toBe('/fixture-video/playback');
+    expect(
+      root
+        .querySelector<HTMLAnchorElement>('.photo-dialog a')!
+        .getAttribute('href'),
+    ).toBe('/fixture-video/original');
+    expect(image.calls.count()).toBe(1);
+    video.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(root.querySelector('.photo-dialog')?.textContent).toContain(
+      'Este navegador no puede reproducir',
+    );
+    fixture.destroy();
+  });
+
   for (const [width, height] of [
     [320, 640],
     [390, 844],

@@ -13,7 +13,7 @@
       <h1>Tu mirada, nuestra historia.</h1>
       <p>
         Las risas, los abrazos y ese instante que solo tú viste. Comparte tus
-        fotos con nosotros.
+        fotos y videos con nosotros.
       </p>
       <span class="signature">Con amor, {{ coupleNames }}</span>
     </section>
@@ -24,19 +24,19 @@
         connecting
           ? "Preparando el álbum…"
           : demo
-            ? "Modo de prueba · Las fotos se guardan solo en este navegador. No se envían a Drive y no se comparten entre dispositivos."
+            ? "Modo de prueba · Las fotos y los videos se guardan solo en este navegador. No se envían a Drive y no se comparten entre dispositivos."
             : "Estamos preparando nuestro álbum. Intenta nuevamente más tarde."
       }}
     </p>
   }
   @if (step !== "done") {
-    <ol class="photo-steps" aria-label="Pasos para compartir fotos">
+    <ol class="photo-steps" aria-label="Pasos para compartir fotos y videos">
       <li
         [class.current]="stepNumber === 1"
         [class.completed]="stepNumber > 1"
         [attr.aria-current]="stepNumber === 1 ? 'step' : null"
       >
-        <span>1</span>Fotos
+        <span>1</span>Recuerdos
       </li>
       <li
         [class.current]="stepNumber === 2"
@@ -60,31 +60,29 @@
       <p>Originales, espontáneas, inolvidables.</p>
       @if (!items.length) {
         <label class="pick" [class.disabled]="busy || !available"
-          >Elegir mis fotos<input
+          >Elegir fotos o videos<input
             type="file"
-            accept="image/jpeg,image/png,image/webp,.heic,.heif"
+            [accept]="accept"
             multiple
             [disabled]="busy || !available"
             (change)="select($event)"
         /></label>
       }
       <small class="upload-limits"
-        >Hasta 20 fotos · 20 MB por foto · Sin crear una cuenta</small
+        >Hasta 20 fotos y videos · Fotos: 20 MB · Videos: 2 GB y 30 min · Sin
+        crear una cuenta</small
       >
       @if (items.length) {
         <div class="selection">
           <div class="section-title">
             <div class="selection-summary">
               <h3>Tus recuerdos</h3>
-              <span
-                >{{ items.length }}
-                {{ items.length === 1 ? "foto" : "fotos" }}</span
-              >
+              <span>{{ selectionLabel }}</span>
             </div>
             <label class="pick pick-secondary"
-              >+ Agregar fotos<input
+              >+ Agregar fotos o videos<input
                 type="file"
-                accept="image/jpeg,image/png,image/webp,.heic,.heif"
+                [accept]="accept"
                 multiple
                 (change)="select($event)"
             /></label>
@@ -108,12 +106,7 @@
       <p class="eyebrow">Paso 2 de 3</p>
       <h2 #stepTitle tabindex="-1">Una firma para tus recuerdos</h2>
       <p>
-        Tu nombre y mensaje acompañarán
-        {{
-          items.length === 1
-            ? "la foto que elegiste"
-            : "las " + items.length + " fotos que elegiste"
-        }}.
+        Tu nombre y mensaje acompañarán tus recuerdos: {{ selectionLabel }}.
       </p>
       <label
         >Tu nombre <span>(opcional)</span
@@ -134,9 +127,9 @@
       </label>
       <div class="step-actions">
         <button type="button" class="submit" (click)="goToStep('review')">
-          Revisar mis fotos</button
+          Revisar mis recuerdos</button
         ><button type="button" class="step-back" (click)="goToStep('select')">
-          Volver a las fotos
+          Volver a mis recuerdos
         </button>
       </div>
     </section>
@@ -165,7 +158,7 @@
           <strong
             >{{ sharedCount }} de {{ items.length }}
             {{
-              items.length === 1 ? "foto guardada" : "fotos guardadas"
+              items.length === 1 ? "archivo guardado" : "archivos guardados"
             }}</strong
           ><span>Mantén esta página abierta hasta que termine la subida.</span>
         </p>
@@ -184,10 +177,10 @@
           {{
             busy
               ? demo
-                ? "Guardando fotos de prueba…"
-                : "Compartiendo fotos…"
+                ? "Guardando recuerdos de prueba…"
+                : "Compartiendo fotos y videos…"
               : sharedCount || remoteBatch
-                ? "Reintentar fotos pendientes"
+                ? "Reintentar archivos pendientes"
                 : demo
                   ? "Guardar tanda de prueba"
                   : "Confirmar y compartir"
@@ -222,7 +215,7 @@
       </p>
       <span class="signature">Con amor, {{ coupleNames }}</span
       ><button type="button" class="add-more" (click)="reset()">
-        + Agregar más fotos
+        + Agregar más fotos o videos
       </button>
     </section>
   }
@@ -238,7 +231,17 @@
       @for (item of items; track item.id) {
         <article class="photo">
           <div class="frame">
-            @if (item.preview) {
+            @if (isVideo(item.file) && item.preview) {
+              <video
+                [src]="item.url"
+                controls
+                playsinline
+                muted
+                preload="metadata"
+                [attr.aria-label]="item.file.name"
+                (error)="item.preview = false"
+              ></video>
+            } @else if (item.preview) {
               <img
                 [src]="item.url"
                 [alt]="item.file.name"
@@ -275,12 +278,16 @@
             item.state === "done"
               ? demo
                 ? "Guardada en este navegador ✓"
-                : "Foto compartida ✓"
+                : isVideo(item.file)
+                  ? "Video compartido ✓"
+                  : "Foto compartida ✓"
               : item.state === "error"
                 ? "Error · Reintentar"
                 : item.state === "saving"
                   ? item.progress >= 90
-                    ? "Guardando foto…"
+                    ? isVideo(item.file)
+                      ? "Guardando video…"
+                      : "Guardando foto…"
                     : "Subiendo… " + item.progress + "%"
                   : step === "review"
                     ? "Pendiente"

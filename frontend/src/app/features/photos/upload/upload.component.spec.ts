@@ -18,6 +18,7 @@ describe('Real photo flow', () => {
         .createSpy()
         .and.resolveTo({ id: 'batch', token: 'upload-only' }),
       upload: jasmine.createSpy().and.resolveTo(),
+      discardUploads: jasmine.createSpy().and.resolveTo(),
       authenticate: jasmine.createSpy().and.resolveTo(),
       list: jasmine.createSpy().and.resolveTo({ photos: [], nextCursor: null }),
       image: jasmine
@@ -243,6 +244,66 @@ describe('Real photo flow', () => {
       'Intenta nuevamente más tarde',
     );
     expect(api.createBatch).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('accepts mixed camera and gallery files and keeps the three-step flow', async () => {
+    const fixture = TestBed.createComponent(UploadComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const root: HTMLElement = fixture.nativeElement;
+    const files = new DataTransfer();
+    for (const [name, type] of [
+      ['foto.jpg', 'image/jpeg'],
+      ['clip.mp4', 'video/mp4'],
+      ['iphone.mov', 'video/quicktime'],
+      ['clip.webm', 'video/webm'],
+    ])
+      files.items.add(new File(['fixture'], name, { type }));
+    const input = root.querySelector<HTMLInputElement>('input[type=file]')!;
+    expect(input.accept).toContain('video/quicktime');
+    input.files = files.files;
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(component.items.length).toBe(4);
+    expect(component.selectionLabel).toBe('1 foto y 3 videos');
+    expect(root.querySelectorAll('video').length).toBe(3);
+    expect(root.querySelector<HTMLVideoElement>('video')!.autoplay).toBeFalse();
+    component.goToStep('details');
+    fixture.detectChanges();
+    expect(root.textContent).toContain('1 foto y 3 videos');
+    component.goToStep('review');
+    await component.send();
+    fixture.detectChanges();
+    expect(api.upload.calls.count()).toBe(4);
+    expect(component.step).toBe('done');
+    fixture.destroy();
+  });
+
+  it('admits videos over 100 MB while rejecting oversize photos and videos', async () => {
+    const fixture = TestBed.createComponent(UploadComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const files = new DataTransfer();
+    for (const [name, size] of [
+      ['large.mp4', 250 * 1024 ** 2],
+      ['huge.mov', 2 * 1024 ** 3 + 1],
+      ['large.jpg', 21 * 1024 ** 2],
+    ] as const) {
+      const file = new File(['fixture'], name);
+      Object.defineProperty(file, 'size', { value: size });
+      files.items.add(file);
+    }
+    const input = fixture.nativeElement.querySelector(
+      'input[type=file]',
+    ) as HTMLInputElement;
+    input.files = files.files;
+    input.dispatchEvent(new Event('change'));
+    expect(
+      fixture.componentInstance.items.map((item) => item.file.name),
+    ).toEqual(['large.mp4']);
+    expect(fixture.componentInstance.error).toContain('2 GB y 30 minutos');
     fixture.destroy();
   });
 });

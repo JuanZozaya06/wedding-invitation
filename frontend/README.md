@@ -21,7 +21,7 @@ Node `21.5.0` currently shows an Angular support warning locally. The app still 
 - Legacy fallback route: `/wedding-invitation/:token`
 - Admin route: `/admin`
 - Private admin gallery: `/admin/media`, protected by the same session and sharing the admin header/sidebar. `/fotos` is retired.
-- Photo uploader: `/upload`, directly opens the three steps without an invitation code. Uploads belong to the wedding album. `/{token}?fotos=1` remains a compatible alias. Video uploads are pending.
+- Photo uploader: `/upload`, directly opens the three steps without an invitation code. Uploads belong to the wedding album. `/{token}?fotos=1` remains a compatible alias. Mixed photo/video batches are supported (MP4, MOV and WebM). Videos upload in resumable 8 MiB chunks, up to 2 GiB and 30 minutes; photos retain their 20 MiB limit. The private gallery loads JPEG posters and streams video only when opened.
 - Civil invitation: `/civil`, including the legacy prefix and trailing slash.
 - Standalone Angular app with SCSS
 - Invitation data, RSVP and admin authentication use the commercial Python API and MySQL on Railway.
@@ -64,7 +64,16 @@ Routing tests use `RouterTestingHarness` and mocked APIs. They cover deep links,
 - Private credentials and the Workbench connection are in `../.credenciales/`, excluded from Git.
 - Firestore, legacy backend source and Drive files remain intact. The old Railway `fotos-api` deployment was removed at Zozi's request, and its repository source disconnected to prevent automatic redeployment. The current application uses the commercial API.
 
-## Animation notes
+## Media reliability follow-up
+
+The initial photo/video flow supports retries during the current visit. Recovery after
+reloading the browser or restarting the API is not automatic yet. Photo and video
+processing still share limited capacity; temporary reservation renewal/cleanup,
+adaptive mobile-network retries and administrative diagnostics need follow-up.
+Large real-phone uploads and a real Drive round trip have not been validated.
+Wedding guests will use mobile data, so interrupted/slow connections are a priority.
+
+## Animation behavior
 
 - The main journey is a custom scroll-driven horizontal timeline, not ScrollTrigger.
 - Horizontal travel ends at the `.ballroom` landmark and completes at `travelEnd = 0.84`.

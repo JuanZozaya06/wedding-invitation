@@ -117,4 +117,68 @@ describe('PhotoApiService', () => {
     );
     expect(xhr.withCredentials).toBeFalse();
   });
+
+  it('resumes a video after a lost chunk response and polls storage completion without admin cookies', async () => {
+    let offset = 0;
+    let lostResponse = true;
+    const paths: string[] = [];
+    const fetches = spyOn(window, 'fetch').and.callFake(
+      async (url, options) => {
+        paths.push(String(url));
+        expect(options?.credentials).toBe('omit');
+        expect(
+          (options?.headers as Record<string, string>)['Authorization'],
+        ).toBe('Bearer upload-only');
+        return new Response(
+          JSON.stringify(
+            String(url).endsWith('/complete')
+              ? { state: 'processing', offset: 8 }
+              : String(url).endsWith('/status')
+                ? { state: 'ready', offset: 8 }
+                : { state: 'receiving', offset, chunkBytes: 4 },
+          ),
+        );
+      },
+    );
+    const chunks: number[] = [];
+    spyOn(window, 'XMLHttpRequest').and.callFake(function () {
+      const xhr: any = {
+        upload: {},
+        open: (_method: string, path: string) =>
+          chunks.push(
+            Number(new URL(path, location.origin).searchParams.get('offset')),
+          ),
+        setRequestHeader: () => {},
+        status: 200,
+      };
+      xhr.send = (data: Blob) => {
+        expect(xhr.withCredentials).toBeFalse();
+        offset += data.size;
+        if (lostResponse) {
+          lostResponse = false;
+          xhr.onerror();
+        } else {
+          xhr.responseText = JSON.stringify({ state: 'receiving', offset });
+          xhr.onload();
+        }
+      };
+      return xhr as XMLHttpRequest;
+    });
+    const progress = jasmine.createSpy();
+    let done = false;
+    const pending = service
+      .upload(
+        { id: 'batch-id', token: 'upload-only' },
+        'clip-id',
+        new File(['12345678'], 'clip.mp4', { type: 'video/mp4' }),
+        progress,
+      )
+      .then(() => (done = true));
+    await pending;
+    expect(chunks).toEqual([0, 4]);
+    expect(done).toBeTrue();
+    expect(progress).toHaveBeenCalledWith(100);
+    expect(fetches.calls.count()).toBe(4);
+    expect(paths.filter((path) => path.endsWith('/upload')).length).toBe(2);
+  });
 });

@@ -73,6 +73,7 @@
 }
 
 .album-thumbnail {
+  position: relative;
   display: grid;
   place-items: center;
   width: 100%;
@@ -81,6 +82,16 @@
   padding: 0;
   background: #eee8f1;
   cursor: zoom-in;
+}
+.video-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #493d53;
+  color: white;
+  font-size: 12px;
 }
 
 .album-thumbnail img {

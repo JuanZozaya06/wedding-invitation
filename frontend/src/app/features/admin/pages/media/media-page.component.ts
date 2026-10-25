@@ -6,7 +6,7 @@ import { AdminStore } from '../../services/admin.store';
   standalone: true,
   imports: [GalleryComponent],
   template:
-    '<section class="admin-photo-panel" aria-label="Fotos recibidas" tabindex="0"><app-photo-gallery [searchTerm]="vm.adminSearchTerm" /></section>',
+    '<section class="admin-photo-panel" aria-label="Fotos y videos recibidos" tabindex="0"><app-photo-gallery [searchTerm]="vm.adminSearchTerm" /></section>',
   styles: ':host{display:contents}',
 })
 export class MediaPageComponent {

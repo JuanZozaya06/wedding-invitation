@@ -277,7 +277,7 @@ describe('Navegación por funcionalidad', () => {
     expect(root.querySelector('app-admin-header')).toBe(header);
     expect(layout.vm.adminSearchTerm).toBe('María');
     expect(root.querySelector('.admin-toolbar h1')?.textContent?.trim()).toBe(
-      'Fotos de la boda',
+      'Fotos y videos de la boda',
     );
     expect(root.querySelector('app-admin-actions')?.textContent).not.toContain(
       'Cerrar sesión',

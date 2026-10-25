@@ -1,6 +1,6 @@
 <section
   class="album"
-  aria-label="Galería de fotos"
+  aria-label="Galería de fotos y videos"
   [attr.aria-busy]="connecting || loading"
 >
   <div class="album-toolbar">
@@ -8,10 +8,9 @@
       @if (connecting) {
         Conectando con el álbum…
       } @else if (loading) {
-        Cargando fotos…
+        Cargando fotos y videos…
       } @else if (available && !error) {
-        {{ filteredItems.length }}
-        {{ filteredItems.length === 1 ? "foto" : "fotos" }}
+        {{ mediaCount(filteredItems) }}
         @if (demo && searchTerm.trim()) {
           de {{ items.length }}
         }
@@ -33,7 +32,7 @@
         (click)="refresh()"
         [disabled]="loading"
       >
-        {{ loading ? "Cargando…" : "Actualizar fotos" }}
+        {{ loading ? "Cargando…" : "Actualizar galería" }}
       </button>
     }
   </div>
@@ -43,7 +42,7 @@
   @if (connecting) {
     <p class="album-empty" role="status">Conectando con el álbum…</p>
   } @else if (loading && !filteredItems.length) {
-    <p class="album-empty" role="status">Cargando fotos…</p>
+    <p class="album-empty" role="status">Cargando fotos y videos…</p>
   } @else if (filteredItems.length) {
     <div class="album-grid">
       @for (item of filteredItems; track item.id) {
@@ -52,8 +51,11 @@
             type="button"
             class="album-thumbnail"
             [disabled]="!item.url && item.preview"
-            (click)="selected = item"
-            [attr.aria-label]="'Ver foto de ' + (item.name || 'Un invitado')"
+            (click)="open(item)"
+            [attr.aria-label]="
+              (isVideo(item.file) ? 'Ver video de ' : 'Ver foto de ') +
+              (item.name || 'Un invitado')
+            "
           >
             @if (item.preview && item.url) {
               <img
@@ -66,10 +68,13 @@
               <span class="unavailable"
                 >{{
                   item.preview
-                    ? "Cargando foto…"
+                    ? "Cargando vista previa…"
                     : "Vista previa no disponible"
                 }}<br />{{ item.file.name }}</span
               >
+            }
+            @if (isVideo(item.file)) {
+              <span class="video-badge" aria-hidden="true">▶ Video</span>
             }
           </button>
           <div class="album-caption">
@@ -83,7 +88,7 @@
               }}</time>
             }
             <a
-              [href]="item.url || '#'"
+              [href]="isVideo(item.file) ? originalUrl(item) : item.url || '#'"
               [download]="item.file.name"
               (click)="download(item, $event)"
               [attr.aria-label]="'Descargar ' + item.file.name"
@@ -97,7 +102,7 @@
     </div>
   } @else if (!error && searchTerm.trim() && (items.length || available)) {
     <p class="album-empty" role="status">
-      No hay fotos que coincidan con «{{ searchTerm }}».
+      No hay fotos ni videos que coincidan con «{{ searchTerm }}».
     </p>
   } @else if (!error) {
     <p class="album-empty">
@@ -105,10 +110,10 @@
         connecting
           ? "Conectando con el álbum…"
           : demo
-            ? "Todavía no hay fotos de prueba en este navegador."
+            ? "Todavía no hay fotos ni videos de prueba en este navegador."
             : available
-              ? "Todavía no han compartido fotos."
-              : "La recepción de fotos aún no está conectada."
+              ? "Todavía no han compartido fotos ni videos."
+              : "La recepción de fotos y videos aún no está conectada."
       }}
     </p>
   }
@@ -119,7 +124,7 @@
       [disabled]="loading"
       (click)="refresh(true)"
     >
-      {{ loading ? "Cargando…" : "Cargar más fotos" }}
+      {{ loading ? "Cargando…" : "Cargar más recuerdos" }}
     </button>
   }
 </section>
@@ -127,19 +132,38 @@
   <dialog
     #photoDialog
     class="photo-dialog"
-    aria-label="Detalle de foto"
+    aria-label="Detalle de foto o video"
     (cancel)="$event.preventDefault(); selected = null"
     (click)="$event.target === $event.currentTarget && (selected = null)"
   >
     <button
       type="button"
       class="dialog-close"
-      aria-label="Cerrar foto"
+      aria-label="Cerrar recuerdo"
       (click)="selected = null"
     >
       ×
     </button>
-    @if (item.preview) {
+    @if (isVideo(item.file)) {
+      @if (!videoError) {
+        <video
+          class="full-photo"
+          controls
+          playsinline
+          preload="metadata"
+          crossorigin="use-credentials"
+          [src]="originalUrl(item, true)"
+          [poster]="item.preview ? item.url : ''"
+          [attr.aria-label]="'Video de ' + (item.name || 'Un invitado')"
+          (error)="videoError = true"
+        ></video>
+      } @else {
+        <p class="unavailable" role="status">
+          Este navegador no puede reproducir el video. Puedes descargar el
+          original para verlo.
+        </p>
+      }
+    } @else if (item.preview) {
       <img
         class="full-photo"
         [src]="item.url"
@@ -162,7 +186,7 @@
         }}</time>
       }
       <a
-        [href]="item.url || '#'"
+        [href]="isVideo(item.file) ? originalUrl(item) : item.url || '#'"
         [download]="item.file.name"
         (click)="download(item, $event)"
         >{{
