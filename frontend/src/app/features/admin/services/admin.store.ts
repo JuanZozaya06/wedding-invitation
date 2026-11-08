@@ -123,7 +123,7 @@ export class AdminStore {
       );
       this.invitationDetail = null;
       this.invitationDeleteConfirming = false;
-      this.invitationEditorSuccess = 'Invitación eliminada.';
+      this.invitationEditorSuccess = '';
       await this.refreshAdminDashboard();
     } catch (error) {
       if (!this.adminAccessGranted) return;
