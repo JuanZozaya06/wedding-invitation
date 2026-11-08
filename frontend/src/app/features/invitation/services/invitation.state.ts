@@ -93,14 +93,14 @@ export class InvitationState {
   readonly ceremony = {
     name: 'Iglesia Colegio María Auxiliadora - (Capilla del colegio)',
     address: 'Altamira, Chacao',
-    time: '3:00 PM',
+    time: '3:00 pm',
     embedUrl: this.trustedMap('Iglesia Maria Auxiliadora de Altamira Chacao'),
   };
 
   readonly party = {
     name: 'Quinta Mirador',
     address: 'La Lagunita, El Hatillo',
-    time: '5:00 PM',
+    time: '5:00 pm',
     embedUrl: this.trustedMap('Quinta Mirador La Lagunita El Hatillo'),
   };
 
@@ -409,11 +409,15 @@ export class InvitationState {
       card.name = event.venue || event.name;
       card.address = event.address;
       card.time = event.startsAt
-        ? new Intl.DateTimeFormat('es', {
+        ? new Intl.DateTimeFormat('en-US', {
             hour: 'numeric',
             minute: '2-digit',
-            timeZone: wedding.timezone,
-          }).format(new Date(event.startsAt))
+            hour12: true,
+            timeZone: wedding.timezone || 'America/Caracas',
+          })
+            .format(new Date(event.startsAt))
+            .replace(/\s+/g, ' ')
+            .toLowerCase()
         : '';
       card.embedUrl = this.trustedMap(event.venue + ' ' + event.address);
     }

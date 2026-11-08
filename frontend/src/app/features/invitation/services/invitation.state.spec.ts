@@ -32,6 +32,25 @@ describe('InvitationState', () => {
   });
   afterEach(() => state.destroy());
 
+  it('shows UTC event times in Caracas using the requested 12-hour format', async () => {
+    const events: WeddingDetails['events'] = [
+      {
+        kind: 'ceremony', name: 'Ceremonia', venue: 'Iglesia', address: '',
+        startsAt: '2026-11-28T19:00:00Z', mapUrl: '',
+      },
+      {
+        kind: 'celebration', name: 'Recepción', venue: 'Quinta', address: '',
+        startsAt: '2026-11-28T21:00:00Z', mapUrl: '',
+      },
+    ];
+    (TestBed.inject(CommercialApiService).publicWedding as jasmine.Spy)
+      .and.resolveTo({ ...wedding, events });
+    spyOn(service, 'getInvitationByToken').and.resolveTo(createDemoInvitation('TEST01'));
+    await state.loadInvitation('TEST01');
+    expect(state.ceremony.time).toBe('3:00 pm');
+    expect(state.party.time).toBe('5:00 pm');
+  });
+
   it('starts empty and never presents sample guests when loading fails', async () => {
     expect(state.invitation.guests).toEqual([]);
     spyOn(service, 'getInvitationByToken').and.rejectWith(
