@@ -57,6 +57,7 @@ export const ADMIN_ROUTES: Routes = [
           {
             path: 'media',
             data: { tab: 'media' },
+            canDeactivate: [(page: { canLeave(): boolean }) => page.canLeave()],
             loadComponent: () =>
               import('./pages/media/media-page.component').then(
                 (m) => m.MediaPageComponent,

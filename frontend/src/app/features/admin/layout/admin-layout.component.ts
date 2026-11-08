@@ -71,7 +71,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     this.vm.clear();
   }
   canLeave() {
-    if (this.vm.invitationSaving) return false;
+    if (this.vm.invitationSaving || this.vm.invitationDeleting) return false;
     if (!this.vm.invitationEditor) return true;
     if (
       !window.confirm(

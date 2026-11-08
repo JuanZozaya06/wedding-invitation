@@ -180,6 +180,59 @@
   background: #eee8f1;
 }
 
+.media-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+.media-delete-button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #d4a0ad;
+  border-radius: 8px;
+  color: #963b53;
+  background: #fff1f3;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: #f8dfe6; }
+  &.media-delete-solid {
+    color: white;
+    background: #963b53;
+    border-color: #963b53;
+    &:hover:not(:disabled) { background: #7c2e43; }
+  }
+  &:disabled { opacity: 0.6; cursor: wait; }
+}
+.media-delete-dialog {
+  width: min(36rem, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 24px;
+  border: 1px solid #d4a0ad;
+  border-radius: 16px;
+  background: #fffdfb;
+  color: #493d53;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  h2 {
+    margin: 0 0 16px;
+    font-family: inherit;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+  #media-delete-warning {
+    padding: 16px;
+    color: #823349;
+    background: #fff1f3;
+    border-radius: 8px;
+    line-height: 1.6;
+  }
+  &::backdrop { background: rgba(33, 22, 41, 0.7); }
+}
+
 @media (max-width: 540px) {
   .album-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,0 +1,46 @@
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { InvitationDetailComponent } from './invitation-detail.component';
+import { AdminStore } from '../../services/admin.store';
+import { InvitationService } from '../../../invitation/services/invitation.service';
+import { createDemoInvitation } from '../../../../testing/invitation.fixture';
+
+describe('Invitation deletion dialog', () => {
+  it('opens a warning beside edit, focuses cancel, and only deletes after confirmation', async () => {
+    TestBed.configureTestingModule({ imports: [InvitationDetailComponent], providers: [AdminStore, provideRouter([])] });
+    const store = TestBed.inject(AdminStore);
+    const remove = spyOn(TestBed.inject(InvitationService), 'deleteInvitation').and.resolveTo();
+    spyOn(TestBed.inject(InvitationService), 'listInvitations').and.resolveTo([]);
+    store.adminAccessGranted = true;
+    store.openInvitationDetail(createDemoInvitation('ABC123'));
+    const fixture = TestBed.createComponent(InvitationDetailComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const detail = fixture.nativeElement.querySelector('#invitation-detail-dialog') as HTMLDialogElement;
+    const button = detail.querySelector('.danger-button') as HTMLButtonElement;
+    expect(button.previousElementSibling?.textContent).toContain('Editar invitación');
+    button.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    let confirmation = fixture.nativeElement.querySelector('.invitation-delete-modal') as HTMLDialogElement;
+    expect(confirmation.open).toBeTrue();
+    expect(confirmation.textContent).toContain('Su enlace privado quedará desactivado');
+    expect(confirmation.textContent).toContain('No podrás deshacer');
+    expect(document.activeElement?.textContent).toContain('Cancelar');
+    expect(remove).not.toHaveBeenCalled();
+    (confirmation.querySelector('[autofocus]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(store.invitationDetail).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.invitation-delete-modal')).toBeNull();
+    expect(document.activeElement).toBe(button);
+    button.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    confirmation = fixture.nativeElement.querySelector('.invitation-delete-modal');
+    (confirmation.querySelector('.danger-button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(remove).toHaveBeenCalledOnceWith('ABC123');
+    expect(fixture.nativeElement.querySelector('dialog')).toBeNull();
+  });
+});

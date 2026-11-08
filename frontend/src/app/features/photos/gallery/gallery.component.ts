@@ -27,8 +27,75 @@ export class GalleryComponent implements OnInit, OnDestroy {
     return this.demo ? item.url : this.api.originalUrl(item.id, playback);
   }
   open(item: PhotoItem) {
+    if (this.deleting) return;
     this.videoError = false;
+    this.deleteConfirming = false;
+    this.deleteError = '';
     this.selected = item;
+  }
+  close(): void {
+    if (this.deleting) return;
+    this.deleteConfirming = false;
+    this.selected = null;
+  }
+  deleteConfirming = false;
+  deleting = false;
+  deleteError = '';
+  deleteSuccess = '';
+  private confirmationDialog?: HTMLDialogElement;
+  @ViewChild('deleteTrigger')
+  private deleteTrigger?: ElementRef<HTMLButtonElement>;
+  @ViewChild('deleteDialog') set deleteDialog(
+    dialog: ElementRef<HTMLDialogElement> | undefined,
+  ) {
+    this.confirmationDialog = dialog?.nativeElement;
+    if (dialog) queueMicrotask(() => {
+      if (
+        dialog.nativeElement.isConnected && this.deleteConfirming &&
+        !dialog.nativeElement.open
+      )
+        dialog.nativeElement.showModal();
+    });
+  }
+  requestDeletion(): void {
+    if (this.demo || !this.selected || this.deleting) return;
+    this.deleteError = '';
+    this.deleteConfirming = true;
+  }
+  cancelDeletion(): void {
+    if (this.deleting) return;
+    this.confirmationDialog?.close();
+    this.deleteConfirming = false;
+    this.deleteError = '';
+    this.deleteTrigger?.nativeElement.focus();
+  }
+  async confirmDeletion(): Promise<void> {
+    const item = this.selected;
+    if (this.demo || !item || !this.deleteConfirming || this.deleting) return;
+    this.deleting = true;
+    this.deleteError = '';
+    this.deleteSuccess = '';
+    try {
+      await this.api.deleteMedia(item.id);
+      if (this.destroyed) return;
+      URL.revokeObjectURL(item.url);
+      this.items = this.items.filter(photo => photo.id !== item.id);
+      this.selected = null;
+      this.deleteConfirming = false;
+      this.deleteSuccess = isVideo(item.file)
+        ? 'Video eliminado.' : 'Foto eliminada.';
+      if (this.nextCursor === item.id) {
+        this.nextCursor = null;
+        this.deleting = false;
+        await this.refresh();
+      }
+    } catch (error) {
+      if (!this.destroyed)
+        this.deleteError = error instanceof Error
+          ? error.message : 'No pudimos completar la eliminación. Intenta nuevamente.';
+    } finally {
+      this.deleting = false;
+    }
   }
   private query = '';
 
@@ -115,7 +182,10 @@ export class GalleryComponent implements OnInit, OnDestroy {
   items: PhotoItem[] = [];
 
   async refresh(append = false): Promise<void> {
-    if (!this.available || (append && this.loading)) return;
+    if (
+      !this.available || this.deleting || this.deleteConfirming ||
+      (append && this.loading)
+    ) return;
     const generation = ++this.generation;
     this.loading = true;
     this.error = '';
@@ -149,7 +219,7 @@ export class GalleryComponent implements OnInit, OnDestroy {
           url: '',
           progress: 100,
           state: 'done',
-          preview: true,
+          preview: !photo.deletionPending,
         }));
         this.items = [...this.items, ...additions];
         // Four concurrent preview requests keep mobile memory/network use bounded.
@@ -162,6 +232,7 @@ export class GalleryComponent implements OnInit, OnDestroy {
               generation === this.generation
             ) {
               const photo = queue.shift()!;
+              if (photo.deletionPending) continue;
               try {
                 const url = URL.createObjectURL(await this.api.image(photo.id));
                 if (this.destroyed || generation !== this.generation)

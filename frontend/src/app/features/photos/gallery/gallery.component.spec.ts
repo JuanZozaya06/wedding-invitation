@@ -155,6 +155,87 @@ describe('Photo administration', () => {
     fixture.destroy();
   });
 
+  for (const mimeType of ['image/jpeg', 'video/mp4']) {
+    it(`confirms deletion of ${mimeType}, preserves failures and blocks duplicate submissions`, async () => {
+      const remove = jasmine.createSpy('deleteMedia').and.rejectWith(new Error('No pudimos completar la eliminación.'));
+      const image = jasmine.createSpy('image').and.resolveTo(new Blob(['preview'], { type: 'image/jpeg' }));
+      TestBed.overrideProvider(PhotoApiService, { useValue: {
+        demo: false, initialize: () => Promise.resolve(true), image, deleteMedia: remove,
+        originalUrl: () => '/fixture-media',
+        list: () => Promise.resolve({ photos: [
+          { id: 'selected-id', fileName: 'recuerdo', mimeType, name: 'Prueba', message: '', createdAt: '2026-11-07T20:00:00Z' },
+        ], nextCursor: null }),
+      }});
+      const fixture = TestBed.createComponent(GalleryComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const app = fixture.componentInstance;
+      const root: HTMLElement = fixture.nativeElement;
+      root.querySelector<HTMLButtonElement>('.album-thumbnail')!.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const trigger = root.querySelector<HTMLButtonElement>('.media-delete-button')!;
+      trigger.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(remove).not.toHaveBeenCalled();
+      expect(root.querySelector('.media-delete-dialog')?.textContent).toContain('Esta acción no se puede deshacer');
+      expect(document.activeElement?.textContent).toContain('Cancelar');
+      root.querySelector<HTMLButtonElement>('.media-delete-dialog [autofocus]')!.click();
+      fixture.detectChanges();
+      expect(app.selected).not.toBeNull();
+      expect(document.activeElement).toBe(trigger);
+      trigger.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      root.querySelector<HTMLButtonElement>('.media-delete-solid')!.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(app.items.length).toBe(1);
+      expect(root.querySelector('.media-delete-dialog .error')?.textContent).toContain('No pudimos completar');
+      let finish!: () => void;
+      remove.and.returnValue(new Promise<void>(resolve => finish = resolve));
+      const pending = app.confirmDeletion();
+      await app.confirmDeletion();
+      app.close();
+      app.cancelDeletion();
+      expect(app.selected).not.toBeNull();
+      expect(app.deleting).toBeTrue();
+      expect(remove).toHaveBeenCalledTimes(2);
+      finish();
+      await pending;
+      fixture.detectChanges();
+      expect(app.items).toEqual([]);
+      expect(app.selected).toBeNull();
+      expect(app.deleting).toBeFalse();
+      expect(app.deleteSuccess).toContain('eliminad');
+      fixture.destroy();
+    });
+  }
+
+  it('keeps incomplete deletions accessible for retry without requesting deleted previews', async () => {
+    const image = jasmine.createSpy('image');
+    TestBed.overrideProvider(PhotoApiService, { useValue: {
+      demo: false, initialize: () => Promise.resolve(true), image,
+      list: () => Promise.resolve({ photos: [
+        { id: 'pending', fileName: 'video.mp4', mimeType: 'video/mp4', name: 'Prueba', message: '', deletionPending: true },
+      ], nextCursor: null }),
+    }});
+    const fixture = TestBed.createComponent(GalleryComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    expect(image).not.toHaveBeenCalled();
+    root.querySelector<HTMLButtonElement>('.album-thumbnail')!.click();
+    fixture.detectChanges();
+    expect(root.querySelector('video')).toBeNull();
+    expect(root.querySelector('.photo-dialog a')).toBeNull();
+    expect(root.querySelector('.photo-dialog .media-delete-button')?.textContent).toContain('Eliminar video');
+    fixture.destroy();
+  });
+
   for (const [width, height] of [
     [320, 640],
     [390, 844],

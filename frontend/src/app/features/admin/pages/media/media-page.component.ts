@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { GalleryComponent } from '../../../photos/gallery/gallery.component';
 import { AdminStore } from '../../services/admin.store';
 @Component({
@@ -11,4 +11,8 @@ import { AdminStore } from '../../services/admin.store';
 })
 export class MediaPageComponent {
   readonly vm = inject(AdminStore);
+  @ViewChild(GalleryComponent) private gallery?: GalleryComponent;
+  canLeave(): boolean {
+    return !this.vm.adminAccessGranted || !this.gallery?.deleting;
+  }
 }

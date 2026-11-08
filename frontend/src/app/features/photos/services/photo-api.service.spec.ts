@@ -11,6 +11,15 @@ describe('PhotoApiService', () => {
     service = TestBed.inject(PhotoApiService);
   });
 
+  it('deletes only through the wedding admin endpoint with explicit confirmation', async () => {
+    const request = spyOn(commercial, 'request').and.resolveTo();
+    await service.deleteMedia('selected-id');
+    expect(request).toHaveBeenCalledOnceWith(
+      commercial.adminPath() + '/photos/selected-id', 'DELETE',
+      { confirmationId: 'selected-id' }, true,
+    );
+  });
+
   it('rechecks the correct endpoint when moving from the gallery to public uploads', async () => {
     const requests = spyOn(commercial, 'request').and.resolveTo({
       uploads_enabled: true,

@@ -8,5 +8,6 @@ export type PhotoItem = {
   state: 'ready' | 'saving' | 'done' | 'error';
   preview: boolean;
   createdAt?: string;
+  deletionPending?: boolean;
 };
 export type PhotoStep = 'select' | 'details' | 'review' | 'done';

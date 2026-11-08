@@ -17,6 +17,7 @@ export interface AlbumPhoto {
   fileName: string;
   mimeType: string;
   size: number;
+  deletionPending?: boolean;
 }
 export interface UploadBatch {
   id: string;
@@ -303,5 +304,14 @@ export class PhotoApiService {
           : 'No pudimos descargar el archivo. Intenta otra vez.',
       );
     return response.blob();
+  }
+
+  async deleteMedia(id: string): Promise<void> {
+    await this.api.request(
+      `${this.api.adminPath()}/photos/${encodeURIComponent(id)}`,
+      'DELETE',
+      { confirmationId: id },
+      true,
+    );
   }
 }

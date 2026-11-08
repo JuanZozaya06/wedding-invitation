@@ -12,6 +12,7 @@
         class="admin-edit-button"
         type="button"
         aria-label="Cerrar detalle"
+        [disabled]="vm.invitationDeleting"
         (click)="vm.closeInvitationDetail()"
       >
         ×
@@ -134,19 +135,53 @@
       <button
         type="button"
         class="secondary-button"
+        [disabled]="vm.invitationDeleting"
         (click)="
           vm.closeInvitationDetail(); vm.openInvitationEditor(invitation)
         "
       >
         Editar invitación
       </button>
+      <button #deleteTrigger type="button" class="secondary-button danger-button"
+        [disabled]="vm.invitationDeleting"
+        (click)="vm.requestInvitationDeletion()">
+        Eliminar invitación
+      </button>
       <button
         type="button"
         class="secondary-button"
         (click)="vm.closeInvitationDetail()"
+        [disabled]="vm.invitationDeleting"
       >
         Cerrar
       </button>
     </div>
   </dialog>
+  @if (vm.invitationDeleteConfirming) {
+    <dialog #deleteDialog class="invitation-modal invitation-delete-modal"
+      aria-labelledby="invitation-delete-title" aria-describedby="invitation-delete-warning"
+      [attr.aria-busy]="vm.invitationDeleting"
+      (cancel)="$event.preventDefault(); cancelDeletion()">
+      <h2 id="invitation-delete-title">¿Eliminar invitación?</h2>
+      <p><strong>{{ invitation.displayName }}</strong> · Código <code>{{ invitation.token }}</code></p>
+      <p id="invitation-delete-warning" class="invitation-delete-warning">
+        Esta invitación y sus invitados dejarán de aparecer en el panel. Su enlace privado quedará desactivado.
+        No podrás deshacer esta acción desde el panel.
+      </p>
+      @if (vm.invitationDeleteError) {
+        <p class="admin-error" role="alert">{{ vm.invitationDeleteError }}</p>
+      }
+      @if (vm.invitationDeleting) {
+        <p role="status">Eliminando invitación…</p>
+      }
+      <div class="detail-actions">
+        <button type="button" class="secondary-button" autofocus
+          [disabled]="vm.invitationDeleting" (click)="cancelDeletion()">Cancelar</button>
+        <button type="button" class="secondary-button danger-button danger-button-solid"
+          [disabled]="vm.invitationDeleting" (click)="vm.confirmInvitationDeletion()">
+          {{ vm.invitationDeleting ? 'Eliminando…' : 'Eliminar invitación' }}
+        </button>
+      </div>
+    </dialog>
+  }
 }

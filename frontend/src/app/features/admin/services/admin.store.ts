@@ -45,6 +45,9 @@ export class AdminStore {
     this.dataLoading = false;
     this.adminDataLoaded = false;
     this.invitationSaving = false;
+    this.invitationDeleting = false;
+    this.invitationDeleteConfirming = false;
+    this.invitationDeleteError = '';
     this.wedding = null;
     this.adminMenuOpen = false;
     this.adminStats = {
@@ -71,12 +74,68 @@ export class AdminStore {
 
   invitationDetail: Invitation | null = null;
 
+  invitationDeleting = false;
+  invitationDeleteConfirming = false;
+  invitationDeleteError = '';
+
   openInvitationDetail(invitation: Invitation): void {
+    if (this.invitationDeleting) return;
+    this.cancelInvitationDeletion();
     this.invitationDetail = invitation;
   }
 
   closeInvitationDetail(): void {
+    if (this.invitationDeleting) return;
+    this.cancelInvitationDeletion();
     this.invitationDetail = null;
+  }
+
+  requestInvitationDeletion(): void {
+    if (
+      !this.invitationDetail || !this.adminAccessGranted || this.invitationDeleting
+    ) return;
+    this.invitationDeleteError = '';
+    this.invitationDeleteConfirming = true;
+  }
+
+  cancelInvitationDeletion(): void {
+    if (this.invitationDeleting) return;
+    this.invitationDeleteConfirming = false;
+    this.invitationDeleteError = '';
+  }
+
+  async confirmInvitationDeletion(): Promise<void> {
+    const invitation = this.invitationDetail;
+    if (
+      !invitation || !this.invitationDeleteConfirming ||
+      this.invitationDeleting || !this.adminAccessGranted
+    ) return;
+    this.invitationDeleting = true;
+    this.invitationDeleteError = '';
+    try {
+      await this.invitationService.deleteInvitation(invitation.token);
+      if (!this.adminAccessGranted || this.invitationDetail !== invitation) return;
+      // Invalidate older refreshes before removing confirmed server data locally.
+      ++this.requestVersion;
+      this.dataLoading = false;
+      this.applyInvitations(
+        this.adminInvitations.filter(item => item.token !== invitation.token),
+      );
+      this.invitationDetail = null;
+      this.invitationDeleteConfirming = false;
+      this.invitationEditorSuccess = 'Invitación eliminada.';
+      await this.refreshAdminDashboard();
+    } catch (error) {
+      if (!this.adminAccessGranted) return;
+      this.invitationDeleteError = error instanceof Error
+        ? error.message : 'No pudimos eliminar la invitación. Intenta nuevamente.';
+      if (error instanceof ApiError && error.status === 401) {
+        this.clear();
+        void this.router.navigate(['/admin/login']);
+      }
+    } finally {
+      this.invitationDeleting = false;
+    }
   }
 
   creatingInvitation = false;
@@ -104,7 +163,9 @@ export class AdminStore {
   }
 
   openInvitationEditor(invitation?: Invitation): void {
-    if (this.invitationSaving || !this.adminAccessGranted) return;
+    if (
+      this.invitationSaving || this.invitationDeleting || !this.adminAccessGranted
+    ) return;
     this.creatingInvitation = !invitation;
     this.invitationEditorError = '';
     this.invitationEditorSuccess = '';
@@ -367,70 +428,7 @@ export class AdminStore {
     try {
       const invitations = await this.invitationService.listInvitations();
       if (version !== this.requestVersion) return;
-      this.adminInvitations = invitations;
-      this.adminConfirmedGuests = this.adminInvitations.flatMap((invitation) =>
-        invitation.guests
-          .filter((guest) => guest.attending)
-          .map((guest) => ({
-            token: invitation.token,
-            displayName: invitation.displayName,
-            guestName: guest.name,
-            updatedAt: invitation.updatedAt ?? invitation.respondedAt,
-            role: guest.role,
-            isChild: guest.isChild,
-            isAbroad: guest.isAbroad,
-            openedInvitation: invitation.openedInvitation,
-            rsvpStatus: invitation.rsvpStatus,
-          })),
-      );
-      this.adminMessages = this.adminInvitations
-        .filter((invitation) => invitation.message.trim().length > 0)
-        .map((invitation) => ({
-          token: invitation.token,
-          displayName: invitation.displayName,
-          value: invitation.message,
-          rsvpStatus: invitation.rsvpStatus,
-          updatedAt: invitation.updatedAt,
-        }));
-      this.adminSongs = this.adminInvitations
-        .filter((invitation) => invitation.song.trim().length > 0)
-        .map((invitation) => ({
-          token: invitation.token,
-          displayName: invitation.displayName,
-          value: invitation.song,
-          rsvpStatus: invitation.rsvpStatus,
-          updatedAt: invitation.updatedAt,
-        }));
-      this.adminNotes = this.adminInvitations
-        .filter((invitation) => invitation.notes.trim().length > 0)
-        .map((invitation) => ({
-          token: invitation.token,
-          displayName: invitation.displayName,
-          value: invitation.notes,
-          rsvpStatus: invitation.rsvpStatus,
-          updatedAt: invitation.updatedAt,
-        }));
-
-      const responded = this.adminInvitations.filter(
-        (invitation) => invitation.rsvpStatus !== 'pending',
-      ).length;
-      const opened = this.adminInvitations.filter(
-        (invitation) => invitation.openedInvitation,
-      ).length;
-      const guestCount = this.adminInvitations.reduce(
-        (sum, invitation) => sum + invitation.guests.length,
-        0,
-      );
-
-      this.adminStats = {
-        invitations: this.adminInvitations.length,
-        opened,
-        responded,
-        pending: this.adminInvitations.length - responded,
-        guests: guestCount,
-        confirmed: this.adminConfirmedGuests.length,
-      };
-      this.adminDataLoaded = true;
+      this.applyInvitations(invitations);
     } catch (error) {
       if (version !== this.requestVersion) return;
       this.adminKeyError =
@@ -444,6 +442,73 @@ export class AdminStore {
     } finally {
       if (version === this.requestVersion) this.dataLoading = false;
     }
+  }
+
+  private applyInvitations(invitations: Invitation[]): void {
+    this.adminInvitations = invitations;
+    this.adminConfirmedGuests = this.adminInvitations.flatMap((invitation) =>
+      invitation.guests
+        .filter((guest) => guest.attending)
+        .map((guest) => ({
+          token: invitation.token,
+          displayName: invitation.displayName,
+          guestName: guest.name,
+          updatedAt: invitation.updatedAt ?? invitation.respondedAt,
+          role: guest.role,
+          isChild: guest.isChild,
+          isAbroad: guest.isAbroad,
+          openedInvitation: invitation.openedInvitation,
+          rsvpStatus: invitation.rsvpStatus,
+        })),
+    );
+    this.adminMessages = this.adminInvitations
+      .filter((invitation) => invitation.message.trim().length > 0)
+      .map((invitation) => ({
+        token: invitation.token,
+        displayName: invitation.displayName,
+        value: invitation.message,
+        rsvpStatus: invitation.rsvpStatus,
+        updatedAt: invitation.updatedAt,
+      }));
+    this.adminSongs = this.adminInvitations
+      .filter((invitation) => invitation.song.trim().length > 0)
+      .map((invitation) => ({
+        token: invitation.token,
+        displayName: invitation.displayName,
+        value: invitation.song,
+        rsvpStatus: invitation.rsvpStatus,
+        updatedAt: invitation.updatedAt,
+      }));
+    this.adminNotes = this.adminInvitations
+      .filter((invitation) => invitation.notes.trim().length > 0)
+      .map((invitation) => ({
+        token: invitation.token,
+        displayName: invitation.displayName,
+        value: invitation.notes,
+        rsvpStatus: invitation.rsvpStatus,
+        updatedAt: invitation.updatedAt,
+      }));
+
+    const responded = this.adminInvitations.filter(
+      (invitation) => invitation.rsvpStatus !== 'pending',
+    ).length;
+    const opened = this.adminInvitations.filter(
+      (invitation) => invitation.openedInvitation,
+    ).length;
+    const guestCount = this.adminInvitations.reduce(
+      (sum, invitation) => sum + invitation.guests.length,
+      0,
+    );
+
+    this.adminStats = {
+      invitations: this.adminInvitations.length,
+      opened,
+      responded,
+      pending: this.adminInvitations.length - responded,
+      guests: guestCount,
+      confirmed: this.adminConfirmedGuests.length,
+    };
+    this.adminDataLoaded = true;
   }
 
   setAdminTab(tab: AdminTab): void {

@@ -179,4 +179,91 @@ describe('AdminStore', () => {
     expect(app.invitationEditor!.displayName).toBe('Nathalia');
     expect(app.invitationSaving).toBeFalse();
   });
+
+  it('requires confirmation and keeps the invitation when deletion is cancelled', async () => {
+    const app = TestBed.inject(AdminStore);
+    const remove = spyOn(TestBed.inject(InvitationService), 'deleteInvitation').and.resolveTo();
+    app.adminAccessGranted = true;
+    app.openInvitationDetail(sample);
+    await app.confirmInvitationDeletion();
+    app.requestInvitationDeletion();
+    expect(app.invitationDeleteConfirming).toBeTrue();
+    expect(remove).not.toHaveBeenCalled();
+    app.cancelInvitationDeletion();
+    await app.confirmInvitationDeletion();
+    expect(remove).not.toHaveBeenCalled();
+    expect(app.invitationDetail).toBe(sample);
+  });
+
+  it('waits for deletion, blocks duplicate requests and updates every list even if refresh fails', async () => {
+    const app = TestBed.inject(AdminStore);
+    const service = TestBed.inject(InvitationService);
+    const record = { ...sample, message: 'Mensaje', song: 'Canción', notes: 'Nota',
+      guests: sample.guests.map(guest => ({ ...guest, attending: true })) };
+    const list = spyOn(service, 'listInvitations').and.resolveTo([record]);
+    let finish!: () => void;
+    const remove = spyOn(service, 'deleteInvitation').and.returnValue(new Promise<void>(resolve => finish = resolve));
+    app.adminAccessGranted = true;
+    await app.refreshAdminDashboard();
+    app.openInvitationDetail(record);
+    app.requestInvitationDeletion();
+    const pending = app.confirmInvitationDeletion();
+    await app.confirmInvitationDeletion();
+    app.cancelInvitationDeletion();
+    app.closeInvitationDetail();
+    expect(remove).toHaveBeenCalledOnceWith(sample.token);
+    expect(app.invitationDeleting).toBeTrue();
+    expect(app.invitationDetail).toBe(record);
+    expect(app.adminStats.invitations).toBe(1);
+    list.and.rejectWith(new Error('Sin conexión'));
+    finish();
+    await pending;
+    expect(app.invitationDeleting).toBeFalse();
+    expect(app.invitationDetail).toBeNull();
+    expect(app.invitationDeleteConfirming).toBeFalse();
+    expect(app.adminInvitations).toEqual([]);
+    expect(app.adminConfirmedGuests).toEqual([]);
+    expect(app.adminMessages).toEqual([]);
+    expect(app.adminSongs).toEqual([]);
+    expect(app.adminNotes).toEqual([]);
+    expect(app.adminStats.invitations).toBe(0);
+    expect(app.adminStats.confirmed).toBe(0);
+    expect(app.invitationEditorSuccess).toBe('Invitación eliminada.');
+    expect(app.adminKeyError).toBe('Sin conexión');
+  });
+
+  it('preserves detail and confirmation on failure and allows retry', async () => {
+    const app = TestBed.inject(AdminStore);
+    const remove = spyOn(TestBed.inject(InvitationService), 'deleteInvitation').and.rejectWith(new Error('Sin conexión'));
+    spyOn(TestBed.inject(InvitationService), 'listInvitations').and.resolveTo([]);
+    app.adminAccessGranted = true;
+    app.openInvitationDetail(sample);
+    app.requestInvitationDeletion();
+    await app.confirmInvitationDeletion();
+    expect(app.invitationDetail).toBe(sample);
+    expect(app.invitationDeleteConfirming).toBeTrue();
+    expect(app.invitationDeleteError).toBe('Sin conexión');
+    expect(app.invitationDeleting).toBeFalse();
+    remove.and.resolveTo();
+    await app.confirmInvitationDeletion();
+    expect(app.invitationDetail).toBeNull();
+    expect(app.invitationDeleteError).toBe('');
+  });
+
+  it('ignores deletion completion after the session was cleared', async () => {
+    const app = TestBed.inject(AdminStore);
+    let finish!: () => void;
+    spyOn(TestBed.inject(InvitationService), 'deleteInvitation').and.returnValue(new Promise<void>(resolve => finish = resolve));
+    const list = spyOn(TestBed.inject(InvitationService), 'listInvitations').and.resolveTo([]);
+    app.adminAccessGranted = true;
+    app.openInvitationDetail(sample);
+    app.requestInvitationDeletion();
+    const pending = app.confirmInvitationDeletion();
+    app.clear();
+    finish();
+    await pending;
+    expect(list).not.toHaveBeenCalled();
+    expect(app.adminAccessGranted).toBeFalse();
+    expect(app.invitationDetail).toBeNull();
+  });
 });

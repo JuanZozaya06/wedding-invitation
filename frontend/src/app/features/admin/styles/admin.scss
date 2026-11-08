@@ -1055,6 +1055,44 @@
     flex-wrap: wrap;
     margin-top: 1.5rem;
   }
+
+  .invitation-modal .danger-button {
+    color: #963b53;
+    background: #fff1f3;
+    border-color: #d4a0ad;
+    &:hover:not(:disabled) {
+      background: #f8dfe6;
+      border-color: #963b53;
+    }
+    &.danger-button-solid {
+      color: #fff;
+      background: #963b53;
+      border-color: #963b53;
+      &:hover:not(:disabled) { background: #7c2e43; }
+    }
+    &:disabled { opacity: 0.6; cursor: wait; }
+  }
+
+  .invitation-delete-modal {
+    width: min(36rem, calc(100vw - 2rem));
+    padding: 1.5rem;
+    h2 {
+      margin: 0 0 1rem;
+      font-family: inherit;
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #493d53;
+    }
+    .invitation-delete-warning {
+      padding: 1rem;
+      color: #823349;
+      background: #fff1f3;
+      border-left: 3px solid #b5687d;
+      border-radius: 0.5rem;
+      line-height: 1.6;
+    }
+  }
 }
 
 @media (max-width: 1200px) {

@@ -30,7 +30,7 @@
         class="album-refresh"
         type="button"
         (click)="refresh()"
-        [disabled]="loading"
+        [disabled]="loading || deleting || deleteConfirming"
       >
         {{ loading ? "Cargando…" : "Actualizar galería" }}
       </button>
@@ -38,6 +38,9 @@
   </div>
   @if (error) {
     <p class="error" role="alert">{{ error }}</p>
+  }
+  @if (deleteSuccess) {
+    <p role="status">{{ deleteSuccess }}</p>
   }
   @if (connecting) {
     <p class="album-empty" role="status">Conectando con el álbum…</p>
@@ -50,7 +53,7 @@
           <button
             type="button"
             class="album-thumbnail"
-            [disabled]="!item.url && item.preview"
+            [disabled]="deleting || (!item.url && item.preview)"
             (click)="open(item)"
             [attr.aria-label]="
               (isVideo(item.file) ? 'Ver video de ' : 'Ver foto de ') +
@@ -67,7 +70,7 @@
             } @else {
               <span class="unavailable"
                 >{{
-                  item.preview
+                  item.deletionPending ? 'Eliminación pendiente' : item.preview
                     ? "Cargando vista previa…"
                     : "Vista previa no disponible"
                 }}<br />{{ item.file.name }}</span
@@ -87,6 +90,7 @@
                 formatDate(item.createdAt)
               }}</time>
             }
+            @if (!item.deletionPending) {
             <a
               [href]="isVideo(item.file) ? originalUrl(item) : item.url || '#'"
               [download]="item.file.name"
@@ -96,6 +100,7 @@
                 downloading === item.id ? "Descargando…" : "Descargar original"
               }}</a
             >
+            }
           </div>
         </article>
       }
@@ -121,7 +126,7 @@
     <button
       class="album-refresh"
       type="button"
-      [disabled]="loading"
+      [disabled]="loading || deleting || deleteConfirming"
       (click)="refresh(true)"
     >
       {{ loading ? "Cargando…" : "Cargar más recuerdos" }}
@@ -133,18 +138,21 @@
     #photoDialog
     class="photo-dialog"
     aria-label="Detalle de foto o video"
-    (cancel)="$event.preventDefault(); selected = null"
-    (click)="$event.target === $event.currentTarget && (selected = null)"
+    (cancel)="$event.preventDefault(); close()"
+    (click)="$event.target === $event.currentTarget && close()"
   >
     <button
       type="button"
       class="dialog-close"
       aria-label="Cerrar recuerdo"
-      (click)="selected = null"
+      (click)="close()"
+      [disabled]="deleting"
     >
       ×
     </button>
-    @if (isVideo(item.file)) {
+    @if (item.deletionPending) {
+      <p class="unavailable" role="status">La eliminación de este archivo quedó pendiente. Puedes reintentar para completarla.</p>
+    } @else if (isVideo(item.file)) {
       @if (!videoError) {
         <video
           class="full-photo"
@@ -185,6 +193,8 @@
           formatDate(item.createdAt)
         }}</time>
       }
+      <div class="media-actions">
+      @if (!item.deletionPending) {
       <a
         [href]="isVideo(item.file) ? originalUrl(item) : item.url || '#'"
         [download]="item.file.name"
@@ -193,6 +203,32 @@
           downloading === item.id ? "Descargando…" : "Descargar original"
         }}</a
       >
+      }
+      @if (!demo) {
+        <button #deleteTrigger type="button" class="media-delete-button"
+          [disabled]="deleting" (click)="requestDeletion()">
+          {{ isVideo(item.file) ? 'Eliminar video' : 'Eliminar foto' }}
+        </button>
+      }
+      </div>
     </div>
   </dialog>
+  @if (deleteConfirming) {
+    <dialog #deleteDialog class="media-delete-dialog" aria-labelledby="media-delete-title"
+      aria-describedby="media-delete-warning" [attr.aria-busy]="deleting"
+      (cancel)="$event.preventDefault(); cancelDeletion()">
+      <h2 id="media-delete-title">¿Eliminar {{ isVideo(item.file) ? 'video' : 'foto' }}?</h2>
+      <p class="media-file-name">{{ item.file.name }}</p>
+      <p id="media-delete-warning">Se eliminarán definitivamente el archivo original y su vista previa del álbum.
+        Esta acción no se puede deshacer.</p>
+      @if (deleteError) { <p class="error" role="alert">{{ deleteError }}</p> }
+      @if (deleting) { <p role="status">Eliminando archivo…</p> }
+      <div class="media-actions">
+        <button type="button" class="album-refresh" autofocus [disabled]="deleting"
+          (click)="cancelDeletion()">Cancelar</button>
+        <button type="button" class="media-delete-button media-delete-solid" [disabled]="deleting"
+          (click)="confirmDeletion()">{{ deleting ? 'Eliminando…' : 'Eliminar definitivamente' }}</button>
+      </div>
+    </dialog>
+  }
 }

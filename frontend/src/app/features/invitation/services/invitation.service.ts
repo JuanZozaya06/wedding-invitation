@@ -28,6 +28,14 @@ export class InvitationService {
   listInvitations(): Promise<Invitation[]> {
     return this.api.invitations();
   }
+  async deleteInvitation(token: string): Promise<void> {
+    await this.api.request(
+      this.api.adminPath() + '/invitations/' + encodeURIComponent(token),
+      'DELETE',
+      { confirmationToken: token },
+      true,
+    );
+  }
   async saveRsvp(token: string, rsvp: RsvpDraft): Promise<void> {
     await this.api.request(this.api.publicPath(token) + '/rsvp', 'PUT', {
       attending_guest_ids: rsvp.guests
