@@ -1055,6 +1055,22 @@
     flex-wrap: wrap;
     margin-top: 1.5rem;
   }
+  .editor-rsvp {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border: 1px solid #ded1e8;
+    border-radius: 0.75rem;
+    background: #f8f4fb;
+    legend { font-weight: 800; padding-inline: 0.4rem; }
+    p { font-size: 0.85rem; line-height: 1.5; }
+    .editor-rsvp-choice {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-block: 0.65rem;
+      input { width: 1.15rem; height: 1.15rem; flex: 0 0 auto; }
+    }
+  }
 
   .invitation-modal .danger-button {
     color: #963b53;

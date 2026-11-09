@@ -29,7 +29,7 @@
         {{
           vm.creatingInvitation
             ? "El enlace se genera automáticamente al crear el grupo."
-            : "El enlace, las respuestas y el historial se conservan. Si quitas a alguien, también se quitará su confirmación."
+            : "El enlace y el historial se conservan. Puedes actualizar el RSVP más abajo. Si quitas a alguien, también se quitará su confirmación."
         }}
       </p>
       <fieldset [disabled]="vm.invitationSaving">
@@ -127,6 +127,26 @@
         >
           Agregar invitado
         </button>
+        @if (!vm.creatingInvitation) {
+          <fieldset class="editor-rsvp">
+            <legend>Respuesta RSVP</legend>
+            <label class="editor-rsvp-choice">
+              <input type="checkbox" name="editingRsvp" [(ngModel)]="vm.editingRsvp" />
+              {{ editor.rsvpStatus === 'pending' ? 'Registrar respuesta RSVP' : 'Actualizar respuesta RSVP' }}
+            </label>
+            @if (vm.editingRsvp) {
+              <p>Marca quiénes asistirán. Los invitados sin marcar quedarán como «No asistirá». Si no marcas a nadie, se registrará que el grupo no asistirá.</p>
+              @for (guest of editor.guests; track guest.id) {
+                <label class="editor-rsvp-choice">
+                  <input type="checkbox" [name]="'attending-' + guest.id" [(ngModel)]="guest.attending" />
+                  {{ guest.name || 'Invitado sin nombre' }}
+                </label>
+              }
+            } @else {
+              <p>La respuesta actual se conservará al guardar.</p>
+            }
+          </fieldset>
+        }
         @if (vm.invitationEditorError) {
           <p class="admin-error" role="alert">{{ vm.invitationEditorError }}</p>
         }

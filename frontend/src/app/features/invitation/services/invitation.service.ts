@@ -53,6 +53,7 @@ export class InvitationService {
   async saveInvitationDetails(
     invitation: Invitation,
     creating: boolean,
+    updateRsvp = false,
   ): Promise<void> {
     const path =
       this.api.adminPath() +
@@ -64,6 +65,9 @@ export class InvitationService {
       {
         token: invitation.token,
         displayName: invitation.displayName,
+        ...(updateRsvp ? { rsvp: {
+          attending_guest_ids: invitation.guests.filter(guest => guest.attending).map(guest => guest.id),
+        } } : {}),
         guests: invitation.guests.map(
           ({ id, name, gender, role, isChild, isAbroad }) => ({
             id,

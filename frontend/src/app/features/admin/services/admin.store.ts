@@ -45,6 +45,7 @@ export class AdminStore {
     this.dataLoading = false;
     this.adminDataLoaded = false;
     this.invitationSaving = false;
+    this.editingRsvp = false;
     this.invitationDeleting = false;
     this.invitationDeleteConfirming = false;
     this.invitationDeleteError = '';
@@ -139,6 +140,7 @@ export class AdminStore {
   }
 
   creatingInvitation = false;
+  editingRsvp = false;
 
   invitationSaving = false;
 
@@ -167,6 +169,7 @@ export class AdminStore {
       this.invitationSaving || this.invitationDeleting || !this.adminAccessGranted
     ) return;
     this.creatingInvitation = !invitation;
+    this.editingRsvp = false;
     this.invitationEditorError = '';
     this.invitationEditorSuccess = '';
     this.invitationEditor = invitation
@@ -267,6 +270,7 @@ export class AdminStore {
       await this.invitationService.saveInvitationDetails(
         this.invitationEditor,
         this.creatingInvitation,
+        this.editingRsvp,
       );
       this.invitationEditorSuccess = this.creatingInvitation
         ? 'Invitación creada.'

@@ -281,6 +281,7 @@ Current behavior:
   - messages, songs, and notes
   - private photo gallery with search, thumbnail previews and original downloads
 - It supports search by group, token, or guest.
+- Editing an invitation optionally registers/updates RSVP for its individual guests. Enable the explicit RSVP option before changing attendance; ordinary detail edits preserve the latest response. Save details and RSVP atomically through the authenticated admin endpoint, preserve notes/messages/opening telemetry and audit administrator responses.
 - The invitation detail dialog includes a red delete action beside Edit. Explicit confirmation retires the invitation (`deleted_at`), removes it from every panel list/stat and disables its public link. Preserve its internal history and reserve the token; the album is independent. There is no restore action in the panel.
 - After invitation deletion, use the updated list and totals as confirmation; do not show a standalone "Invitación eliminada" success message. Preserve deletion warnings, pending states and errors.
 - The media detail dialog supports confirmed permanent deletion of the selected original and poster from storage and the `photo` row from MySQL. Incomplete deletions remain visible for retry and retain quota until both files are removed. Tests must use disposable local files and mocked Drive, never delete real wedding media for verification.
