@@ -209,7 +209,6 @@ describe('Photo administration', () => {
       expect(app.items).toEqual([]);
       expect(app.selected).toBeNull();
       expect(app.deleting).toBeFalse();
-      expect(app.deleteSuccess).toContain('eliminad');
       fixture.destroy();
     });
   }

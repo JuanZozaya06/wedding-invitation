@@ -45,6 +45,31 @@
           />
         </label>
         <p class="editor-token">Código: {{ editor.token }}</p>
+        @if (!vm.creatingInvitation) {
+          <fieldset class="editor-rsvp">
+            <legend>Respuesta RSVP</legend>
+            <label>
+              Respuesta del grupo
+              <select name="rsvpStatus" [ngModel]="vm.editorRsvpStatus"
+                (ngModelChange)="vm.selectEditorRsvp($event)">
+                <option value="pending">Sin confirmar</option>
+                <option value="accepted">Asistirán todos</option>
+                <option value="partial" [disabled]="editor.guests.length < 2">Asistirán algunos</option>
+                <option value="declined">No asistirá nadie</option>
+              </select>
+            </label>
+            @if (vm.editorRsvpStatus === 'partial') {
+              <p>Marca a las personas que asistirán.</p>
+              @for (guest of editor.guests; track guest.id) {
+                <label class="editor-rsvp-choice">
+                  <input type="checkbox" [name]="'attending-' + guest.id" [(ngModel)]="guest.attending"
+                    (ngModelChange)="vm.editingRsvp = true" />
+                  {{ guest.name || 'Invitado sin nombre' }}
+                </label>
+              }
+            }
+          </fieldset>
+        }
         @for (guest of editor.guests; track guest.id; let index = $index) {
           <fieldset class="editor-guest">
             <legend>Invitado {{ index + 1 }}</legend>
@@ -127,26 +152,6 @@
         >
           Agregar invitado
         </button>
-        @if (!vm.creatingInvitation) {
-          <fieldset class="editor-rsvp">
-            <legend>Respuesta RSVP</legend>
-            <label class="editor-rsvp-choice">
-              <input type="checkbox" name="editingRsvp" [(ngModel)]="vm.editingRsvp" />
-              {{ editor.rsvpStatus === 'pending' ? 'Registrar respuesta RSVP' : 'Actualizar respuesta RSVP' }}
-            </label>
-            @if (vm.editingRsvp) {
-              <p>Marca quiénes asistirán. Los invitados sin marcar quedarán como «No asistirá». Si no marcas a nadie, se registrará que el grupo no asistirá.</p>
-              @for (guest of editor.guests; track guest.id) {
-                <label class="editor-rsvp-choice">
-                  <input type="checkbox" [name]="'attending-' + guest.id" [(ngModel)]="guest.attending" />
-                  {{ guest.name || 'Invitado sin nombre' }}
-                </label>
-              }
-            } @else {
-              <p>La respuesta actual se conservará al guardar.</p>
-            }
-          </fieldset>
-        }
         @if (vm.invitationEditorError) {
           <p class="admin-error" role="alert">{{ vm.invitationEditorError }}</p>
         }

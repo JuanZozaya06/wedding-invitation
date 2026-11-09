@@ -228,7 +228,6 @@ describe('AdminStore', () => {
     expect(app.adminNotes).toEqual([]);
     expect(app.adminStats.invitations).toBe(0);
     expect(app.adminStats.confirmed).toBe(0);
-    expect(app.invitationEditorSuccess).toBe('');
     expect(app.adminKeyError).toBe('Sin conexión');
   });
 

@@ -66,6 +66,7 @@ export class InvitationService {
         token: invitation.token,
         displayName: invitation.displayName,
         ...(updateRsvp ? { rsvp: {
+          status: invitation.rsvpStatus,
           attending_guest_ids: invitation.guests.filter(guest => guest.attending).map(guest => guest.id),
         } } : {}),
         guests: invitation.guests.map(

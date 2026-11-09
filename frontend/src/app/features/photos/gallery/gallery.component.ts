@@ -41,7 +41,6 @@ export class GalleryComponent implements OnInit, OnDestroy {
   deleteConfirming = false;
   deleting = false;
   deleteError = '';
-  deleteSuccess = '';
   private confirmationDialog?: HTMLDialogElement;
   @ViewChild('deleteTrigger')
   private deleteTrigger?: ElementRef<HTMLButtonElement>;
@@ -74,7 +73,6 @@ export class GalleryComponent implements OnInit, OnDestroy {
     if (this.demo || !item || !this.deleteConfirming || this.deleting) return;
     this.deleting = true;
     this.deleteError = '';
-    this.deleteSuccess = '';
     try {
       await this.api.deleteMedia(item.id);
       if (this.destroyed) return;
@@ -82,8 +80,6 @@ export class GalleryComponent implements OnInit, OnDestroy {
       this.items = this.items.filter(photo => photo.id !== item.id);
       this.selected = null;
       this.deleteConfirming = false;
-      this.deleteSuccess = isVideo(item.file)
-        ? 'Video eliminado.' : 'Foto eliminada.';
       if (this.nextCursor === item.id) {
         this.nextCursor = null;
         this.deleting = false;

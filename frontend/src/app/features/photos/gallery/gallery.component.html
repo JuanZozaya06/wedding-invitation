@@ -39,9 +39,6 @@
   @if (error) {
     <p class="error" role="alert">{{ error }}</p>
   }
-  @if (deleteSuccess) {
-    <p role="status">{{ deleteSuccess }}</p>
-  }
   @if (connecting) {
     <p class="album-empty" role="status">Conectando con el álbum…</p>
   } @else if (loading && !filteredItems.length) {

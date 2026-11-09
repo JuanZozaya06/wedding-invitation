@@ -23,14 +23,16 @@ describe('Admin RSVP editing', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const root: HTMLElement = fixture.nativeElement;
-    expect(root.querySelectorAll('.editor-rsvp input').length).toBe(1);
-    root.querySelector<HTMLInputElement>('[name="editingRsvp"]')!.click();
+    expect(root.querySelectorAll('.editor-rsvp input').length).toBe(0);
+    const selector = root.querySelector<HTMLSelectElement>('[name="rsvpStatus"]')!;
+    selector.value = 'partial';
+    selector.dispatchEvent(new Event('change'));
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
     expect(store.editingRsvp).toBeTrue();
-    expect(root.querySelectorAll('.editor-rsvp input').length).toBe(3);
-    (root.querySelectorAll('.editor-rsvp input')[1] as HTMLInputElement).click();
+    expect(root.querySelectorAll('.editor-rsvp input').length).toBe(2);
+    (root.querySelectorAll('.editor-rsvp input')[0] as HTMLInputElement).click();
     await fixture.whenStable();
     expect(original.guests[0].attending).toBeFalse();
     await store.saveInvitationEditor();
@@ -50,7 +52,7 @@ describe('Admin RSVP editing', () => {
     store.openInvitationEditor(createDemoInvitation('ABC123'));
     await store.saveInvitationEditor();
     expect((request.calls.mostRecent().args[2] as any).rsvp).toBeUndefined();
-    store.editingRsvp = true;
+    store.selectEditorRsvp('declined');
     store.invitationEditor!.guests.forEach(guest => guest.attending = false);
     await store.saveInvitationEditor();
     expect((request.calls.mostRecent().args[2] as any).rsvp.attending_guest_ids).toEqual([]);
@@ -59,4 +61,21 @@ describe('Admin RSVP editing', () => {
     expect(store.editingRsvp).toBeTrue();
     expect(store.invitationSaving).toBeFalse();
   });
+  it('selects all, none or pending directly and validates partial attendance', async () => {
+    const request = spyOn(TestBed.inject(CommercialApiService), 'request').and.resolveTo([] as any);
+    const store = TestBed.inject(AdminStore);
+    store.adminAccessGranted = true;
+    store.openInvitationEditor(createDemoInvitation('ABC123'));
+    store.selectEditorRsvp('accepted');
+    expect(store.invitationEditor!.guests.every(guest => guest.attending)).toBeTrue();
+    store.selectEditorRsvp('partial');
+    await store.saveInvitationEditor();
+    expect(request).not.toHaveBeenCalled();
+    expect(store.invitationEditorError).toContain('Selecciona');
+    store.selectEditorRsvp('pending');
+    await store.saveInvitationEditor();
+    const body = request.calls.allArgs().find(args => args[1] === 'PUT')![2] as any;
+    expect(body.rsvp).toEqual({status: 'pending', attending_guest_ids: []});
+  });
+
 });

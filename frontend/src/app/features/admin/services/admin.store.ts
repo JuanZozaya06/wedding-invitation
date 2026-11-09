@@ -5,7 +5,7 @@ import {
   WeddingDetails,
 } from '../../../core/http/commercial-api.service';
 import { InvitationService } from '../../invitation/services/invitation.service';
-import { Invitation, Guest } from '../../invitation/models/invitation.model';
+import { Invitation, Guest, RsvpStatus } from '../../invitation/models/invitation.model';
 import { Router } from '@angular/router';
 import { AdminSessionService } from '../../../core/auth/admin-session.service';
 import {
@@ -124,7 +124,6 @@ export class AdminStore {
       );
       this.invitationDetail = null;
       this.invitationDeleteConfirming = false;
-      this.invitationEditorSuccess = '';
       await this.refreshAdminDashboard();
     } catch (error) {
       if (!this.adminAccessGranted) return;
@@ -141,12 +140,11 @@ export class AdminStore {
 
   creatingInvitation = false;
   editingRsvp = false;
+  editorRsvpStatus: RsvpStatus = 'pending';
 
   invitationSaving = false;
 
   invitationEditorError = '';
-
-  invitationEditorSuccess = '';
 
   invitationShareToken = '';
 
@@ -168,10 +166,10 @@ export class AdminStore {
     if (
       this.invitationSaving || this.invitationDeleting || !this.adminAccessGranted
     ) return;
+    this.editorRsvpStatus = invitation?.rsvpStatus ?? 'pending';
     this.creatingInvitation = !invitation;
     this.editingRsvp = false;
     this.invitationEditorError = '';
-    this.invitationEditorSuccess = '';
     this.invitationEditor = invitation
       ? {
           ...invitation,
@@ -257,6 +255,14 @@ export class AdminStore {
     });
   }
 
+  selectEditorRsvp(status: RsvpStatus): void {
+    this.editorRsvpStatus = status;
+    this.editingRsvp = true;
+    if (status !== 'partial') {
+      this.invitationEditor?.guests.forEach(guest => guest.attending = status === 'accepted');
+    }
+  }
+
   async saveInvitationEditor(): Promise<void> {
     if (
       !this.invitationEditor ||
@@ -264,6 +270,16 @@ export class AdminStore {
       !this.adminAccessGranted
     )
       return;
+    if (this.editingRsvp) {
+      const guests = this.invitationEditor.guests;
+      if (this.editorRsvpStatus !== 'partial') {
+        guests.forEach(guest => guest.attending = this.editorRsvpStatus === 'accepted');
+      } else if (!guests.some(guest => guest.attending) || guests.every(guest => guest.attending)) {
+        this.invitationEditorError = 'Selecciona quiénes asistirán, o elige «Asistirán todos» o «No asistirá nadie».';
+        return;
+      }
+      this.invitationEditor.rsvpStatus = this.editorRsvpStatus;
+    }
     this.invitationSaving = true;
     this.invitationEditorError = '';
     try {
@@ -272,9 +288,6 @@ export class AdminStore {
         this.creatingInvitation,
         this.editingRsvp,
       );
-      this.invitationEditorSuccess = this.creatingInvitation
-        ? 'Invitación creada.'
-        : 'Cambios guardados.';
 
       this.invitationEditor = null;
       void this.router.navigate(['/admin/invitations']);
