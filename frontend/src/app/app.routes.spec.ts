@@ -515,8 +515,8 @@ describe('Navegación por funcionalidad', () => {
         const badges = tools.querySelector<HTMLElement>('.admin-badges')!;
         const detail = actions.querySelector<HTMLButtonElement>('.invitation-detail-button')!;
         expect(detail.getAttribute('aria-label')).toContain('Ver detalle de');
-        expect(style('.invitation-detail-icon').display === 'none').toBe(width > 760);
-        expect(style('.invitation-detail-label').display === 'none').toBe(width <= 760);
+        expect(style('.invitation-detail-icon').display).not.toBe('none');
+        expect(root.querySelector('.invitation-detail-label')).toBeNull();
         expect(actions.getBoundingClientRect().right).toBeCloseTo(tools.getBoundingClientRect().right, 0);
         expect(actions.getBoundingClientRect().left).toBeGreaterThanOrEqual(group.getBoundingClientRect().left);
         if (width > 1100) {

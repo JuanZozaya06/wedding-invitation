@@ -71,7 +71,15 @@
     flex-wrap: nowrap;
   }
   .admin-group-card .admin-group-code { margin-top: 0.15rem; font-size: 0.72rem; }
-  .invitation-detail-icon { display: none; }
+  .invitation-detail-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+  }
+  .invitation-detail-icon { display: block; }
   .admin-badges {
     gap: 0.4rem;
     justify-content: flex-end;
@@ -83,7 +91,7 @@
     .admin-badges { max-width: 100%; }
   }
   @media (max-width: 760px), (pointer: coarse) {
-    .admin-edit-button, .admin-open-link { width: 44px; height: 44px; flex-basis: 44px; }
+    .admin-edit-button, .admin-open-link, .invitation-detail-button { width: 44px; height: 44px; flex-basis: 44px; }
     .invitation-detail-button, .invitation-filter-toggle, .invitation-filter-reset { min-height: 44px; }
   }
   @media (max-width: 760px) {
@@ -94,8 +102,6 @@
       border-radius: 0.7rem;
       background: #fffcf8;
     }
-    .invitation-detail-label { display: none; }
-    .invitation-detail-icon { display: block; }
     .admin-group-head { gap: 0.45rem; }
     .admin-group-tools {
       display: grid;
