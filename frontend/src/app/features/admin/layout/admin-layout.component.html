@@ -11,7 +11,7 @@
         @if (vm.activeAdminTab !== "media") {
           <div class="admin-desktop-stats"><app-admin-stats /></div>
         }
-        @if (vm.activeAdminTab !== "overview") {
+        @if (vm.activeAdminTab !== "overview" && vm.activeAdminTab !== "invitations") {
           <section class="admin-filters">
             <label class="admin-search"
               >Buscar<input

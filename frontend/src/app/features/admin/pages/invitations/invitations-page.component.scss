@@ -1,0 +1,161 @@
+:host { display: contents; }
+
+// Invitation list density is independent from dialogs and other admin sections.
+.admin-invitations-panel {
+  padding: 0.75rem;
+  .admin-panel-header { flex-wrap: wrap; }
+  .admin-panel-header .eyebrow { display: none; }
+  .invitation-list-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+  }
+  .invitation-filter-toggle, .invitation-filter-reset {
+    min-height: 36px;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid #dfcce9;
+    border-radius: 0.45rem;
+    background: #faf7fc;
+    color: #724798;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    &.is-active { background: #eee4f4; border-color: #c6a5da; }
+  }
+  .invitation-filter-options {
+    margin-top: 0.6rem;
+    padding: 0.65rem;
+    border-radius: 0.5rem;
+    background: #f8f5fa;
+    max-height: min(40dvh, 16rem);
+    overflow-y: auto;
+    .admin-filter-pills { margin-top: 0.5rem; }
+  }
+  .invitation-search-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    .admin-search { flex: 1 1 14rem; max-width: 30rem; }
+  }
+  .admin-groups-grid { gap: 0; margin-top: 0.5rem; }
+  .admin-group-card {
+    padding: 0.45rem 0.6rem;
+    border: 0;
+    border-bottom: 1px solid #e9e0ed;
+    border-radius: 0;
+    background: transparent;
+  }
+  .admin-group-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+  }
+  .admin-group-tools {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.25rem;
+    min-width: 0;
+  }
+  .admin-group-name { gap: 0.25rem 0.65rem; }
+  .invitation-detail-name { font-size: 0.95rem; line-height: 1.25; }
+  .admin-group-actions {
+    gap: 0.3rem;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+  }
+  .admin-group-card .admin-group-code { margin-top: 0.15rem; font-size: 0.72rem; }
+  .invitation-detail-icon { display: none; }
+  .admin-badges {
+    gap: 0.4rem;
+    justify-content: flex-end;
+    max-width: 21rem;
+  }
+  @media (max-width: 1100px) {
+    .admin-group-head { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
+    .admin-group-tools { flex-wrap: wrap; gap: 0.5rem 1.25rem; }
+    .admin-badges { max-width: 100%; }
+  }
+  @media (max-width: 760px), (pointer: coarse) {
+    .admin-edit-button, .admin-open-link { width: 44px; height: 44px; flex-basis: 44px; }
+    .invitation-detail-button, .invitation-filter-toggle, .invitation-filter-reset { min-height: 44px; }
+  }
+  @media (max-width: 760px) {
+    .admin-groups-grid { gap: 0.6rem; }
+    .admin-group-card {
+      padding: 0.65rem;
+      border: 1px solid #e1d5e9;
+      border-radius: 0.7rem;
+      background: #fffcf8;
+    }
+    .invitation-detail-label { display: none; }
+    .invitation-detail-icon { display: block; }
+    .admin-group-head { gap: 0.45rem; }
+    .admin-group-tools {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.45rem;
+      width: 100%;
+    }
+    .admin-badges {
+      justify-content: flex-start;
+      gap: 0.3rem;
+    }
+    .admin-group-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.3rem;
+      width: 100%;
+      > button, > a {
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+      }
+      .invitation-detail-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+    }
+    .admin-panel-header { gap: 0.4rem; }
+    .admin-panel-header h3 { font-size: 0.9rem; }
+    .invitation-list-tools { gap: 0.4rem; }
+  }
+}
+.admin-copy-toast {
+  position: fixed;
+  z-index: 100;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: max-content;
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #d8c4e4;
+  border-radius: 0.75rem;
+  background: #51315e;
+  color: #fff;
+  box-shadow: 0 4px 18px #3e2d4826;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  button {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 0.4rem;
+    color: inherit;
+    background: transparent;
+    font-size: 1.4rem;
+    cursor: pointer;
+  }
+}

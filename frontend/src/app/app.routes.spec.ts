@@ -387,6 +387,7 @@ describe('Navegación por funcionalidad', () => {
     it(`muestra la actividad del resumen sin buscador a ${width}x${height}`, async () => {
       const root = await go('/admin');
       expect(root.querySelector('input[name="adminSearchTerm"]')).toBeNull();
+      const originalParent = root.parentNode!;
       const frame = document.createElement('iframe');
       frame.style.cssText = `width:${width}px;height:${height}px;border:0`;
       document.body.appendChild(frame);
@@ -427,12 +428,17 @@ describe('Navegación por funcionalidad', () => {
         expect(doc.documentElement.scrollWidth).toBeLessThanOrEqual(width);
         expect(doc.documentElement.scrollHeight).toBeLessThanOrEqual(height);
       } finally {
+        originalParent.appendChild(root);
         frame.remove();
       }
       await go('/admin/invitations');
+      expect(harness.routeNativeElement!.querySelector('#invitation-filter-options input')).toBeNull();
+      harness.routeNativeElement!.querySelector<HTMLButtonElement>('.invitation-filter-toggle')!.click();
+      await harness.fixture.whenStable();
+      harness.detectChanges();
       expect(
         harness.routeNativeElement!.querySelector(
-          'input[name="adminSearchTerm"]',
+          '#invitation-filter-options input',
         ),
       ).not.toBeNull();
     });
@@ -503,9 +509,47 @@ describe('Navegación por funcionalidad', () => {
         expect(iconStyle.backgroundColor).toBe('rgba(0, 0, 0, 0)');
         expect(style('.admin-desktop-actions').display === 'none').toBe(mobile);
         const list = root.querySelector<HTMLElement>('.admin-groups-grid')!;
+        const group = root.querySelector<HTMLElement>('.admin-group-card')!;
+        const tools = group.querySelector<HTMLElement>('.admin-group-tools')!;
+        const actions = tools.querySelector<HTMLElement>('.admin-group-actions')!;
+        const badges = tools.querySelector<HTMLElement>('.admin-badges')!;
+        const detail = actions.querySelector<HTMLButtonElement>('.invitation-detail-button')!;
+        expect(detail.getAttribute('aria-label')).toContain('Ver detalle de');
+        expect(style('.invitation-detail-icon').display === 'none').toBe(width > 760);
+        expect(style('.invitation-detail-label').display === 'none').toBe(width <= 760);
+        expect(actions.getBoundingClientRect().right).toBeCloseTo(tools.getBoundingClientRect().right, 0);
+        expect(actions.getBoundingClientRect().left).toBeGreaterThanOrEqual(group.getBoundingClientRect().left);
+        if (width > 1100) {
+          expect(actions.getBoundingClientRect().left - badges.getBoundingClientRect().right).toBeGreaterThanOrEqual(16);
+        }
+        if (width <= 760) {
+          expect(parseFloat(frame.contentWindow!.getComputedStyle(group).borderRadius)).toBeGreaterThan(0);
+          expect(parseFloat(frame.contentWindow!.getComputedStyle(list).rowGap)).toBeGreaterThanOrEqual(8);
+          expect(actions.querySelector('button')!.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+          expect(frame.contentWindow!.getComputedStyle(badges).justifyContent).toBe('flex-start');
+          const buttons = Array.from(actions.children);
+          const widths = buttons.map(button => button.getBoundingClientRect().width);
+          expect(Math.max(...widths) - Math.min(...widths)).toBeLessThan(1);
+          expect(actions.getBoundingClientRect().top).toBeGreaterThanOrEqual(badges.getBoundingClientRect().bottom);
+          expect(buttons[0].getBoundingClientRect().left).toBeCloseTo(tools.getBoundingClientRect().left, 0);
+        }
+        expect(root.querySelector('#invitation-filter-options')).toBeNull();
+        if (width >= 1200) {
+          expect(root.querySelector('.admin-group-card')!.getBoundingClientRect().height).toBeLessThan(85);
+        }
         expect(list.scrollHeight).toBeGreaterThan(list.clientHeight);
         expect(doc.documentElement.scrollWidth).toBeLessThanOrEqual(width);
         expect(doc.documentElement.scrollHeight).toBeLessThanOrEqual(height);
+        const filterToggle = root.querySelector<HTMLButtonElement>('.invitation-filter-toggle')!;
+        filterToggle.click();
+        await harness.fixture.whenStable();
+        harness.detectChanges();
+        expect(root.querySelector('#invitation-filter-options')).not.toBeNull();
+        expect(doc.documentElement.scrollWidth).toBeLessThanOrEqual(width);
+        expect(doc.documentElement.scrollHeight).toBeLessThanOrEqual(height);
+        filterToggle.click();
+        await harness.fixture.whenStable();
+        harness.detectChanges();
         if (mobile) {
           root.querySelector<HTMLButtonElement>('#admin-menu-toggle')!.click();
           harness.detectChanges();

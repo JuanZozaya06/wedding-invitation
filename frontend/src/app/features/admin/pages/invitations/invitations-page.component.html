@@ -1,70 +1,90 @@
-<section class="admin-filters admin-filters-compact">
-  <div class="admin-filter-pills">
-    <button
-      type="button"
-      [class.is-active]="vm.activeInvitationFilter === 'all'"
-      (click)="vm.setInvitationFilter('all')"
-    >
-      Todas
-    </button>
-    <button
-      type="button"
-      [class.is-active]="vm.activeInvitationFilter === 'opened'"
-      (click)="vm.setInvitationFilter('opened')"
-    >
-      Abiertas
-    </button>
-    <button
-      type="button"
-      [class.is-active]="vm.activeInvitationFilter === 'unopened'"
-      (click)="vm.setInvitationFilter('unopened')"
-    >
-      No abiertas
-    </button>
-    <button
-      type="button"
-      [class.is-active]="vm.activeInvitationFilter === 'responded'"
-      (click)="vm.setInvitationFilter('responded')"
-    >
-      Respondidas
-    </button>
-    <button
-      type="button"
-      [class.is-active]="vm.activeInvitationFilter === 'pending'"
-      (click)="vm.setInvitationFilter('pending')"
-    >
-      Pendientes
-    </button>
-    <button
-      type="button"
-      [class.is-active]="vm.activeInvitationFilter === 'with-children'"
-      (click)="vm.setInvitationFilter('with-children')"
-    >
-      Con ni&ntilde;os
-    </button>
-    <button
-      type="button"
-      [class.is-active]="vm.activeInvitationFilter === 'abroad'"
-      (click)="vm.setInvitationFilter('abroad')"
-    >
-      Exterior
-    </button>
-  </div>
-</section>
 <section
   [attr.aria-busy]="vm.adminLoading"
   class="admin-panels admin-panels-single"
 >
-  <article class="admin-panel">
+  <article class="admin-panel admin-invitations-panel">
     <div class="admin-panel-header">
       <div>
         <p class="eyebrow">Invitaciones</p>
         <h3>Detalle por grupo</h3>
       </div>
-      @if (vm.adminDataLoaded && !vm.adminKeyError && !vm.adminLoading) {
-        <span>{{ vm.filteredAdminInvitations.length }} grupos</span>
-      }
+      <div class="invitation-list-tools">
+        @if (vm.adminDataLoaded && !vm.adminKeyError && !vm.adminLoading) {
+          <span>{{ vm.filteredAdminInvitations.length }} grupos</span>
+        }
+        <button type="button" class="invitation-filter-toggle"
+          [class.is-active]="activeFilterCount > 0" [attr.aria-expanded]="filtersExpanded"
+          aria-controls="invitation-filter-options" (click)="filtersExpanded = !filtersExpanded">
+          {{ filtersExpanded ? 'Ocultar filtros' : 'Filtros' }}
+          @if (activeFilterCount) { <span>({{ activeFilterCount }})</span> }
+        </button>
+      </div>
     </div>
+
+    @if (filtersExpanded) {
+      <section id="invitation-filter-options" class="invitation-filter-options" aria-label="Filtros de invitaciones">
+        <div class="invitation-search-row">
+          <label class="admin-search">Buscar
+            <input name="adminSearchTerm" type="search" [(ngModel)]="vm.adminSearchTerm"
+              placeholder="Grupo, token o invitado" />
+          </label>
+          @if (activeFilterCount) {
+            <button type="button" class="invitation-filter-reset" (click)="clearFilters()">Limpiar filtros</button>
+          }
+        </div>
+          <div class="admin-filter-pills">
+            <button
+              type="button"
+              [class.is-active]="vm.activeInvitationFilter === 'all'"
+              (click)="vm.setInvitationFilter('all')"
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              [class.is-active]="vm.activeInvitationFilter === 'opened'"
+              (click)="vm.setInvitationFilter('opened')"
+            >
+              Abiertas
+            </button>
+            <button
+              type="button"
+              [class.is-active]="vm.activeInvitationFilter === 'unopened'"
+              (click)="vm.setInvitationFilter('unopened')"
+            >
+              No abiertas
+            </button>
+            <button
+              type="button"
+              [class.is-active]="vm.activeInvitationFilter === 'responded'"
+              (click)="vm.setInvitationFilter('responded')"
+            >
+              Respondidas
+            </button>
+            <button
+              type="button"
+              [class.is-active]="vm.activeInvitationFilter === 'pending'"
+              (click)="vm.setInvitationFilter('pending')"
+            >
+              Pendientes
+            </button>
+            <button
+              type="button"
+              [class.is-active]="vm.activeInvitationFilter === 'with-children'"
+              (click)="vm.setInvitationFilter('with-children')"
+            >
+              Con ni&ntilde;os
+            </button>
+            <button
+              type="button"
+              [class.is-active]="vm.activeInvitationFilter === 'abroad'"
+              (click)="vm.setInvitationFilter('abroad')"
+            >
+              Exterior
+            </button>
+          </div>
+      </section>
+    }
 
     @if (vm.adminLoading) {
       <p class="admin-empty admin-loading" role="status">
@@ -95,6 +115,30 @@
                   >
                     {{ invitation.displayName }}
                   </button>
+
+                </div>
+                <p class="admin-group-code">
+                  Código <code>{{ invitation.token }}</code> ·
+                  {{ invitation.guests.length }}
+                  {{
+                    invitation.guests.length === 1 ? "invitado" : "invitados"
+                  }}
+                </p>
+
+              </div>
+              <div class="admin-group-tools">
+              <div class="admin-badges">
+                <app-attendance-status [status]="invitation.rsvpStatus" />
+                @if (invitation.openedInvitation) {
+                  <span>Abierta</span>
+                }
+                @if (invitation.hasChildren) {
+                  <span>Con ni&ntilde;os</span>
+                }
+                @if (invitation.hasAbroadGuests) {
+                  <span>Exterior</span>
+                }
+              </div>
                   <div class="admin-group-actions">
                     <button
                       class="admin-edit-button"
@@ -153,7 +197,7 @@
                     <button
                       class="admin-edit-button"
                       type="button"
-                      (click)="vm.copyInvitationLink(invitation.token)"
+                      (click)="copyLink(invitation.token)"
                       title="Compartir: copiar enlace"
                       [attr.aria-label]="
                         'Copiar enlace de la invitación de ' +
@@ -181,36 +225,19 @@
                     <button
                       type="button"
                       class="invitation-detail-button"
+                      [attr.aria-label]="'Ver detalle de ' + invitation.displayName"
+                      title="Ver detalle"
                       (click)="vm.openInvitationDetail(invitation)"
                     >
-                      Ver detalle
+                      <span class="invitation-detail-label">Ver detalle</span>
+                      <svg class="invitation-detail-icon" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
                     </button>
                   </div>
-                </div>
-                <p class="admin-group-code">
-                  Código <code>{{ invitation.token }}</code> ·
-                  {{ invitation.guests.length }}
-                  {{
-                    invitation.guests.length === 1 ? "invitado" : "invitados"
-                  }}
-                </p>
-                <span class="admin-share-status" role="status">{{
-                  vm.invitationShareToken === invitation.token
-                    ? vm.invitationShareMessage
-                    : ""
-                }}</span>
-              </div>
-              <div class="admin-badges">
-                <app-attendance-status [status]="invitation.rsvpStatus" />
-                @if (invitation.openedInvitation) {
-                  <span>Abierta</span>
-                }
-                @if (invitation.hasChildren) {
-                  <span>Con ni&ntilde;os</span>
-                }
-                @if (invitation.hasAbroadGuests) {
-                  <span>Exterior</span>
-                }
               </div>
             </div>
           </article>
@@ -219,3 +246,10 @@
     }
   </article>
 </section>
+
+@if (vm.invitationShareMessage) {
+  <div class="admin-copy-toast" role="status" aria-live="polite" aria-atomic="true">
+    <span>{{ vm.invitationShareMessage }}</span>
+    <button type="button" aria-label="Cerrar aviso" (click)="dismissFeedback()">×</button>
+  </div>
+}
